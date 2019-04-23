@@ -19,6 +19,8 @@ mySwitchButton::mySwitchButton(QWidget *parent): QPushButton(parent)
 
 void mySwitchButton::ChangeOnOff()
 {
+    
+    qDebug()<<QString("ChangeOnOff");
     if (isCheck){
         setStyleSheet(styleOff);
         isCheck = false;
@@ -31,10 +33,11 @@ void mySwitchButton::ChangeOnOff()
 //设置当前选中状态
 void mySwitchButton::SetCheck(bool isCheck)
 {
-    qDebug()<<QString("this->isCheck:%1,isCheck:%2").arg(this->isCheck).arg(isCheck);
+    qDebug()<<QString("start this->isCheck:%1,isCheck:%2").arg(this->isCheck).arg(isCheck);
     if (this->isCheck != isCheck)
     {
         this->isCheck = !isCheck;
+        qDebug()<<QString("init ChangeOnOff");
         ChangeOnOff();
     }else{
         if(this->isCheck){
@@ -43,5 +46,5 @@ void mySwitchButton::SetCheck(bool isCheck)
             setStyleSheet(styleOff);
         }
     }
-    qDebug()<<QString("this->isCheck:%1,isCheck:%2").arg(this->isCheck).arg(isCheck);
+    qDebug()<<QString("stop this->isCheck:%1,isCheck:%2").arg(this->isCheck).arg(isCheck);
 }

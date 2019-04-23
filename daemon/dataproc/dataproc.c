@@ -296,6 +296,7 @@ int main(int argc, char* argv[])
 	/*共享内存*/
 	DEBUG_PRINT_INFO(gPrintLevel, "getParaShm start\n");
 	pgPara = (pstPara)getParaShm();
+    pgPara->GeneralPara.AlarmTime = 60;
     //DEBUG_PRINT_INFO(gPrintLevel, "getPollutantDataShm start\n");
     //pgPollutantData = (pstPollutantData)getPollutantDataShm();
 	/*消息队列*/

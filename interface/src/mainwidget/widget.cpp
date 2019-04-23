@@ -9,12 +9,12 @@ Description:总量控制器--主界面功能的实现
 **************************************************/
 #include "widget.h"
 #include "ui_widget.h"
-#include "iconhelper.h"
+//#include "iconhelper.h"
 #include <QKeyEvent>
 #include <QToolButton>
 #include <QThread>
 #include <QDebug>
-#include "control.h"
+//#include "control.h"
 #include "myhelper.h"
 #include "myapp.h"
 
@@ -23,15 +23,15 @@ Description:总量控制器--主界面功能的实现
 #include "flowrtdwidget.h"          //流量
 #include "codrtdwidget.h"          //COD
 #include "phrtdwidget.h"          //PH
-//#include "bedroomwidget.h"          //卧室
 #include "valvewidget.h"          //厨房
 #include "statisticwidget.h"        //统计界面
-//#include "curtainwidget.h"          //窗帘界面
-//#include "savedatathread.h"
-//#include "nightwidget.h"            //夜间模式
-//#include "securitywidget.h"         //安防监控界面
 #include "modelchoosewidget.h"      //模式选择控制界面
-//#include "musicwidget.h"            //音乐播放界面
+
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -42,7 +42,8 @@ Widget::Widget(QWidget *parent) :
     this->initForm();
 	this->initWidget();
     this->initToolTip();
-    
+    blk_time = 120;
+    system("echo 0 > /sys/class/backlight/backlight/brightness");
 }
 
 Widget::~Widget()
@@ -65,7 +66,7 @@ void Widget::initForm()
     //设置窗体标题栏隐藏
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint
                          | Qt::WindowMinMaxButtonsHint);
-    this->setWindowTitle(tr("SmartHome System"));
+    this->setWindowTitle(tr("总量控制器"));
     //this->setWindowState(Qt::WindowFullScreen);
     //顶部设置和首页的样式
     setToolButtonStyle(ui->tbnSetting,"设置",E_NORMAL,":/images/tool/setting_normal.png");
@@ -107,15 +108,9 @@ void Widget::initWidget()
     m_flowrtdWidget = new FlowRtdwidget;              //流量
     m_codrtdWidget = new CODRtdwidget;              //COD
     m_phrtdWidget = new PHRtdwidget;              //PH
-    //m_bedRoomWidget = new BedRoomWidget;              //卧室
     m_valveWidget = new ValveWidget;              //厨房
     //m_statisticWidget = new StatisticWidget;          //统计
-//    m_entertainmentWidget = new EntertainmentWidget;  //娱乐
-//    m_nightWidget = new NightWidget;                  //夜间模式
-//    m_securityWidget = new SecurityWidget;            //安防监控界面
-    //m_curtainWidget= new CurtainWidget;               //窗帘界面
     m_modelWidget = new ModelChooseWidget;            //模式控制界面
-//    m_musicPlayWidget = new MusicWidget;              //音乐播放界面
 
     //m_menuWidget = new MenuWidget(this);
     //ui->tbnSetting->setMenu(m_menuWidget);
@@ -129,15 +124,9 @@ void Widget::initWidget()
     ui->stackedWidget->addWidget(m_flowrtdWidget);
     ui->stackedWidget->addWidget(m_codrtdWidget);
     ui->stackedWidget->addWidget(m_phrtdWidget);
-//    ui->stackedWidget->addWidget(m_entertainmentWidget);
-    //ui->stackedWidget->addWidget(m_bedRoomWidget);
     ui->stackedWidget->addWidget(m_valveWidget);
     //ui->stackedWidget->addWidget(m_statisticWidget);
-//    ui->stackedWidget->addWidget(m_nightWidget);
-//    ui->stackedWidget->addWidget(m_securityWidget);
-    //ui->stackedWidget->addWidget(m_curtainWidget);
     ui->stackedWidget->addWidget(m_modelWidget);
-//    ui->stackedWidget->addWidget(m_musicPlayWidget);
 }
 void Widget::initConnect()
 {
@@ -178,14 +167,7 @@ void Widget::deletWidget()
         delete m_phrtdWidget;
         m_phrtdWidget = NULL;
     }
-//    if (m_entertainmentWidget != NULL){
-//        delete m_entertainmentWidget;
-//        m_entertainmentWidget = NULL;
-//    }
-//    if (m_bedRoomWidget != NULL){
-//        delete m_bedRoomWidget;
-//        m_bedRoomWidget = NULL;
-//    }
+
     if (m_valveWidget != NULL){
         delete m_valveWidget;
         m_valveWidget = NULL;
@@ -194,20 +176,13 @@ void Widget::deletWidget()
 //        delete m_statisticWidget;
 //        m_statisticWidget = NULL;
 //    }
-//    if (m_securityWidget != NULL){
-//        delete m_securityWidget;
-//        m_securityWidget = NULL;
-//    }
+
     if (m_modelWidget != NULL)
     {
         delete m_modelWidget;
         m_modelWidget = NULL;
     }
-//    if (m_saveDataThread != NULL)
-//    {
-//        delete m_saveDataThread;
-//        m_saveDataThread = NULL;
-//    }
+
 }
 //显示当前的日期和时间
 void Widget::slotShowCurrentDataTime()
@@ -217,6 +192,13 @@ void Widget::slotShowCurrentDataTime()
     ui->label_sec->setText(QTime::currentTime().toString("ss"));
     ui->label_data->setText(QDate::currentDate().toString("yyyy年MM月dd日"));
     ui->label_week->setText(QDate::currentDate().toString("dddd"));
+
+    if(blk_time > 0){
+        blk_time--;
+    }
+    if(0 == blk_time){
+        system("echo 8 > /sys/class/backlight/backlight/brightness");
+    }
 }
 
 /**
@@ -292,11 +274,15 @@ void Widget::on_tbnModel_clicked()
 
 void Widget::on_tbnUser_clicked()
 {
-    //this->setCurrentWidget(E_RTD_WIDGET);
-    //m_loginDialog->exec();
-    m_frmlogin = new frmlogin;
-    //m_frmconfig->showFullScreen();
-    m_frmlogin->show();
+    if(Myapp::UserType>0){
+        if(myHelper::showMessageBoxQusetion(QString("%1用户已登陆，是否切换\n用户").arg(Myapp::UserName))){
+            Myapp::UserType = 0;
+        }
+    }
+    if(0 == Myapp::UserType){
+        m_frmlogin = new frmlogin;
+        m_frmlogin->show();
+    }
 }
 
 void Widget::on_tbnNull_clicked()
@@ -326,15 +312,30 @@ void Widget::on_tbnSafety_clicked()
 
 void Widget::on_tbnSetting_clicked()
 {
-    //this->setCurrentWidget(E_RTD_WIDGET);
-    qDebug()<<"creat";
-    m_frmconfig = new frmconfig;
-    //m_frmconfig->showFullScreen();
-    m_frmconfig->show();
-    qDebug()<<"quit";
+    if(Myapp::UserType > QY_USER){  //用户已登陆
+        m_frmconfig = new frmconfig;
+        m_frmconfig->show();
+    }else{
+        myHelper::showMessageBoxInfo("请登陆管理员账户");
+    }
 }
 
 void Widget::on_tbnHome_clicked()
 {
     ui->stackedWidget->setCurrentIndex(E_HOME_WIDGET);
 }
+
+void Widget::mousePressEvent(QMouseEvent *e)
+{
+    //qDebug()<<QString("mousePressEvent:%1").arg(e->button());
+    if (e->button() == Qt::LeftButton)
+    {
+        if(0 == blk_time){
+            system("echo 0 > /sys/class/backlight/backlight/brightness");
+        }
+        blk_time = 120;
+    }
+}
+
+
+

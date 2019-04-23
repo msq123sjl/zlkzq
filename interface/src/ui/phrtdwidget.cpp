@@ -11,9 +11,18 @@ Description:总量控制器--PH界面功能的实现
 #include "ui_phrtdwidget.h"
 
 #include <QDebug>
-
-#include "control.h"
+#include<QTimer>
+//#include "control.h"
 #include "myapp.h"
+
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
+extern pstPara pgPara;
+extern pstPollutantData pgPollutantData;
+extern pstPollutantPara pgPollutantPara;
 
 PHRtdwidget::PHRtdwidget(QWidget *parent) :
     QWidget(parent),
@@ -32,6 +41,10 @@ PHRtdwidget::~PHRtdwidget()
 }
 
 void PHRtdwidget::initForm()
+{
+}
+
+void PHRtdwidget::init()
 {
     ui->label_cou->setText(tr("--"));
     ui->label_cur_day->setText(tr("--"));
@@ -53,16 +66,24 @@ void PHRtdwidget::initForm()
     ui->label_unit_9->setText(tr(""));
 }
 
-void PHRtdwidget::init()
-{
-}
-
 //初始化信号和槽的连接
 void PHRtdwidget::initConnect()
 {
+    this->InitShowData();
 }
 
+void PHRtdwidget::InitShowData()
+{
+    m_timer = new QTimer(this);
+    connect(m_timer,SIGNAL(timeout()),
+            this,SLOT(slotShowCurrentData()));
+    m_timer->start(5000);
+}
 
+void PHRtdwidget::slotShowCurrentData()
+{
+    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_PH_INDEX].rtd));
+}
 
 
 

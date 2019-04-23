@@ -105,7 +105,7 @@ border-image: url(:/images/登录背景.bmp);
      </size>
     </property>
    </widget>
-   <widget class="QLineEdit" name="txtUserName">
+   <widget class="QComboBox" name="comboBox_name">
     <property name="geometry">
      <rect>
       <x>210</x>
@@ -114,6 +114,21 @@ border-image: url(:/images/登录背景.bmp);
       <height>30</height>
      </rect>
     </property>
+    <item>
+     <property name="text">
+      <string>user</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>sws</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>admin</string>
+     </property>
+    </item>
    </widget>
   </widget>
  </widget>

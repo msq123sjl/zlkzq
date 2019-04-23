@@ -26,14 +26,17 @@ public:
     explicit CODRtdwidget(QWidget *parent = 0);
     ~CODRtdwidget();
 
-private:
+private slots:
+    void slotShowCurrentData();
 
-    void initForm();
-    void init();
-    void initConnect();
 
 private:
     Ui::CODRtdwidget *ui;
+    QTimer *m_timer;
+    void initForm();
+    void init();
+    void initConnect();
+    void InitShowData();
 };
 
 #endif // PARLOURWIDGET_H

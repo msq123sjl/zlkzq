@@ -23,7 +23,7 @@
 #define CODE_LEN        6
 #define UNIT_LEN        6
 
-#define USER_NAME_LEN   10
+//#define USER_NAME_LEN   10
 #define USER_PWD_LEN    20
 
 #define UART_DEVNAME_LEN 12
@@ -31,12 +31,19 @@
 #define METER_CNT   32
 #define SERIAL_CNT  6
 #define SITE_CNT    4
-#define USER_CNT    8
+#define USER_CNT    3
+
+#define QY_USER  1
+#define GLY_USER 2
+#define SUPER_USER 3
 
 #define SYSTEMTIME_LEN     15
 #define DATATIME_LEN     15
 
 #define POLLUTANT_CNT     3
+#define POLLUTANT_FLOW_INDEX     0
+#define POLLUTANT_COD_INDEX     1
+#define POLLUTANT_PH_INDEX     2
 
 
 #define 	MAX_FILENAME_SIZE 	256
@@ -59,7 +66,7 @@ typedef struct _PollutantPara{
 
 typedef struct _GeneralPara
 {
-    u_char    MN[MN_LEN]; 
+    char    MN[MN_LEN];
 	u_char    PW[PW_LEN];
     //uint16_t  RtdInterval;            //实时数据间隔（s）
     //uint8_t   MinInterval;            //分钟数据间隔（min）
@@ -119,6 +126,7 @@ typedef struct _IOPara
 {
     volatile int    Out_drain_open;         //开排水阀
     volatile int    Out_drain_close;        //关排水阀
+    volatile int    Out_drain_common;        //排水阀总开关
     //volatile int    Out_catchment_open;     //开集水阀
     //volatile int    Out_catchment_close;    //关集水阀
     //volatile int    Out_reflux_control;     //回流泵控制
@@ -138,29 +146,30 @@ typedef struct _SitePara
     uint8_t   isConnected;  
     uint8_t   SiteNum;
     uint16_t  ServerPort; //服务器端口
-    u_char  ServerIp[16];   //服务器IP地址
+    char  ServerIp[16];   //服务器IP地址
 }stSitePara,*pstSitePara;
 
 typedef struct _UserPara
 {
-    uint8_t   UserType;       //用户类型
-    u_char  UserName[USER_NAME_LEN];
-    u_char  UserPwd[USER_PWD_LEN];
+    uint8_t   UserType;       //用户类型       1:企业用户      2：管理员 3：超级用户 
+    int  UserPwd;
 }stUserPara,*pstUserPara;
 
 typedef struct _Para
 {
+    uint8_t               Mode;             //0:远程模式   1:运维模式
     stGeneralPara   GeneralPara; 
     //stMeterPara     MeterPara[METER_CNT];
     stSerialPara    SerialPara[SERIAL_CNT];
     stIOPara        IOPara;
     stSitePara      SitePara[SITE_CNT]; 
-    //stUserPara      UserPara[USER_CNT];
+    stUserPara      UserPara[USER_CNT];
 }stPara,*pstPara;
 
 typedef struct _ValveControl
 {
     uint8_t     per;
+    uint8_t     per_measure;
     uint8_t     per_last;
     uint8_t     channel;                   //模拟通道
     uint8_t     OutMode;                   //0:模拟量 1:开关量

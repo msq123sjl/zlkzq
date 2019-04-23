@@ -5,18 +5,13 @@
 class QToolButton;
 
 class frmconfig;
-class SystemSettingDialog;
 class FlowRtdwidget;
 class CODRtdwidget;
 class PHRtdwidget;
-class BedRoomWidget;
 class ValveWidget;
-//class NightWidget;
-class CurtainWidget;
 class ModelChooseWidget;
 
-class StatisticWidget;
-class LoginDialog;
+//class StatisticWidget;
 class frmlogin;
 
 namespace Ui {
@@ -34,16 +29,7 @@ class Widget : public QWidget
         E_COD_WIDGET,             //COD
         E_PH_WIDGET,              //PH
         E_VALVE_WIDGET,       //阀门控制
-        E_MODEL_WIDGET,           //模式
-        E_BED_WIDGET,
-
-        E_STATISTIC_WIDGET,     //统计
-         E_SETTING_WIDGET,              //设置
-
-        E_ADDA_WIDGET,           //校准
-        E_USER_WIDGET,             //用户
-        E_NULL_WIDGET,          //
-        E_SAFETY_WIDGET              //安防
+        E_MODEL_WIDGET        //模式
     };
     enum E_TEXTSIZE{
         E_NORMAL = 0,
@@ -89,19 +75,16 @@ private:
     FlowRtdwidget *m_flowrtdWidget;                 //流量界面
     CODRtdwidget *m_codrtdWidget;                 //COD界面
     PHRtdwidget *m_phrtdWidget;                 //PH界面
-    //BedRoomWidget *m_bedRoomWidget;                 //卧室界面
     ValveWidget *m_valveWidget;                 //厨房界面
     //StatisticWidget *m_statisticWidget;             //统计界面
-//    EntertainmentWidget *m_entertainmentWidget;     //娱乐界面
-//    NightWidget *m_nightWidget;                     //夜间界面
-//    SecurityWidget *m_securityWidget;               //安防监控界面
-    //CurtainWidget *m_curtainWidget;                 //窗帘界面
+
     ModelChooseWidget *m_modelWidget;               //模式选择控制界面
-//    MusicWidget *m_musicPlayWidget;                 //音乐播放界面
     frmlogin *m_frmlogin;
 
-    QTimer *m_timer;
 
+    QTimer *m_timer;
+    int blk_time;
+        
     void initDataTime();
     void initForm();
     void setToolButtonStyle(QToolButton *tbn, const QString &text, int textSize, const QString iconName);  //设置按钮样式
@@ -110,6 +93,10 @@ private:
     void initToolTip();
     void deletWidget();
     void startAnimation();
+
+protected:
+    void mousePressEvent(QMouseEvent *);
+
 };
 
 #endif // WIDGET_H

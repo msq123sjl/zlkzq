@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
 	int iLoop;
 	//DEBUG_PRINT_INFO(gPrintLevel,"== port = %d\n", atoi(argv[1]));
     pgPara = (pstPara)getParaShm();
-	pgPara->GeneralPara.AlarmTime = 1001;
 	DEBUG_PRINT_INFO(gPrintLevel,"== AlarmTime = %d\n", pgPara->GeneralPara.AlarmTime);
     DEBUG_PRINT_INFO(gPrintLevel, "getValveParaShm start\n");
     pgValveControl = (pstValveControl)getValveParaShm();
@@ -70,7 +69,7 @@ int main(int argc, char *argv[])
     DEBUG_PRINT_INFO(gPrintLevel, "getPollutantParaShm end\n");
 
     /*测试临时用*/
-    pgPara->SitePara[0].ServerOpen   = 1;
+    //pgPara->SitePara[0].ServerOpen   = 1;
 
     wait_for_serveropen_set();
     /*消息队列*/

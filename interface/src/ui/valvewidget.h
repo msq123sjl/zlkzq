@@ -46,13 +46,14 @@ private:
     void init();
     void initConnect();
     void InitUpdataTime();
-    void refreshValveValue();
+    void refreshValveValue(int SetValue);
 
     //设置按钮样式
     void setToolButtonStyle(QToolButton*tbn, const QString &text,
                             const QString iconName);
     QTimer *m_timer;
 
+    void InitValveControl();
 };
 
 #endif // KITCHENWIDGET_H

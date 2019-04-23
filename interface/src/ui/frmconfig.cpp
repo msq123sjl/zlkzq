@@ -2,21 +2,24 @@
 #include "ui_frmconfig.h"
 #include <QDateTime>
 #include <QDebug>
+#include "myhelper.h"
+#include "myapp.h"
+
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
+extern pstPara pgPara;
 
 frmconfig::frmconfig(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::frmconfig)
 {
     ui->setupUi(this);  
-    //myHelper::FormInCenter(this,800,480);//窗体居中显示
-
-        int frmX=this->width();
-        int frmY=this->height();
-        QPoint movePoint(800/2-frmX/2,480/2-frmY/2);
-        this->move(movePoint);
+    myHelper::FormInCenter(this,Myapp::DeskWidth,Myapp::DeskHeigth);//窗体居中显示
     this->InitStyle();                          //
     this->InitForm();                         //
-
 }
 
 frmconfig::~frmconfig()
@@ -34,20 +37,26 @@ void frmconfig::InitStyle()
 
 void frmconfig::InitForm()
 {
-    ui->stackedWidget_config->setCurrentIndex(0);
-    //加载配置文件对应界面展示信息
-    //基本设置
+    //DTU功能配置
+    ui->label_43->hide();
+    ui->btn_com3ToServerOpen->hide();
 
-    //用户设置
-
-
-
-//切换到常规设置界面
+    ui->btn_parameter->setEnabled(false);
+    ui->btn_user->setEnabled(false);
+    on_btn_general_clicked();
 }
 void frmconfig::on_btn_general_clicked()
 {
     //基本设置
-
+    //initParaShm();
+    qDebug()<<QString("MN:%1 OverTime:%2 ReCount%3").arg(pgPara->GeneralPara.MN).arg(pgPara->GeneralPara.OverTime).arg(pgPara->GeneralPara.ReCount);
+    qDebug()<<QString("AlarmTime:%1 StType:%2 RespondOpen:%3").arg(pgPara->GeneralPara.AlarmTime).arg(pgPara->GeneralPara.StType).arg(pgPara->GeneralPara.RespondOpen);
+    ui->txtMN->setText(QString(pgPara->GeneralPara.MN));                            //MN号
+    ui->txtOverTime->setText(QString::number(pgPara->GeneralPara.OverTime));             //上传检测周期(s)
+    ui->txtReCount->setText(QString::number(pgPara->GeneralPara.ReCount));                 //超时重发次数
+    ui->txtAlarmTime->setText(QString::number(pgPara->GeneralPara.AlarmTime));         //超时报警时间
+    ui->comboBoxStType->setCurrentIndex(ui->comboBoxStType->findText(QString("%1").arg(pgPara->GeneralPara.StType)));                         //污染源类型
+    ui->btn_RespondOpen->SetCheck(bool(pgPara->GeneralPara.RespondOpen));                      //上位机应答
     ui->stackedWidget_config->setCurrentIndex(0);
 }
 
@@ -60,6 +69,7 @@ void frmconfig::on_btn_parameter_clicked()
 void frmconfig::on_btn_serial_clicked()
 {
     //串口设置
+    on_comboBox_serial_currentIndexChanged(0);
     ui->stackedWidget_config->setCurrentIndex(2);
 }
 
@@ -67,6 +77,25 @@ void frmconfig::on_btn_serial_clicked()
 void frmconfig::on_btn_site_clicked()
 {
     //站点设置
+    int iLoop = 0;
+    ui->btn_server1Open->SetCheck(pgPara->SitePara[iLoop].ServerOpen>0 ? true : false);
+    ui->txtIP1->setText(QString(pgPara->SitePara[iLoop].ServerIp));
+    ui->txtPort1->setText(QString::number(pgPara->SitePara[iLoop].ServerPort));
+
+    iLoop++;
+    ui->btn_server2Open->SetCheck(pgPara->SitePara[iLoop].ServerOpen>0 ? true : false);
+    ui->txtIP2->setText(QString(pgPara->SitePara[iLoop].ServerIp));
+    ui->txtPort2->setText(QString::number(pgPara->SitePara[iLoop].ServerPort));
+
+    iLoop++;
+    ui->btn_server3Open->SetCheck(pgPara->SitePara[iLoop].ServerOpen>0 ? true : false);
+    ui->txtIP3->setText(QString(pgPara->SitePara[iLoop].ServerIp));
+    ui->txtPort3->setText(QString::number(pgPara->SitePara[iLoop].ServerPort));
+
+    iLoop++;
+    ui->btn_server4Open->SetCheck(pgPara->SitePara[iLoop].ServerOpen>0 ? true : false);
+    ui->txtIP4->setText(QString(pgPara->SitePara[iLoop].ServerIp));
+    ui->txtPort4->setText(QString::number(pgPara->SitePara[iLoop].ServerPort));
 
     ui->stackedWidget_config->setCurrentIndex(3);
 }
@@ -119,6 +148,22 @@ void frmconfig::on_btn_datetime_clicked()
 void frmconfig::on_btn_localNet_clicked()
 {
     //本机网络设置
+    Myapp::ReadLocalNet();
+    ui->btn_Autogetip->SetCheck(Myapp::DHCP=="1"?true:false);
+    ui->txtLocalIP->setText(Myapp::LocalIP);
+    ui->txtMask->setText(Myapp::Mask);
+    ui->txtGateWay->setText(Myapp::GateWay);
+    if(Myapp::DHCP=="1")
+    {
+        ui->txtLocalIP->setEnabled(false);
+        ui->txtMask->setEnabled(false);
+        ui->txtGateWay->setEnabled(false);
+    }
+    else {
+        ui->txtLocalIP->setEnabled(true);
+        ui->txtMask->setEnabled(true);
+        ui->txtGateWay->setEnabled(true);
+    }
 
     ui->stackedWidget_config->setCurrentIndex(7);
 }
@@ -126,7 +171,29 @@ void frmconfig::on_btn_localNet_clicked()
 void frmconfig::on_btn_io_clicked()
 {
     //加载开关量配置信息
-        ui->stackedWidget_config->setCurrentIndex(8);
+    int p_index=0;
+    //输出
+    p_index=pgPara->IOPara.Out_drain_open-6;
+    if(p_index>3)p_index-=6;
+    if(p_index>5)p_index-=6;
+    ui->comboOut_drain_open->setCurrentIndex(p_index);
+
+    p_index=pgPara->IOPara.Out_drain_close-6;
+    if(p_index>3)p_index-=6;
+    if(p_index>5)p_index-=6;
+    ui->comboOut_drain_close->setCurrentIndex(p_index);
+
+    p_index=pgPara->IOPara.Out_drain_common-6;
+    if(p_index>3)p_index-=6;
+    if(p_index>5)p_index-=6;
+    ui->comboOut_drain_common->setCurrentIndex(p_index);
+
+    //输入
+    p_index=pgPara->IOPara.In_power-10;
+    if(p_index>5)p_index-=2;
+    ui->comboIn_power->setCurrentIndex(p_index);
+
+    ui->stackedWidget_config->setCurrentIndex(8);
 }
 
 
@@ -136,7 +203,13 @@ void frmconfig::on_btn_io_clicked()
  *********************************************/
 void frmconfig::on_comboBox_serial_currentIndexChanged(int index)
 {
-
+    qDebug()<<QString("%1 %2 %3").arg(pgPara->SerialPara[index].BaudRate).arg(pgPara->SerialPara[index].DataBits).arg(pgPara->SerialPara[index].Parity);
+    ui->comboBox_baudrate->setCurrentIndex(ui->comboBox_baudrate->findText(QString("%1").arg(pgPara->SerialPara[index].BaudRate)));
+    ui->comboBox_databits->setCurrentIndex(ui->comboBox_databits->findText(QString("%1").arg(pgPara->SerialPara[index].DataBits)));
+    ui->comboBox_parity->setCurrentIndex(pgPara->SerialPara[index].Parity);
+    ui->comboBox_stopbits->setCurrentIndex(ui->comboBox_stopbits->findText(QString("%1").arg(pgPara->SerialPara[index].StopBits)));
+    ui->txtuartInterval->setText(QString("%1").arg(pgPara->SerialPara[index].Interval));
+    ui->txtuartTimeout->setText(QString("%1").arg(pgPara->SerialPara[index].TimeOut));
 }
 //*************************************串口设置结束*****************************************/
 //*************************************用户设置*********************************************/
@@ -253,43 +326,243 @@ void frmconfig::on_btn_Cancel_clicked()
 //时间日期设置
 void frmconfig::on_btnChange_clicked()
 {
+    if (myHelper::showMessageBoxQusetion("确定要更改日期时间吗?")){
+        QString TempMsg;
+        #ifdef Q_OS_LINUX
+        QString str=QString("/bin/date -s '%1-%2-%3 %4:%5:%6'") //  生成时间设置命令字符串
+                            .arg(ui->comboBox_year->currentText())
+                            .arg(ui->comboBox_month->currentText())
+                            .arg(ui->comboBox_day->currentText())
+                            .arg(ui->comboBox_hour->currentText())
+                            .arg(ui->comboBox_minute->currentText())
+                            .arg(ui->comboBox_second->currentText());
+        qDebug()<<str;
+        int res1;
+        int res2;
+        res1=system(str.toLatin1().data());  //设置系统时间
+        res2=system("/sbin/hwclock --systohc");   //将系统时间写入到RTC硬件中，以保留设置。这一操作是为了将修改好的时间写入到RTC中保存。如果不进行这一步操作，则
+                                                                          //重新上电开机以后系统从RTC中读取到的仍然是原来的时间
+        if(res1==0 && res2==0){
+            TempMsg="本地更改日期时间成功";
+        }
+        else{
+            TempMsg="本地更改日期时间失败";
+        }
+        #elif defined (Q_OS_WIN)
 
+        #endif
+        myHelper::showMessageBoxInfo(QString("%1!").arg(TempMsg));
+
+    }
 }
 
 void frmconfig::on_btn_SaveGeneral_clicked()
 {
+    QString str;
+    QByteArray ba;
 
+    str = ui->txtMN->text();
+    ba = str.toLatin1();
+    snprintf(pgPara->GeneralPara.MN,MN_LEN,"%s",ba.data());
+
+    pgPara->GeneralPara.OverTime = (uint8_t)ui->txtOverTime->text().toInt();
+    pgPara->GeneralPara.ReCount = (uint8_t)ui->txtReCount->text().toInt();
+    pgPara->GeneralPara.StType = (uint8_t)ui->comboBoxStType->currentText().toInt();
+    pgPara->GeneralPara.AlarmTime = (uint8_t)ui->txtAlarmTime->text().toInt();
+    pgPara->GeneralPara.RespondOpen = (uint8_t)ui->btn_RespondOpen->GetCheck();
+
+    //调用保存配置文件函数
+    syncParaShm();
 }
 
 void frmconfig::on_btn_SaveSerial_clicked()
 {
-
-
+    int index = ui->comboBox_serial->currentIndex();
+    pgPara->SerialPara[index].BaudRate = (uint16_t)ui->comboBox_baudrate->currentText().toInt();
+    pgPara->SerialPara[index].DataBits = (uint8_t)ui->comboBox_databits->currentText().toInt();
+    pgPara->SerialPara[index].Parity = (uint8_t)ui->comboBox_parity->currentIndex();
+    pgPara->SerialPara[index].StopBits = (uint8_t)ui->comboBox_stopbits->currentText().toInt();
+    pgPara->SerialPara[index].TimeOut = ui->txtuartTimeout->text().toInt();
+    pgPara->SerialPara[index].Interval = ui->txtuartInterval->text().toInt();
+    //调用保存配置文件函数
+    syncParaShm();
 }
 
 void frmconfig::on_btn_SaveSite_clicked()
 {
-  
+    QByteArray ba;
+
+    QString IP1=ui->txtIP1->text();
+    if (!myHelper::isIpAddress(IP1)){
+        myHelper::showMessageBoxError("IP1地址有误,请重新输入!");
+        ui->txtIP1->setFocus();
+        return;
+    }
+    ba = IP1.toLatin1();
+    snprintf(pgPara->SitePara[0].ServerIp,16,"%s",ba.data());
+    pgPara->SitePara[0].ServerPort = (uint16_t)ui->txtPort1->text().toInt();
+
+
+    QString IP2=ui->txtIP2->text();
+    if (!myHelper::isIpAddress(IP2)){
+        myHelper::showMessageBoxError("IP2地址有误,请重新输入!");
+        ui->txtIP2->setFocus();
+        return;
+    }
+    ba = IP2.toLatin1();
+    snprintf(pgPara->SitePara[1].ServerIp,16,"%s",ba.data());
+    pgPara->SitePara[1].ServerPort = (uint16_t)ui->txtPort2->text().toInt();
+
+
+    QString IP3=ui->txtIP3->text();
+    if (!myHelper::isIpAddress(IP3)){
+        myHelper::showMessageBoxError("IP3地址有误,请重新输入!");
+        ui->txtIP3->setFocus();
+        return;
+    }
+    ba = IP3.toLatin1();
+    snprintf(pgPara->SitePara[2].ServerIp,16,"%s",ba.data());
+    pgPara->SitePara[2].ServerPort = (uint16_t)ui->txtPort3->text().toInt();
+
+    QString IP4=ui->txtIP4->text();
+    if (!myHelper::isIpAddress(IP4)){
+        myHelper::showMessageBoxError("IP4地址有误,请重新输入!");
+        ui->txtIP4->setFocus();
+        return;
+    }
+    ba = IP4.toLatin1();
+    snprintf(pgPara->SitePara[3].ServerIp,16,"%s",ba.data());
+    pgPara->SitePara[3].ServerPort = (uint16_t)ui->txtPort4->text().toInt();
+
+    pgPara->SitePara[0].ServerOpen = ui->btn_server1Open->GetCheck()==true ? 1 : 0;
+    pgPara->SitePara[1].ServerOpen = ui->btn_server2Open->GetCheck()==true ? 1 : 0;
+    pgPara->SitePara[2].ServerOpen = ui->btn_server3Open->GetCheck()==true ? 1 : 0;
+    pgPara->SitePara[3].ServerOpen = ui->btn_server4Open->GetCheck()==true ? 1 : 0;
+
+    //调用保存配置文件函数
+    syncParaShm();
 }
 
 //*************************************本机网络*************************************************/
 void frmconfig::on_btn_SaveLocalNet_clicked()
 {
-
-   
+    Myapp::DHCP=QString("%1").arg(ui->btn_Autogetip->GetCheck()==true?"1":"0");
+    Myapp::LocalIP=ui->txtLocalIP->text();
+    Myapp::Mask=ui->txtMask->text();
+    Myapp::GateWay=ui->txtGateWay->text();
+    //调用保存配置文件函数
+    Myapp::WriteLocalNet();
 }
 //*************************************本机网络结束*************************************************/
 
 void frmconfig::on_btn_Autogetip_clicked()
 {
-    
-
+    if(ui->btn_Autogetip->GetCheck()==true)
+    {
+        ui->txtLocalIP->setEnabled(false);
+        ui->txtMask->setEnabled(false);
+        ui->txtGateWay->setEnabled(false);
+    }
+    else {
+        ui->txtLocalIP->setEnabled(true);
+        ui->txtMask->setEnabled(true);
+        ui->txtGateWay->setEnabled(true);
+    }
 }
 
 //*************************************开关量配置结束*************************************************/
 void frmconfig::on_btn_SaveIo_clicked()
 {
-
+    //开排水口
+    switch (ui->comboOut_drain_open->currentIndex()){
+    case 0: pgPara->IOPara.Out_drain_open=6;
+    break;
+    case 1: pgPara->IOPara.Out_drain_open=7;
+    break;
+    case 2: pgPara->IOPara.Out_drain_open=8;
+    break;
+    case 3: pgPara->IOPara.Out_drain_open=9;
+    break;
+    case 4: pgPara->IOPara.Out_drain_open=16;
+    break;
+    case 5: pgPara->IOPara.Out_drain_open=17;
+    break;
+    case 6: pgPara->IOPara.Out_drain_open=24;
+    break;
+    case 7: pgPara->IOPara.Out_drain_open=25;
+    break;
+    default:break;
+    }
+    //关排水口
+    switch (ui->comboOut_drain_close->currentIndex()){
+    case 0: pgPara->IOPara.Out_drain_close=6;
+    break;
+    case 1: pgPara->IOPara.Out_drain_close=7;
+    break;
+    case 2: pgPara->IOPara.Out_drain_close=8;
+    break;
+    case 3: pgPara->IOPara.Out_drain_close=9;
+    break;
+    case 4: pgPara->IOPara.Out_drain_close=16;
+    break;
+    case 5: pgPara->IOPara.Out_drain_close=17;
+    break;
+    case 6: pgPara->IOPara.Out_drain_close=24;
+    break;
+    case 7: pgPara->IOPara.Out_drain_close=25;
+    break;
+    default:break;
+    }
+    //排水口总开关
+    switch (ui->comboOut_drain_common->currentIndex()){
+    case 0: pgPara->IOPara.Out_drain_common=6;
+    break;
+    case 1: pgPara->IOPara.Out_drain_common=7;
+    break;
+    case 2: pgPara->IOPara.Out_drain_common=8;
+    break;
+    case 3: pgPara->IOPara.Out_drain_common=9;
+    break;
+    case 4: pgPara->IOPara.Out_drain_common=16;
+    break;
+    case 5: pgPara->IOPara.Out_drain_common=17;
+    break;
+    case 6: pgPara->IOPara.Out_drain_common=24;
+    break;
+    case 7: pgPara->IOPara.Out_drain_common=25;
+    break;
+    default:break;
+    }
+    //市电检测
+    switch (ui->comboIn_power->currentIndex()){
+    case 0: pgPara->IOPara.In_power=10;
+    break;
+    case 1: pgPara->IOPara.In_power=11;
+    break;
+    case 2: pgPara->IOPara.In_power=12;
+    break;
+    case 3: pgPara->IOPara.In_power=13;
+    break;
+    case 4: pgPara->IOPara.In_power=14;
+    break;
+    case 5: pgPara->IOPara.In_power=15;
+    break;
+    case 6: pgPara->IOPara.In_power=18;
+    break;
+    case 7: pgPara->IOPara.In_power=19;
+    break;
+    case 8: pgPara->IOPara.In_power=20;
+    break;
+    case 9: pgPara->IOPara.In_power=21;
+    break;
+    case 10: pgPara->IOPara.In_power=22;
+    break;
+    case 11: pgPara->IOPara.In_power=23;
+    break;
+    default:break;
+    }
+    //调用保存配置文件函数
+    syncParaShm();
 }
 
 

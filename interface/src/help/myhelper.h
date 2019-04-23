@@ -1,4 +1,4 @@
-#ifndef MYHELPER_H
+ï»¿#ifndef MYHELPER_H
 #define MYHELPER_H
 
 #include <QtCore>
@@ -9,7 +9,7 @@
 class myHelper:public QObject
 {
 public:
-    //ÉèÖÃ¿ª»úÆô¶¯
+    //è®¾ç½®å¼€æœºå¯åŠ¨
     static void setAutoRunWithSystem(bool isAutoRun,const QString &appName,
                                      const QString &appPath)
     {
@@ -24,7 +24,7 @@ public:
         }
     }
 
-    //ÉèÖÃ±àÂë·½Ê½
+    //è®¾ç½®ç¼–ç æ–¹å¼
     static void setUTF8Code()
     {
 #if (QT_VERSION <= QT_VERSION_CHECK(5,0,0))
@@ -35,7 +35,7 @@ public:
 #endif
     }
 
-    //ÉèÖÃÆ¤·ôÑùÊ½
+    //è®¾ç½®çš®è‚¤æ ·å¼
     static void setStyle(const QString &styleName)
     {
         QFile file(QString("%1").arg(styleName));
@@ -44,7 +44,7 @@ public:
         qApp->setStyleSheet(css);
     }
 
-    //¼ÓÔØÖĞÎÄ×Ö·û
+    //åŠ è½½ä¸­æ–‡å­—ç¬¦
     static void setChinese(const QString &fileName)
     {
         QTranslator *translator = new QTranslator(qApp);
@@ -52,7 +52,7 @@ public:
         qApp->installTranslator(translator);
     }
 
-    //ÏÔÊ¾ĞÅÏ¢¿ò£¬½öÈ·ÈÏ°´Å¥
+    //æ˜¾ç¤ºä¿¡æ¯æ¡†ï¼Œä»…ç¡®è®¤æŒ‰é’®
     static void showMessageBoxInfo(const QString &info)
     {
         frmMessageBox *msg = new frmMessageBox;
@@ -60,7 +60,7 @@ public:
         msg->exec();
     }
 
-    //ÏÔÊ¾Ñ¯ÎÊ¿ò£¬È·ÈÏºÍÈ¡Ïû°´Å¥
+    //æ˜¾ç¤ºè¯¢é—®æ¡†ï¼Œç¡®è®¤å’Œå–æ¶ˆæŒ‰é’®
     static int showMessageBoxQusetion(const QString &info)
     {
         frmMessageBox *msg = new frmMessageBox;
@@ -68,7 +68,7 @@ public:
         return msg->exec();
     }
 
-    //ÏÔÊ¾´íÎó¿ò,È·ÈÏºÍÈ¡Ïû°´Å¥
+    //æ˜¾ç¤ºé”™è¯¯æ¡†,ç¡®è®¤å’Œå–æ¶ˆæŒ‰é’®
     static void showMessageBoxError(const QString &info)
     {
         frmMessageBox *msg = new frmMessageBox;
@@ -76,7 +76,7 @@ public:
         msg->exec();
     }
 
-    //ÑÓÊ±
+    //å»¶æ—¶
     static void sleep(const int &sec)
     {
         QTime dieTime = QTime::currentTime().addMSecs(sec);
@@ -85,7 +85,7 @@ public:
         }
     }
 
-    //´°Ìå¾ÓÖĞÏÔÊ¾
+    //çª—ä½“å±…ä¸­æ˜¾ç¤º
     static void FormInCenter(QWidget *frm,int deskWidth,int deskHeigth)
     {
         int frmX=frm->width();
@@ -93,29 +93,33 @@ public:
         QPoint movePoint(deskWidth/2-frmX/2,deskHeigth/2-frmY/2);
         frm->move(movePoint);
     }
-
-    //ÎÄ¼ş¼ĞÊÇ·ñ´æÔÚ
+    //çª—ä½“ä¸èƒ½æ”¹å˜å¤§å°
+    static void FormNotResize(QWidget *frm)
+    {
+        frm->setFixedSize(frm->width(),frm->height());
+    }
+    //æ–‡ä»¶å¤¹æ˜¯å¦å­˜åœ¨
     static bool FolderIsExist(QString strFolder)
     {
         QDir tempFolder(strFolder);
         return tempFolder.exists();
     }
 
-    //ÎÄ¼şÊÇ·ñ´æÔÚ
+    //æ–‡ä»¶æ˜¯å¦å­˜åœ¨
     static bool FileIsExist(QString strFile)
     {
         QFile tempFile(strFile);
         return tempFile.exists();
     }
 
-    //ÅĞ¶ÏÊÇ·ñÊÇIPµØÖ·
+    //åˆ¤æ–­æ˜¯å¦æ˜¯IPåœ°å€
     static bool isIpAddress(const QString &ip)
     {
         QRegExp regExp("((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)");
         return regExp.exactMatch(ip);
     }
 
-    //16½øÖÆ×Ö·û´®×ª×Ö½ÚÊı×é
+    //16è¿›åˆ¶å­—ç¬¦ä¸²è½¬å­—èŠ‚æ•°ç»„
     static QByteArray HexStrToByteArray(QString str)
     {
         QByteArray senddata;
@@ -149,7 +153,7 @@ public:
         senddata.resize(hexdatalen);
         return senddata;
     }
-    //Conver×Ö·ûĞÍ
+    //Converå­—ç¬¦å‹
     static char ConvertHexChar(char ch)
     {
         if((ch >= '0') && (ch <= '9'))
@@ -161,7 +165,7 @@ public:
         else return (-1);
     }
 
-    //×Ö½ÚÊı×é×ª16½øÖÆ×Ö·û´®
+    //å­—èŠ‚æ•°ç»„è½¬16è¿›åˆ¶å­—ç¬¦ä¸²
     static QString ByteArrayToHexStr(QByteArray data)
     {
         QString temp="";
@@ -173,28 +177,28 @@ public:
         return temp.trimmed().toUpper();
     }
 
-    //16½øÖÆ×Ö·û´®×ª10½øÖÆ
+    //16è¿›åˆ¶å­—ç¬¦ä¸²è½¬10è¿›åˆ¶
     static int StrHexToDecimal(QString strHex)
     {
         bool ok;
         return strHex.toInt(&ok,16);
     }
 
-    //10½øÖÆ×Ö·û´®×ª10½øÖÆ
+    //10è¿›åˆ¶å­—ç¬¦ä¸²è½¬10è¿›åˆ¶
     static int StrDecimalToDecimal(QString strDecimal)
     {
         bool ok;
         return strDecimal.toInt(&ok,10);
     }
 
-    //2½øÖÆ×Ö·û´®×ª10½øÖÆ
+    //2è¿›åˆ¶å­—ç¬¦ä¸²è½¬10è¿›åˆ¶
     static int StrBinToDecimal(QString strBin)
     {
         bool ok;
         return strBin.toInt(&ok,2);
     }
 
-    //16½øÖÆ×Ö·û´®×ª2½øÖÆ×Ö·û´®
+    //16è¿›åˆ¶å­—ç¬¦ä¸²è½¬2è¿›åˆ¶å­—ç¬¦ä¸²
     static QString StrHexToStrBin(QString strHex)
     {
         uchar decimal=StrHexToDecimal(strHex);
@@ -212,7 +216,7 @@ public:
         return bin;
     }
 
-    //10½øÖÆ×ª2½øÖÆ×Ö·û´®Ò»¸ö×Ö½Ú
+    //10è¿›åˆ¶è½¬2è¿›åˆ¶å­—ç¬¦ä¸²ä¸€ä¸ªå­—èŠ‚
     static QString DecimalToStrBin1(int decimal)
     {
         QString bin=QString::number(decimal,2);
@@ -229,7 +233,7 @@ public:
         return bin;
     }
 
-    //10½øÖÆ×ª2½øÖÆ×Ö·û´®Á½¸ö×Ö½Ú
+    //10è¿›åˆ¶è½¬2è¿›åˆ¶å­—ç¬¦ä¸²ä¸¤ä¸ªå­—èŠ‚
     static QString DecimalToStrBin2(int decimal)
     {
         QString bin=QString::number(decimal,2);
@@ -246,7 +250,7 @@ public:
         return bin;
     }
 
-    //¼ÆËãĞ£ÑéÂë
+    //è®¡ç®—æ ¡éªŒç 
     static uchar GetCheckCode(uchar data[],uchar len)
     {
         uchar temp=0;
@@ -259,22 +263,13 @@ public:
         return temp%256;
     }
 
-    //½«Òç³öµÄchar×ªÎªÕıÈ·µÄuchar
+    //å°†æº¢å‡ºçš„charè½¬ä¸ºæ­£ç¡®çš„uchar
     static uchar GetUChar(char data)
     {
-        uchar temp;
-        if (data>127)
-        {
-            temp=data+256;
-        }
-        else
-        {
-            temp=data;
-        }
-        return temp;
+        return (uchar)data;
     }
 
-    //ÑÓÊ±
+    //å»¶æ—¶
     static void Sleep(int sec)
     {
         QTime dieTime = QTime::currentTime().addMSecs(sec);
@@ -282,13 +277,13 @@ public:
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     }
 
-    //»ñÈ¡µ±Ç°Â·¾¶
+    //è·å–å½“å‰è·¯å¾„
     static QString GetCurrentPath()
     {
         return QString(QCoreApplication::applicationDirPath()+"/");
     }
 
-    //²¥·ÅÉùÒô
+    //æ’­æ”¾å£°éŸ³
     static void PlaySound(QString soundName)
     {
         QSound::play(soundName);

@@ -5,28 +5,29 @@
 //#include "api/myapp.h"
 #include <QKeyEvent>
 #include <QDebug>
+#include "myhelper.h"
+#include "myapp.h"
+
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
+extern pstPara pgPara;
 
 frmlogin::frmlogin(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::frmlogin)
 {
     ui->setupUi(this);
-    qDebug()<<"1";
-            int frmX=this->width();
-        int frmY=this->height();
-        QPoint movePoint(800/2-frmX/2,480/2-frmY/2);
-        this->move(movePoint);
-        qDebug()<<"2";
-    //myHelper::FormInCenter(this,myApp::DeskWidth,myApp::DeskHeigth);
+
+    myHelper::FormInCenter(this,Myapp::DeskWidth,Myapp::DeskHeigth);
     this->setAttribute(Qt::WA_DeleteOnClose);
     this->setGeometry(QRect(160, 100, 480,259));//可设置窗口显示的方位与大小
-qDebug()<<"3";
-    //myHelper::FormNotResize(this);
-    this->InitStyle();
-qDebug()<<"4";
-    this->InitForm();
-qDebug()<<"5";
 
+    myHelper::FormNotResize(this);
+    this->InitStyle();
+    this->InitForm();
 }
 
 frmlogin::~frmlogin()
@@ -61,24 +62,23 @@ void frmlogin::InitForm()
 
 void frmlogin::on_btnLogin_clicked()
 {
-    QString UserName=ui->txtUserName->text();
-    QString UserPwd=ui->txtUserPwd->text();
-    if (UserName==""||UserPwd==""){
-        //myHelper::ShowMessageBoxError("用户名和密码不能为空,请重新输入!");
+    QString UserName=ui->comboBox_name->currentText();
+    int UserIndex = ui->comboBox_name->currentIndex();
+    int UserPwd=ui->txtUserPwd->text().toInt();
+    if (0 == UserPwd){
+        Myapp::UserType = 0;
+        myHelper::showMessageBoxInfo("密码只能为非零的数字,请重新输入!");
         return;
     }
-
-//    QString sql;
-//    QSqlQuery query;
-//    sql = "select [UserPwd],[UserType] from [UserInfo]  where [UserName]='"+UserName+"'";
-//    query.exec(sql);
-//    query.next();
-//    if (UserPwd.toUpper()==query.value(0).toString().toUpper()){
-//        //记录当前用户,写入到配置文件,下次启动时显示最后一次登录用户名.
-//        this->close();
-//    }else{
-//        //myHelper::ShowMessageBoxError("用户名或密码错误,请重新输入!");
-//    }
+    //pgPara->UserPara[UserIndex%USER_CNT].UserPwd = 1;
+    qDebug()<<QString("UserPwd[%1]:%2,%3").arg(UserIndex%USER_CNT).arg(pgPara->UserPara[UserIndex%USER_CNT].UserPwd).arg(UserPwd);
+    if(pgPara->UserPara[UserIndex%USER_CNT].UserPwd == UserPwd){
+        Myapp::UserType = UserIndex  + 1;
+        Myapp::UserName = UserName;
+    }else{
+        Myapp::UserType = 0;
+        myHelper::showMessageBoxInfo("密码错误,请重新输入!");
+    }
     this->close();
 }
 

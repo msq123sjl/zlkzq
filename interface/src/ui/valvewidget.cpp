@@ -12,12 +12,21 @@ Description:智能家居---厨房安防功能的实现，主要包括可燃性�
 #include "ui_valvewidget.h"
 #include <QToolButton>
 #include "myapp.h"
+#include "myhelper.h"
 #include "control.h"
 #include <QDebug>
 #include <QTime>
 
-int valve_set_value = 20;
-int valve_cur_value = 0;
+int valve_set_value = 0;
+
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
+extern pstPara pgPara;
+extern pstValveControl pgValveControl;
+
 
 ValveWidget::ValveWidget(QWidget *parent) :
     QWidget(parent),
@@ -28,8 +37,6 @@ ValveWidget::ValveWidget(QWidget *parent) :
     this->initForm();
     this->init();
     this->initConnect();
-    this->refreshValveValue();
-    this->InitUpdataTime();
 }
 
 ValveWidget::~ValveWidget()
@@ -47,21 +54,17 @@ void ValveWidget::initForm()
                        ":/images/module/temp_sub.png");
     ui->pbn_valve_contrl->styleOff = "border-image: url(:/images/switch/btncheckoff.png); border: 0px;";
     ui->pbn_valve_contrl->styleOn="border-image: url(:/images/switch/btncheckon.png); border: 0px;";
-
-    //根据配置文件信息同步阀门控制方式
-    if (true){
-        ui->pbn_valve_contrl->SetCheck(true);
-    }else{
-        ui->pbn_valve_contrl->SetCheck(false);
-    }
 }
 
 void ValveWidget::init()
 {
+    refreshValveValue(pgValveControl->per);
+     valve_set_value = pgValveControl->per;
 }
 
 void ValveWidget::initConnect()
 {
+    InitUpdataTime();
 }
 
 void ValveWidget::InitUpdataTime()
@@ -72,10 +75,21 @@ void ValveWidget::InitUpdataTime()
     m_timer->start(1000);
 }
 
-void ValveWidget::refreshValveValue()
+void ValveWidget::InitValveControl()
 {
-    ui->label_set_value->setText(QString::number(valve_set_value,10) + '%');
-    ui->label_cur_value->setText(QString::number(valve_cur_value,10) + '%');
+    //根据配置文件信息同步阀门控制方式
+    qDebug()<<"OutMode:"<<pgValveControl->OutMode;
+    if (pgValveControl->OutMode){
+        ui->pbn_valve_contrl->SetCheck(true);
+    }else{
+        ui->pbn_valve_contrl->SetCheck(false);
+    }
+}
+
+void ValveWidget::refreshValveValue(int SetValue)
+{
+    ui->label_set_value->setText(QString::number(SetValue,10) + '%');
+    ui->label_cur_value->setText(QString::number(pgValveControl->per_measure,10) + '%');
 }
 
 void ValveWidget::setToolButtonStyle(QToolButton *tbn,
@@ -97,41 +111,68 @@ void ValveWidget::setToolButtonStyle(QToolButton *tbn,
 //更新阀门开度值
 void ValveWidget::slotUpdataValveValue()
 {
-    valve_cur_value += 1;
-    valve_cur_value %=101;
-    refreshValveValue();
+    if(0 == pgPara->Mode){  //远程模式
+        valve_set_value = pgValveControl->per;
+    }
+    if(pgValveControl->OutMode !=  ui->pbn_valve_contrl->GetCheck()){
+        pgValveControl->OutMode =  ui->pbn_valve_contrl->GetCheck();
+        syncValveParaShm();
+    }
+
+    refreshValveValue(valve_set_value);
 }
 
 void ValveWidget::on_tbn_valve_add_clicked()
 {
-    if (valve_set_value <=  90){
-        valve_set_value += 10;
-    }else{
-        valve_set_value = 100;
+    if(1 == pgPara->Mode){  //运维模式
+        if (valve_set_value <=  90){
+            valve_set_value += 10;
+        }else{
+            valve_set_value = 100;
+        }
+        refreshValveValue(valve_set_value);
+     }else{
+        myHelper::showMessageBoxInfo("请切换到运维模式");
     }
-    refreshValveValue();
 }
 
 void ValveWidget::on_tbn_valve_sub_clicked()
 {
-    if (valve_set_value >=  10){
-        valve_set_value -= 10;
+    if(1 == pgPara->Mode){  //运维模式
+        if (valve_set_value >=  10){
+            valve_set_value -= 10;
+        }else{
+            valve_set_value = 0;
+        }
+        refreshValveValue(valve_set_value);
     }else{
-        valve_set_value = 0;
+        myHelper::showMessageBoxInfo("请切换到运维模式");
     }
-    refreshValveValue();
 }
 
 void ValveWidget::on_pbn_valve_contrl_clicked()
 {
-    if (ui->pbn_valve_contrl->GetCheck()){
-       qDebug()<<"DA";
+    if(1 == pgPara->Mode){  //运维模式
+        if (ui->pbn_valve_contrl->GetCheck()){
+            pgValveControl->OutMode = 0;
+           qDebug()<<"DA";
+        }else{
+            pgValveControl->OutMode = 1;
+            qDebug()<<"I/O";
+        }
     }else{
-        qDebug()<<"I/O";
+        InitValveControl();
+        myHelper::showMessageBoxInfo("请切换到运维模式");
     }
 }
 
 void ValveWidget::on_tbn_valve_ok_clicked()
 {
-    qDebug()<<"ok";
+    if(1 == pgPara->Mode){  //运维模式
+        pgValveControl->per = valve_set_value;
+        syncValveParaShm();
+        qDebug()<<"ok";
+    }else{
+        myHelper::showMessageBoxInfo("请切换到运维模式");
+    }
 }

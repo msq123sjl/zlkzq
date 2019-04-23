@@ -9,19 +9,24 @@ Description:智能家居---主程序，加载配置信息、程序样式，设�
 **************************************************/
 #include <QApplication>
 #include <QMetaType>
-#include <QSharedMemory>
-#include <QDir>
+//#include <QSharedMemory>
+//#include <QDir>
 //#include <QTextCodec>
 
 #include "widget.h"
 #include "myhelper.h"
 #include "myapp.h"
-#include "database.h"
-#include "control.h"
-#include "logindialog.h"
+//#include "database.h"
+//#include "control.h"
+//#include "logindialog.h"
 //#include "systemsettingdialog.h"
-#include "analysisdata.h"
+//#include "analysisdata.h"
 #include "frminput.h"
+#if QT_VERSION >= 0x050000
+#include <QApplication>
+#else
+#include <QtGui/QApplication>
+#endif
 
 #if __ARM__
 #include <QWSServer>
@@ -31,11 +36,20 @@ Description:智能家居---主程序，加载配置信息、程序样式，设�
 #include <QtWidgets>
 #endif
 
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
+pstPara pgPara;
+pstValveControl pgValveControl;
+pstPollutantData pgPollutantData;
+pstPollutantPara pgPollutantPara;
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    qRegisterMetaType<MODEL>("MODEL");                    //注册数据类型
 #if __ARM__
     QWSServer::setCursorVisible(false);
 #endif
@@ -47,42 +61,21 @@ int main(int argc, char *argv[])
     myHelper::setChinese(":/images/translator/zh_CN.qm");
     myHelper::setChinese(":/images/qt_zh_CN.qm");         //加载中文字符
 
-    QDir dir;
-    Myapp::AppPath = dir.currentPath();
+    //赋值当前应用程序路径和桌面宽度高度
+    Myapp::AppPath=QApplication::applicationDirPath()+"/";
+    qDebug()<<"AppPath1:"<<Myapp::AppPath;
+    Myapp::DeskWidth=qApp->desktop()->availableGeometry().width();
+    Myapp::DeskHeigth=qApp->desktop()->availableGeometry().height();
+    qDebug()<<QString("DeskWidth:%1 DeskHeigth:%2").arg(Myapp::DeskWidth).arg(Myapp::DeskHeigth);
 
-    //使程序只能运行一个实例
-//    QSharedMemory shared_memory("SmartHome");
-
-//    if (!shared_memory.create(1))
-//    {
-//        myHelper::showMessageBoxError("程序已经运行，系统将自动关闭!");
-//        return 1;
-//    }
-
-    if (!myHelper::FileIsExist("SmartHome.db"))
-    {
-#if QDEBUG
-        qDebug()<<"database file is not find!System Now Will Close!";
-        qDebug()<<Myapp::AppPath;
-#endif
-        return 1;
-    }else
-    {
-#if QDEBUG
-        qDebug()<<"database file is find OK!";
-#endif
-    }
-    if (!createConnection())
-    {
-#if QDEBUG
-        qDebug()<<"open database failed!";
-#endif
-    }else
-    {
-#if QDEBUG
-        qDebug()<<"open database succeed!";
-#endif
-    }
+    /********共享内存******************/
+    pgPara = (pstPara)getParaShm();
+    qDebug()<<QString("AlarmTime:%1").arg(pgPara->GeneralPara.AlarmTime);
+    pgValveControl = (pstValveControl)getValveParaShm();
+    qDebug()<<QString("per:%1 per_last:%2").arg(pgValveControl->per).arg(pgValveControl->per_last);
+    pgPollutantData = (pstPollutantData)getPollutantDataShm();
+    pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
+    /**/
 
     Widget w;
     w.show();

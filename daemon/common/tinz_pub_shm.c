@@ -144,6 +144,8 @@ void initParaShm(){
 	int iLoop=0;
 	pstPara para=(pstPara)shm_para.shm_mem;
 	memset(para,0,sizeof(stPara));	
+    /*模式*/
+    para->Mode  = 0;
 	/*基本设置*/
 	snprintf((char*)para->GeneralPara.MN,MN_LEN,"%s","83028583206272");
     snprintf((char*)para->GeneralPara.PW,PW_LEN,"%s","123456");
@@ -166,7 +168,7 @@ void initParaShm(){
 		para->SerialPara[iLoop].BaudRate		= 9600;
 		para->SerialPara[iLoop].DataBits		= 8;
 		para->SerialPara[iLoop].Parity			= 0;
-		para->SerialPara[iLoop].StopBits		= 0;
+		para->SerialPara[iLoop].StopBits		= 1;
 		para->SerialPara[iLoop].FlowCtrl		= 0;
 		para->SerialPara[iLoop].TimeOut			= 1000;
 		para->SerialPara[iLoop].Interval		= 1000;
@@ -178,6 +180,7 @@ void initParaShm(){
 	*/
 	para->IOPara.Out_drain_open         = 6;
     para->IOPara.Out_drain_close        = 7;
+    para->IOPara.Out_drain_common        = 8;
     //para->IOPara.Out_catchment_open     = 8;
     //para->IOPara.Out_catchment_close    = 9;
     //para->IOPara.Out_reflux_control     = 16;
@@ -198,6 +201,13 @@ void initParaShm(){
 		snprintf((char*)para->SitePara[iLoop].ServerIp,sizeof(para->SitePara[iLoop].ServerIp),"%s","192.168.1.131");
     }
 	/*用户设置*/
+    para->UserPara[0].UserType = 1;
+    para->UserPara[0].UserPwd = 1;
+    para->UserPara[1].UserType = 2;
+    para->UserPara[1].UserPwd = 1;
+    para->UserPara[2].UserType = 3;
+    para->UserPara[2].UserPwd = 123456;
+    
 }
 
 char * getValveParaShm(){
@@ -243,9 +253,10 @@ void syncValveParaShm(){
 void initValveParaShm(){
 	pstValveControl para=(pstValveControl)shm_valve_para.shm_mem;
     para->per = 0;
+    para->per_measure = 0;
     para->per_last = 0;
     para->channel = 0;
-    para->OutMode = 0;
+    para->OutMode = 1;  //默认DA
     para->OutValueAdjust[0] = 0;
     para->OutValueAdjust[1] = 50;
     para->OutValueAdjust[2] = 100;

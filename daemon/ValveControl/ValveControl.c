@@ -270,23 +270,27 @@ int main(int argc, char* argv[])
     /*共享内存*/
 	DEBUG_PRINT_INFO(gPrintLevel, "getValveParaShm start\n");
 	pgValveControl = (pstValveControl)getValveParaShm();
-    
+    DEBUG_PRINT_INFO(gPrintLevel, "config file per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
+    #if 0
     spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
     per_current = AdValueToPer(ad_value);
     DEBUG_PRINT_INFO(gPrintLevel, "per[%d] per_last[%d] per_current[%d]\n",pgValveControl->per,pgValveControl->per_last,per_current);
     if(abs(pgValveControl->per_last - per_current) > 5){
         pgValveControl->per_last = per_current; 
     }
-    
+    #endif
+    DEBUG_PRINT_INFO(gPrintLevel, "Init per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
     for(;;){
         per = pgValveControl->per;
         if(pgValveControl->per_last != per){
             DEBUG_PRINT_INFO(gPrintLevel, "per[%d] per_last[%d]\n",per,pgValveControl->per_last);
+            #if 0
             if(per > pgValveControl->per_last){
                 pgValveControl->OutMode ? Valve_control_IO_mode(per,1):Valve_control_DA_mode(per,1);
             }else{
                 pgValveControl->OutMode ? Valve_control_IO_mode(per,0):Valve_control_DA_mode(per,0);
             }
+            #endif
             pgValveControl->per_last = per;
             syncValveParaShm();
         }

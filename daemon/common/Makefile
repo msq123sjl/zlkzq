@@ -1,6 +1,6 @@
 TOPDIR  := $(shell cd ..; pwd)
 include $(TOPDIR)/Rules.make
-
+CFLAGS+=-fPIC
 OBJS = tinz_pub_serial.o tinz_common_helper.o tinz_pub_shm.o tinz_pub_message.o tinz_common_db_helper.o config_file.o nginx_helper.o em335x_gpio.o
  
 all: $(OBJS)

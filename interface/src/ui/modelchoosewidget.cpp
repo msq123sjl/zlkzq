@@ -1,8 +1,16 @@
 #include "modelchoosewidget.h"
 #include "ui_modelchoosewidget.h"
-
-#include "analysisdata.h"
+#include "myapp.h"
+#include "myhelper.h"
+//#include "analysisdata.h"
 #include <QDebug>
+
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
+extern pstPara pgPara;
 
 ModelChooseWidget::ModelChooseWidget(QWidget *parent) :
     QWidget(parent),
@@ -19,18 +27,31 @@ ModelChooseWidget::~ModelChooseWidget()
 
 void ModelChooseWidget::initForm()
 {
+    if (pgPara->Mode){
+        ui->pbn_operation->SetCheck(true);
+        ui->label_operation->setText("运维模式");
+    }else{
+        ui->pbn_operation->SetCheck(false);
+        ui->label_operation->setText("远程模式");
+    }
 }
 
 void ModelChooseWidget::on_pbn_operation_clicked()
 {
-    qDebug()<<QString("operation_clicked:%1").arg(ui->pbn_operation->GetCheck());
-    if (ui->pbn_operation->GetCheck())
-    {
-       ui->label_operation->setText("运维模式");
-       //ui->pbn_operation->SetCheck(false);
-    }else
-    {
-        ui->label_operation->setText("远程模式");
-        //ui->pbn_operation->SetCheck(true);
+    qDebug()<<QString("Myapp::UserType[%1]").arg(Myapp::UserType);
+    if(Myapp::UserType > QY_USER){  //用户已登陆
+        pgPara->Mode =  ui->pbn_operation->GetCheck();
+        qDebug()<<QString("operation_clicked:%1").arg(pgPara->Mode);
+        if (pgPara->Mode)
+        {
+           ui->label_operation->setText("运维模式");
+           //ui->pbn_operation->SetCheck(false);
+        }else{
+            ui->label_operation->setText("远程模式");
+            //ui->pbn_operation->SetCheck(true);
+        }
+    }else{
+        initForm();
+        myHelper::showMessageBoxInfo("请登陆管理员账户");
     }
 }

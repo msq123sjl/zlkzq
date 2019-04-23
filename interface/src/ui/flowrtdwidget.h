@@ -1,11 +1,11 @@
 ﻿/*************************************************
-Copyright:kevin
-Author:Kevin LiQi
-Date:2015-12-04
-Email:kevinlq0912@163.com
-QQ:936563422
+Copyright:tinz
+Author:tinz msq
+Date:2019-04-01
+Email:718657309@qq.com
+QQ:718657309
 Version:V1.0
-Description:智能家居--客厅界面的实现，包括客厅的灯，温湿度
+Description:总量控制器--流量界面功能的实现
 **************************************************/
 #ifndef FLOWRTDWIDGET_H
 #define FLOWRTDWIDGET_H
@@ -26,14 +26,16 @@ public:
     explicit FlowRtdwidget(QWidget *parent = 0);
     ~FlowRtdwidget();
 
+private slots:
+    void slotShowCurrentData();
 private:
-
+    Ui::FlowRtdwidget *ui;
+    QTimer *m_timer;
+ 
     void initForm();
     void init();
     void initConnect();
-
-private:
-    Ui::FlowRtdwidget *ui;
+    void InitShowData();
 };
 
 #endif // PARLOURWIDGET_H

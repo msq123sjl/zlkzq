@@ -47,3 +47,8 @@ DESTDIR = $$PWD/bin
 #win32:RC_FILE = SmartHome.rc
 RESOURCES += \
     image.qrc
+
+unix:!macx: LIBS += -L$$PWD/../daemon/lib -lcommon
+
+INCLUDEPATH += $$PWD/../daemon/common
+DEPENDPATH += $$PWD/../daemon/common

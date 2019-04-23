@@ -16,6 +16,8 @@
 
 extern int gPrintLevel;
 
+static int tcplink_connect(TcpClientDev *pdev);
+
 static int recv_message_from_qt_server(QtTcpClientDev* pdev, char* pRecvBuf){
 	int iRecvLen;
 	iRecvLen = recv(pdev->dev_fd, pRecvBuf, RECVBUF_LEN, 0);
@@ -109,7 +111,8 @@ static int send_message_to_server(int dev_fd, char* pSendBuf){
 
 static void tcpclient_thread_recv(void * arg)
 {
-	int iRecvLen;
+    int tcplink_rtycnt = 0;
+    int iRecvLen;
     TcpClientDev *pdev = (TcpClientDev *)arg;
 
 	char* pRecvBuf = (char*)malloc(RECVBUF_LEN);
@@ -122,7 +125,28 @@ static void tcpclient_thread_recv(void * arg)
 			messageProc(pRecvBuf, iRecvLen, NULL, pdev);
 			DEBUG_PRINT_INFO(gPrintLevel,"receive message from server (%d) :%c:%s:\n", iRecvLen, pRecvBuf[0],pRecvBuf);
 		}else{
-			DEBUG_PRINT_INFO(gPrintLevel,"receive message from server error[%d]\n",iRecvLen);
+			DEBUG_PRINT_INFO(gPrintLevel,"receive message from server error[%d] pdev->dev_fd[%d]\n",iRecvLen,pdev->dev_fd);
+            /* 客户程序重新发起连接请求 */ 
+            if(-1 == iRecvLen || -1 == pdev->dev_fd){
+                /* 客户程序开始建立 sockfd描述符 */
+                close(pdev->dev_fd);
+            	if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
+            	{ 
+            		DEBUG_PRINT_ERR(gPrintLevel,"Socket Error:\n"); 
+            	}
+            }
+            if(-1 != pdev->dev_fd){    
+            	if(TINZ_ERROR == tcplink_connect(pdev)){               
+                    DEBUG_PRINT_INFO(gPrintLevel,"tcp retry[%d] link[port:%d dstip:%s] connect fail\n",tcplink_rtycnt,pdev->tcplink->ServerPort,pdev->tcplink->ServerIp); 
+                }else{
+                    tcplink_rtycnt = 0;
+                    DEBUG_PRINT_INFO(gPrintLevel,"tcp retry link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
+                }        
+            }
+            tcplink_rtycnt++;
+            if(tcplink_rtycnt > 60){
+                exit(0);
+            }
             sleep(1);
 		}
 	}
@@ -130,8 +154,26 @@ static void tcpclient_thread_recv(void * arg)
 	free(pRecvBuf);
 }
 
+static int tcplink_connect(TcpClientDev *pdev){
+    struct sockaddr_in 	ServAddr;
+    /* 客户程序填充服务端的资料 */ 
+	bzero(&ServAddr,sizeof(ServAddr)); // 初始化,置0
+	ServAddr.sin_family			=AF_INET;          // IPV4
+	ServAddr.sin_port			=htons(pdev->tcplink->ServerPort);  // (将本机器上的short数据转化为网络上的short数据)端口号
+	ServAddr.sin_addr.s_addr	=inet_addr((char*)pdev->tcplink->ServerIp); // IP地址
+	
+	/* 客户程序发起连接请求 */ 
+	if(connect(pdev->dev_fd,(struct sockaddr *)(&ServAddr),sizeof(struct sockaddr))==-1) 
+	{ 
+        DEBUG_PRINT_ERR(gPrintLevel,"tcp link[port:%d dstip:%s] connect Error\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
+		close(pdev->dev_fd);
+		return TINZ_ERROR;
+	}
+    return TINZ_OK;
+}
+
 int tcpclient_open(TcpClientDev *pdev){
-	struct sockaddr_in 	ServAddr;
+	
 	
 	if(!pdev->tcplink->ServerOpen){
 		return TINZ_ERROR;
@@ -143,22 +185,12 @@ int tcpclient_open(TcpClientDev *pdev){
 		return TINZ_ERROR;
 	} 
  
- 	/* 客户程序填充服务端的资料 */ 
-	bzero(&ServAddr,sizeof(ServAddr)); // 初始化,置0
-	ServAddr.sin_family			=AF_INET;          // IPV4
-	ServAddr.sin_port			=htons(pdev->tcplink->ServerPort);  // (将本机器上的short数据转化为网络上的short数据)端口号
-	ServAddr.sin_addr.s_addr	=inet_addr((char*)pdev->tcplink->ServerIp); // IP地址
-	
-	/* 客户程序发起连接请求 */ 
-	if(connect(pdev->dev_fd,(struct sockaddr *)(&ServAddr),sizeof(struct sockaddr))==-1) 
-	{ 
-		DEBUG_PRINT_ERR(gPrintLevel,"Connect Error:\n");
-		close(pdev->dev_fd);
-		return TINZ_ERROR;
-	} 
+ 	if(TINZ_ERROR == tcplink_connect(pdev)){
+        return TINZ_ERROR;
+    }
 	/* 连接成功了 */ 
 	pdev->tcplink->isConnected = 1;
-	DEBUG_PRINT_INFO(gPrintLevel,"tcp link[port:%d dstip:%s] create success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
+	DEBUG_PRINT_INFO(gPrintLevel,"tcp link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
 	pdev->packet_send_handle = (packet_send_cb)send_message_to_server;
 	if(pthread_create(&pdev->thread_id,NULL,(void *)(&tcpclient_thread_recv),(void *)(pdev)) == -1)
 	{

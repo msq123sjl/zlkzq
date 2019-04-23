@@ -26,14 +26,17 @@ public:
     explicit PHRtdwidget(QWidget *parent = 0);
     ~PHRtdwidget();
 
+private slots:
+    void slotShowCurrentData();
+
 private:
+    Ui::PHRtdwidget *ui;
+    QTimer *m_timer;
 
     void initForm();
     void init();
     void initConnect();
-
-private:
-    Ui::PHRtdwidget *ui;
+    void InitShowData();
 };
 
 #endif // PARLOURWIDGET_H
