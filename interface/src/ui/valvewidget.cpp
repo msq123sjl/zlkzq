@@ -13,7 +13,7 @@ Description:智能家居---厨房安防功能的实现，主要包括可燃性�
 #include <QToolButton>
 #include "myapp.h"
 #include "myhelper.h"
-#include "control.h"
+//#include "control.h"
 #include <QDebug>
 #include <QTime>
 
@@ -54,6 +54,7 @@ void ValveWidget::initForm()
                        ":/images/module/temp_sub.png");
     ui->pbn_valve_contrl->styleOff = "border-image: url(:/images/switch/btncheckoff.png); border: 0px;";
     ui->pbn_valve_contrl->styleOn="border-image: url(:/images/switch/btncheckon.png); border: 0px;";
+    InitValveControl();
 }
 
 void ValveWidget::init()
@@ -79,11 +80,19 @@ void ValveWidget::InitValveControl()
 {
     //根据配置文件信息同步阀门控制方式
     qDebug()<<"OutMode:"<<pgValveControl->OutMode;
+    ui->label_valve_contrl->setFont(QFont("文泉驿雅黑",10,QFont::Normal));
     if (pgValveControl->OutMode){
-        ui->pbn_valve_contrl->SetCheck(true);
+        ui->pbn_valve_contrl->SetCheck(true);  //IO
+        ui->label_valve_contrl->setText("数字控制");
+        //ui->pbn_valve_contrl->setText("IO");
     }else{
-        ui->pbn_valve_contrl->SetCheck(false);
+        ui->pbn_valve_contrl->SetCheck(false);  //DA
+        ui->label_valve_contrl->setText("模拟控制");
+        //ui->pbn_valve_contrl->setText("DA");
     }
+    //设置文本在图标下边
+    //ui->pbn_valve_contrl->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    //tbn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 }
 
 void ValveWidget::refreshValveValue(int SetValue)
@@ -153,13 +162,18 @@ void ValveWidget::on_tbn_valve_sub_clicked()
 void ValveWidget::on_pbn_valve_contrl_clicked()
 {
     if(1 == pgPara->Mode){  //运维模式
-        if (ui->pbn_valve_contrl->GetCheck()){
+        if (ui->pbn_valve_contrl->GetCheck() == false){
             pgValveControl->OutMode = 0;
+            ui->label_valve_contrl->setText("模拟控制");
+            //ui->pbn_valve_contrl->setText("DA");
            qDebug()<<"DA";
         }else{
             pgValveControl->OutMode = 1;
+            ui->label_valve_contrl->setText("数字控制");
+            //ui->pbn_valve_contrl->setText("IO");
             qDebug()<<"I/O";
         }
+        syncValveParaShm();
     }else{
         InitValveControl();
         myHelper::showMessageBoxInfo("请切换到运维模式");

@@ -719,6 +719,10 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 			}
 			break;
 		case CN_SetTime:
+            if(pgPara->Mode){
+                RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
+                break;
+            }
             if(url_args.flag & 0x01){
 				
 				RequestRespond(REQUEST_READY,&url_args, com, tcp);
@@ -747,6 +751,10 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
             ExecuteRespond(RESULT_SUCCESS, &url_args,com, tcp);
 			break;	
 		case CN_ValveControl:
+            if(pgPara->Mode){
+                RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
+                break;
+            }
             //if(url_args.flag & 0x01){
                 
                 if(pgValveControl->per == pgValveControl->per_last && pgValveControl->per != url_args.per){
@@ -784,6 +792,10 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 			}
 			break;	
 		case CN_SetTolerances:
+            if(pgPara->Mode){
+                RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
+                break;
+            }
             if(url_args.flag & 0x01){
                RequestRespond(REQUEST_READY,&url_args, com, tcp); 
             }

@@ -27,7 +27,7 @@ ModelChooseWidget::~ModelChooseWidget()
 
 void ModelChooseWidget::initForm()
 {
-    if (pgPara->Mode){
+    if (1 == pgPara->Mode){
         ui->pbn_operation->SetCheck(true);
         ui->label_operation->setText("运维模式");
     }else{
@@ -40,9 +40,9 @@ void ModelChooseWidget::on_pbn_operation_clicked()
 {
     qDebug()<<QString("Myapp::UserType[%1]").arg(Myapp::UserType);
     if(Myapp::UserType > QY_USER){  //用户已登陆
-        pgPara->Mode =  ui->pbn_operation->GetCheck();
+        pgPara->Mode =  (true == ui->pbn_operation->GetCheck()) ? 1:0;
         qDebug()<<QString("operation_clicked:%1").arg(pgPara->Mode);
-        if (pgPara->Mode)
+        if (1 == pgPara->Mode)
         {
            ui->label_operation->setText("运维模式");
            //ui->pbn_operation->SetCheck(false);

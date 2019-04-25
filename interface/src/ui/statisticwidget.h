@@ -1,11 +1,11 @@
-/*************************************************
+ï»¿/*************************************************
 Copyright:kevin
 Author:Kevin LiQi
 Date:2015-12-07
 Email:kevinlq0912@163.com
 QQ:936563422
-Description:ÖÇÄÜ¼Ò¾Ó--Í³¼ÆÄ£¿éµÄÊµÏÖ
-            ÎÂ¶ÈÍ³¼Æ¡¢Êª¶ÈÍ³¼Æ¡¢ÑÌÎíÅ¨¶ÈÍ³¼Æ
+Description:æ™ºèƒ½å®¶å±…--ç»Ÿè®¡æ¨¡å—çš„å®ç°
+            æ¸©åº¦ç»Ÿè®¡ã€æ¹¿åº¦ç»Ÿè®¡ã€çƒŸé›¾æµ“åº¦ç»Ÿè®¡
 **************************************************/
 #ifndef STATISTICWIDGET_H
 #define STATISTICWIDGET_H
@@ -28,9 +28,9 @@ public:
     ~StatisticWidget();
 
 private slots:
-    void loadPlotTempture();                //¼ÓÔØÎÂ¶È»æÍ¼
-    void loadPlotHumidity();                //¼ÓÔØÊª¶È»æÍ¼
-    void loadPlotSmoke();                   //¼ÓÔØÑÌÎíÅ¨¶È»æÍ¼
+    void loadPlotTempture();                //åŠ è½½æ¸©åº¦ç»˜å›¾
+    void loadPlotHumidity();                //åŠ è½½æ¹¿åº¦ç»˜å›¾
+    void loadPlotSmoke();                   //åŠ è½½çƒŸé›¾æµ“åº¦ç»˜å›¾
     
     void on_ckMove_stateChanged(int arg1);
 
@@ -38,11 +38,11 @@ private slots:
 
     void on_ckText_stateChanged(int arg1);
 
-    void slotUpdataData();                  //¸üĞÂÍ³¼ÆÍ¼Êı¾İ
+    void slotUpdataData();                  //æ›´æ–°ç»Ÿè®¡å›¾æ•°æ®
 
-    void slotChangeData(int);               //¸Ä±äÏÔÊ¾Êı¾İµÄ·½Ê½(µ±Ìì£¬±¾ÖÜ)
+    void slotChangeData(int);               //æ”¹å˜æ˜¾ç¤ºæ•°æ®çš„æ–¹å¼(å½“å¤©ï¼Œæœ¬å‘¨)
 
-    //ÏÔÊ¾Ò»ÖÜÊı¾İ
+    //æ˜¾ç¤ºä¸€å‘¨æ•°æ®
     void slotShowTempWeekData();
     void slotShowHumWeekData();
     void slotShowSmokeWeedData();
@@ -51,7 +51,7 @@ private slots:
 private:
     Ui::StatisticWidget *ui;
 
-    int m_currentIndex;                       //µ±Ç°½çÃæid
+    int m_currentIndex;                       //å½“å‰ç•Œé¢id
     QList<QCustomPlot *> m_plots_list;
 
     QVector<double> m_plot_tempture_keys;
@@ -65,16 +65,16 @@ private:
     QVector<double> m_plot_smoke_keys;
     int m_smoke_count;
 
-    void initStyle();                       //³õÊ¼»¯ÑùÊ½
-    void initForm();                        //³õÊ¼»¯½çÃæ
-    void initPlot();                        //³õÊ¼»¯»æÍ¼
-    void initPlotTempture();                //³õÊ¼»¯ÎÂ¶È»æÍ¼
-    void initPlotHumidity();                //³õÊ¼»¯Êª¶È»æÍ¼
-    void initPlotSmoke();                   //³õÊ¼»¯ÑÌÎíÅ¨¶È»æÍ¼
+    void initStyle();                       //åˆå§‹åŒ–æ ·å¼
+    void initForm();                        //åˆå§‹åŒ–ç•Œé¢
+    void initPlot();                        //åˆå§‹åŒ–ç»˜å›¾
+    void initPlotTempture();                //åˆå§‹åŒ–æ¸©åº¦ç»˜å›¾
+    void initPlotHumidity();                //åˆå§‹åŒ–æ¹¿åº¦ç»˜å›¾
+    void initPlotSmoke();                   //åˆå§‹åŒ–çƒŸé›¾æµ“åº¦ç»˜å›¾
 
-    void initConnect();                     //³õÊ¼»¯ĞÅºÅºÍ²ÛÁ¬½Ó
+    void initConnect();                     //åˆå§‹åŒ–ä¿¡å·å’Œæ§½è¿æ¥
 
-    //Ë¢ĞÂ½çÃæÊı¾İ
+    //åˆ·æ–°ç•Œé¢æ•°æ®
     void refreshTempture();
     void refreshHumidity();
     void refreshSmoke();

@@ -13,7 +13,7 @@ Description:智能家居---厨房安防功能的实现，主要包括可燃性�
 
 #include <QWidget>
 #include <QTimer>
-#include "analysisdata.h"
+//#include "analysisdata.h"
 
 class QToolButton;
 

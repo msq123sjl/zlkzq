@@ -121,12 +121,12 @@ border-image: url(:/images/登录背景.bmp);
     </item>
     <item>
      <property name="text">
-      <string>sws</string>
+      <string>admin</string>
      </property>
     </item>
     <item>
      <property name="text">
-      <string>admin</string>
+      <string>root</string>
      </property>
     </item>
    </widget>

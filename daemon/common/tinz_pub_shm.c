@@ -111,6 +111,7 @@ void syncParaShm(){
 	int ret,iLoop;
 	FILE*  fd=0;
 	pstPara para=(pstPara)shm_para.shm_mem;
+    if(para==0)return;	
     pstPara para_tmp = (pstPara)malloc(sizeof(stPara));
     memcpy(para_tmp,para,sizeof(stPara));
     for(iLoop = 0; iLoop < SERIAL_CNT; iLoop++){
@@ -119,8 +120,8 @@ void syncParaShm(){
     for(iLoop = 0; iLoop < SITE_CNT; iLoop++){
         para_tmp->SitePara[iLoop].isConnected = 0;
     }
-    
-	if(para==0)return;	
+    para_tmp->Mode = 0;
+
 	fd=fopen(FS_NAME_PARA,"rb+");
 	if(fd<=0){
 		if(access(FS_PATH_PARA,0)){
@@ -204,7 +205,7 @@ void initParaShm(){
     para->UserPara[0].UserType = 1;
     para->UserPara[0].UserPwd = 1;
     para->UserPara[1].UserType = 2;
-    para->UserPara[1].UserPwd = 1;
+    para->UserPara[1].UserPwd = 2;
     para->UserPara[2].UserType = 3;
     para->UserPara[2].UserPwd = 123456;
     

@@ -83,7 +83,6 @@ private:
 
 
     QTimer *m_timer;
-    int blk_time;
         
     void initDataTime();
     void initForm();

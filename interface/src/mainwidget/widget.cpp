@@ -32,6 +32,7 @@ extern "C"{
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
 }
+int blk_time = 120;
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -42,7 +43,6 @@ Widget::Widget(QWidget *parent) :
     this->initForm();
 	this->initWidget();
     this->initToolTip();
-    blk_time = 120;
     system("echo 0 > /sys/class/backlight/backlight/brightness");
 }
 
@@ -327,7 +327,7 @@ void Widget::on_tbnHome_clicked()
 
 void Widget::mousePressEvent(QMouseEvent *e)
 {
-    //qDebug()<<QString("mousePressEvent:%1").arg(e->button());
+    //qDebug()<<QString("Widget mousePressEvent:%1").arg(e->button());
     if (e->button() == Qt::LeftButton)
     {
         if(0 == blk_time){

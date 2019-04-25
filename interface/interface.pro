@@ -9,7 +9,7 @@ QT  += printsupport
 QT  += sql
 #QT  += phonon
 
-CONFIG  += debug serialport
+CONFIG  += debug
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -20,23 +20,23 @@ TRANSLATIONS += images/qt_zh_CN.ts
 
 include(src/mainwidget/mainwidget.pri)
 include(src/help/help.pri)
-include(src/Serialport/serialport.pri)
+#include(src/Serialport/serialport.pri)
 include(src/ui/ui.pri)
-include(src/module/module.pri)
+#include(src/module/module.pri)
 include(src/qcustomplot/qcustomplot.pri)      #第三方绘图图
 include(src/database/database.pri)
-include(src/protocol/protocol.pri)
-include(src/login/loginwidget.pri)
+#include(src/protocol/protocol.pri)
+#include(src/login/loginwidget.pri)
 
-INCLUDEPATH += $$PWD/src/Serialport
+#INCLUDEPATH += $$PWD/src/Serialport
 INCLUDEPATH += $$PWD/src/mainwidget
 INCLUDEPATH += $$PWD/src/help
 INCLUDEPATH += $$PWD/src/ui
-INCLUDEPATH += $$PWD/src/module
+#INCLUDEPATH += $$PWD/src/module
 INCLUDEPATH += $$PWD/src/qcustomplot
 INCLUDEPATH += $$PWD/src/database
-INCLUDEPATH += $$PWD/src/protocol
-INCLUDEPATH += $$PWD/src/login
+#INCLUDEPATH += $$PWD/src/protocol
+#INCLUDEPATH += $$PWD/src/login
 
 MOC_DIR = temp/moc
 RCC_DIR = temp/rccr

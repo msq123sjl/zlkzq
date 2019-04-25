@@ -1,6 +1,6 @@
 #!/bin/sh
 LIST=" \
-	common readmeter up_proc ad73360 clock Cont_Warrn  stat uc1608lcd watchdog read7841 readcarrier gsm-module/multiplexer\
+	common dataproc up_proc ValveControl watchdog\
 "
 build_target(){
 	cd $1

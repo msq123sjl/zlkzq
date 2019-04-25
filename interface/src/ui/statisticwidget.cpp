@@ -1,11 +1,11 @@
-/*************************************************
+ï»¿/*************************************************
 Copyright:kevin
 Author:Kevin LiQi
 Date:2015-12-07
 Email:kevinlq0912@163.com
 QQ:936563422
-Description:ÖÇÄÜ¼Ò¾Ó--Í³¼ÆÄ£¿éµÄÊµÏÖ
-            ÎÂ¶ÈÍ³¼Æ¡¢Êª¶ÈÍ³¼Æ¡¢ÑÌÎíÅ¨¶ÈÍ³¼Æ
+Description:æ™ºèƒ½å®¶å±…--ç»Ÿè®¡æ¨¡å—çš„å®ç°
+            æ¸©åº¦ç»Ÿè®¡ã€æ¹¿åº¦ç»Ÿè®¡ã€çƒŸé›¾æµ“åº¦ç»Ÿè®¡
 **************************************************/
 #include "statisticwidget.h"
 #include "ui_statisticwidget.h"
@@ -17,16 +17,16 @@ Description:ÖÇÄÜ¼Ò¾Ó--Í³¼ÆÄ£¿éµÄÊµÏÖ
 #include <QSqlQuery>
 #include <QSqlError>
 
-//½çÃæÉÏÒª»æÖÆµÄµãÊı
+//ç•Œé¢ä¸Šè¦ç»˜åˆ¶çš„ç‚¹æ•°
 #define MAX_POINT_NUM   18
 
-//×İ×ø±ê×î´óÖµ
-#define PLOT_TEMPTURE_MAX_Y         100     //ÎÂ¶ÈÖµ
-#define PLOT_HUMIDITY_MAX_Y         100     //Êª¶ÈÖµ
-#define PLOT_SMOKE_MAX_Y            100   //ÑÌÎíÅ¨¶ÈÖµ
+//çºµåæ ‡æœ€å¤§å€¼
+#define PLOT_TEMPTURE_MAX_Y         100     //æ¸©åº¦å€¼
+#define PLOT_HUMIDITY_MAX_Y         100     //æ¹¿åº¦å€¼
+#define PLOT_SMOKE_MAX_Y            100   //çƒŸé›¾æµ“åº¦å€¼
 
-#define TextColor QColor(255,255,0)         //»ÆÉ«
-#define Plot_NoColor QColor(0,0,0,0)        //ºÚÉ«
+#define TextColor QColor(255,255,0)         //é»„è‰²
+#define Plot_NoColor QColor(0,0,0,0)        //é»‘è‰²
 
 #define Plot1_DotColor QColor(5,189,251)
 #define Plot1_LineColor QColor(41,138,220)
@@ -93,7 +93,7 @@ StatisticWidget::~StatisticWidget()
 void StatisticWidget::loadPlotTempture()
 {
 #if 0
-    //Ã¿·ÖÖÓ»æÖÆÒ»´ÎÊı¾İ
+    //æ¯åˆ†é’Ÿç»˜åˆ¶ä¸€æ¬¡æ•°æ®
     QStringList value_list,data_list;
     QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='01'";
     QString currrent_time = "20160401174000";
@@ -101,10 +101,10 @@ void StatisticWidget::loadPlotTempture()
     quint8 hour,minute;
     hour = currrent_time.mid(8,2).toUInt();
     minute = currrent_time.mid(10,2).toUInt();
-    //ÒòÎª½çÃæÉÏÒª»æÖÆ12¸öµã£¬ËùÒÔÕâÀï»ñÈ¡Õâ¸öÊ±¼ä¶ÎÄÚ£¬12¸öµãµÄÊı¾İ
+    //å› ä¸ºç•Œé¢ä¸Šè¦ç»˜åˆ¶12ä¸ªç‚¹ï¼Œæ‰€ä»¥è¿™é‡Œè·å–è¿™ä¸ªæ—¶é—´æ®µå†…ï¼Œ12ä¸ªç‚¹çš„æ•°æ®
     if (minute < MAX_POINT_NUM)
     {
-        //Ğ¡Ê±-1£¬·ÖÖÓ¼Ó60£¬È»ºó½øĞĞÏà¼õ
+        //å°æ—¶-1ï¼Œåˆ†é’ŸåŠ 60ï¼Œç„¶åè¿›è¡Œç›¸å‡
         hour -= 1;
         minute +=60;
         start_time = currrent_time.replace(
@@ -142,7 +142,7 @@ void StatisticWidget::loadPlotTempture()
     }
 
     foreach (QString str, data_list) {
-        //½«Ê±¼ä×ª»»ÎªÃë£¬ÕâÑù²ÅÄÜÏÔÊ¾ÔÚ×ø±êÖáÉÏ
+        //å°†æ—¶é—´è½¬æ¢ä¸ºç§’ï¼Œè¿™æ ·æ‰èƒ½æ˜¾ç¤ºåœ¨åæ ‡è½´ä¸Š
         m_plot_tempture_keys << (QDateTime::fromString(str,"yyyyMMddhhmmss").toMSecsSinceEpoch()/1000);
     }
 #if QDEBUG
@@ -155,16 +155,16 @@ void StatisticWidget::loadPlotTempture()
                                           m_plot_tempture_values);
     //    m_plots_list.at(0)->graph(0)->removeDataBefore(m_plot_tempture_keys.at(MAX_POINT_NUM-1) -MAX_POINT_NUM -1);
     //    m_plots_list.at(0)->xAxis->setRange(m_plot_tempture_keys.at(MAX_POINT_NUM-1),MAX_POINT_NUM,Qt::AlignLeft);
-    //×Ô¶¯µ÷Õû×ø±êÖáÏÔÊ¾·¶Î§
+    //è‡ªåŠ¨è°ƒæ•´åæ ‡è½´æ˜¾ç¤ºèŒƒå›´
     m_plots_list.at(0)->rescaleAxes();
     m_plots_list.at(0)->yAxis->setRange(0,50);
     m_plots_list.at(0)->replot();
 
 #endif
 
-    //µÚÈı´ÎĞŞ¸Ä
+    //ç¬¬ä¸‰æ¬¡ä¿®æ”¹
     /*
-     *Ö»»ñÈ¡µ±Ç°Ê±¼äµãÇ°Ò»·ÖÖÓÊı¾İ£¬Êı¾İÏÔÊ¾ÊÇÃ¿Ò»·ÖÖÓË¢ĞÂÒ»´ÎµÄ¡£
+     *åªè·å–å½“å‰æ—¶é—´ç‚¹å‰ä¸€åˆ†é’Ÿæ•°æ®ï¼Œæ•°æ®æ˜¾ç¤ºæ˜¯æ¯ä¸€åˆ†é’Ÿåˆ·æ–°ä¸€æ¬¡çš„ã€‚
     */
     QStringList value_list,data_list;
     quint8 hour,minute;
@@ -194,13 +194,13 @@ void StatisticWidget::loadPlotTempture()
         m_plot_tempture_keys <<(hour*60 +minute);
     }
 
-    //ÅĞ¶ÏÊı¾İÊÇ·ñÎª¿Õ
+    //åˆ¤æ–­æ•°æ®æ˜¯å¦ä¸ºç©º
     if (!value_list.isEmpty())
     {
         m_plots_list.at(0)->graph(0)->addData(m_plot_tempture_keys,
                                               m_plot_tempture_values);
         m_plots_list.at(0)->graph(0)->removeDataBefore(m_plot_tempture_keys.first() - 60);
-        //×Ô¶¯µ÷Õû×ø±êÖáÏÔÊ¾·¶Î§
+        //è‡ªåŠ¨è°ƒæ•´åæ ‡è½´æ˜¾ç¤ºèŒƒå›´
         m_plots_list.at(0)->rescaleAxes();
 
         //        if (m_plot_tempture_keys.count() <= 10)
@@ -223,19 +223,19 @@ void StatisticWidget::loadPlotTempture()
 
 }
 
-/*ĞŞ¸ÄËµÃ÷:
+/*ä¿®æ”¹è¯´æ˜:
  * 2016-03-25 22:45:53:
- * ĞŞ¸ÄÊı¾İÍ³¼ÆÏÔÊ¾·½Ê½£ºÒ»ĞĞ(Ò²¾ÍÊÇÃ¿´ÎÖ»ÏÔÊ¾10ÌõÊı¾İ£¬°´·ÖÖÓÏÔÊ¾)
- * »ñÈ¡Ë¼Â·£º»ñÈ¡µ±Ç°Ê±¼ä£¬È»ºó¼õÈ¥1·ÖÖÓ£¬ÔÙÔÚÊı¾İ¿âÖĞ²éÕÒÕâ¸öÇø¼äÄÚµÄÊª¶ÈĞÅÏ¢
- *         ÏÔÊ¾ÔÚ»æÍ¼Ãæ°åÉÏ
- *2016Äê4ÔÂ2ÈÕ21:30:47
- *ÖØĞÂĞŞ¸Ä
- *»ñÈ¡µ±Ç°Ê±¼äµãÇ°12Ìõ¼ÇÂ¼£¬½øĞĞÏÔÊ¾²Ù×÷
+ * ä¿®æ”¹æ•°æ®ç»Ÿè®¡æ˜¾ç¤ºæ–¹å¼ï¼šä¸€è¡Œ(ä¹Ÿå°±æ˜¯æ¯æ¬¡åªæ˜¾ç¤º10æ¡æ•°æ®ï¼ŒæŒ‰åˆ†é’Ÿæ˜¾ç¤º)
+ * è·å–æ€è·¯ï¼šè·å–å½“å‰æ—¶é—´ï¼Œç„¶åå‡å»1åˆ†é’Ÿï¼Œå†åœ¨æ•°æ®åº“ä¸­æŸ¥æ‰¾è¿™ä¸ªåŒºé—´å†…çš„æ¹¿åº¦ä¿¡æ¯
+ *         æ˜¾ç¤ºåœ¨ç»˜å›¾é¢æ¿ä¸Š
+ *2016å¹´4æœˆ2æ—¥21:30:47
+ *é‡æ–°ä¿®æ”¹
+ *è·å–å½“å‰æ—¶é—´ç‚¹å‰12æ¡è®°å½•ï¼Œè¿›è¡Œæ˜¾ç¤ºæ“ä½œ
 */
 void StatisticWidget::loadPlotHumidity()
 {
     /*
-    //»ñÈ¡µ±Ç°ÏµÍ³Ê±¼ä£¬ÓÃÓÚ¼ÆËãÊı¾İÈÕÆÚÇø¼ä
+    //è·å–å½“å‰ç³»ç»Ÿæ—¶é—´ï¼Œç”¨äºè®¡ç®—æ•°æ®æ—¥æœŸåŒºé—´
     QString curTime = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
     QString befTime = QString::number(curTime.toLongLong() - 100);
 
@@ -257,9 +257,9 @@ void StatisticWidget::loadPlotHumidity()
     */
 #if 0
     /*
-     *µÚ¶ş´ÎĞŞ¸Ä
+     *ç¬¬äºŒæ¬¡ä¿®æ”¹
     */
-    //Ã¿·ÖÖÓ»æÖÆÒ»´ÎÊı¾İ
+    //æ¯åˆ†é’Ÿç»˜åˆ¶ä¸€æ¬¡æ•°æ®
     QStringList value_list,data_list;
     QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='02'";
     //QString currrent_time = "20160401174000";
@@ -268,10 +268,10 @@ void StatisticWidget::loadPlotHumidity()
     quint8 hour,minute;
     hour = currrent_time.mid(8,2).toUInt();
     minute = currrent_time.mid(10,2).toUInt();
-    //ÒòÎª½çÃæÉÏÒª»æÖÆ12¸öµã£¬ËùÒÔÕâÀï»ñÈ¡Õâ¸öÊ±¼ä¶ÎÄÚ£¬12¸öµãµÄÊı¾İ
+    //å› ä¸ºç•Œé¢ä¸Šè¦ç»˜åˆ¶12ä¸ªç‚¹ï¼Œæ‰€ä»¥è¿™é‡Œè·å–è¿™ä¸ªæ—¶é—´æ®µå†…ï¼Œ12ä¸ªç‚¹çš„æ•°æ®
     if (minute < MAX_POINT_NUM)
     {
-        //Ğ¡Ê±-1£¬·ÖÖÓ¼Ó60£¬È»ºó½øĞĞÏà¼õ
+        //å°æ—¶-1ï¼Œåˆ†é’ŸåŠ 60ï¼Œç„¶åè¿›è¡Œç›¸å‡
         hour -= 1;
         minute +=60;
         start_time = currrent_time.replace(
@@ -296,7 +296,7 @@ void StatisticWidget::loadPlotHumidity()
         qDebug()<<query.lastError();
     }
 
-    //Èç¹ûÊı¾İÎª¿Õ£¬Ôòµ÷Õûºá×ø±ê
+    //å¦‚æœæ•°æ®ä¸ºç©ºï¼Œåˆ™è°ƒæ•´æ¨ªåæ ‡
     if (value_list.isEmpty())
     {
         m_plots_list.at(1)->xAxis->setRange(0,MAX_POINT_NUM*20,Qt::AlignLeft);
@@ -311,7 +311,7 @@ void StatisticWidget::loadPlotHumidity()
         }
 
         foreach (QString str, data_list) {
-            //½«Ê±¼ä×ª»»ÎªÃë£¬ÕâÑù²ÅÄÜÏÔÊ¾ÔÚ×ø±êÖáÉÏ
+            //å°†æ—¶é—´è½¬æ¢ä¸ºç§’ï¼Œè¿™æ ·æ‰èƒ½æ˜¾ç¤ºåœ¨åæ ‡è½´ä¸Š
             m_plot_hum_keys << (QDateTime::fromString(str,"yyyyMMddhhmmss").toMSecsSinceEpoch()/1000);
         }
 #if QDEBUG
@@ -323,14 +323,14 @@ void StatisticWidget::loadPlotHumidity()
     m_plots_list.at(1)->graph(0)->addData(m_plot_hum_keys,
                                           m_plot_hum_values);
 
-    //×Ô¶¯µ÷Õû×ø±êÖáÏÔÊ¾·¶Î§
+    //è‡ªåŠ¨è°ƒæ•´åæ ‡è½´æ˜¾ç¤ºèŒƒå›´
     m_plots_list.at(1)->rescaleAxes();
     m_plots_list.at(1)->yAxis->setRange(0,m_plot_hum_values.last()+20);
     m_plots_list.at(1)->replot();
 #endif
-    //µÚÈı´ÎĞŞ¸Ä
+    //ç¬¬ä¸‰æ¬¡ä¿®æ”¹
     /*
-     *Ö»»ñÈ¡µ±Ç°Ê±¼äµãÇ°Ò»·ÖÖÓÊı¾İ£¬Êı¾İÏÔÊ¾ÊÇÃ¿Ò»·ÖÖÓË¢ĞÂÒ»´ÎµÄ¡£
+     *åªè·å–å½“å‰æ—¶é—´ç‚¹å‰ä¸€åˆ†é’Ÿæ•°æ®ï¼Œæ•°æ®æ˜¾ç¤ºæ˜¯æ¯ä¸€åˆ†é’Ÿåˆ·æ–°ä¸€æ¬¡çš„ã€‚
     */
     QStringList value_list,data_list;
     quint8 hour,minute;
@@ -360,13 +360,13 @@ void StatisticWidget::loadPlotHumidity()
         m_plot_hum_keys <<(hour*60 +minute);
     }
 
-    //ÅĞ¶ÏÊı¾İÊÇ·ñÎª¿Õ
+    //åˆ¤æ–­æ•°æ®æ˜¯å¦ä¸ºç©º
     if (!value_list.isEmpty())
     {
         m_plots_list.at(1)->graph(0)->addData(m_plot_hum_keys,
                                               m_plot_hum_values);
         m_plots_list.at(1)->graph(0)->removeDataBefore(m_plot_hum_keys.first() - 60);
-        //×Ô¶¯µ÷Õû×ø±êÖáÏÔÊ¾·¶Î§
+        //è‡ªåŠ¨è°ƒæ•´åæ ‡è½´æ˜¾ç¤ºèŒƒå›´
         m_plots_list.at(1)->rescaleAxes();
         m_plots_list.at(1)->xAxis->setRange(0,24*60,Qt::AlignLeft);
         m_plots_list.at(1)->yAxis->setRange(0,60);
@@ -431,9 +431,9 @@ void StatisticWidget::loadPlotSmoke()
 
 #if 0
     /*
-     *2016Äê4ÔÂ2ÈÕ21:36:08  ÔÙ´ÎĞŞ¸Ä
+     *2016å¹´4æœˆ2æ—¥21:36:08  å†æ¬¡ä¿®æ”¹
     */
-    //Ã¿·ÖÖÓ»æÖÆÒ»´ÎÊı¾İ
+    //æ¯åˆ†é’Ÿç»˜åˆ¶ä¸€æ¬¡æ•°æ®
     QStringList value_list,data_list;
     QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='03'";
     QString currrent_time = "20160401174000";
@@ -441,10 +441,10 @@ void StatisticWidget::loadPlotSmoke()
     quint8 hour,minute;
     hour = currrent_time.mid(8,2).toUInt();
     minute = currrent_time.mid(10,2).toUInt();
-    //ÒòÎª½çÃæÉÏÒª»æÖÆ12¸öµã£¬ËùÒÔÕâÀï»ñÈ¡Õâ¸öÊ±¼ä¶ÎÄÚ£¬12¸öµãµÄÊı¾İ
+    //å› ä¸ºç•Œé¢ä¸Šè¦ç»˜åˆ¶12ä¸ªç‚¹ï¼Œæ‰€ä»¥è¿™é‡Œè·å–è¿™ä¸ªæ—¶é—´æ®µå†…ï¼Œ12ä¸ªç‚¹çš„æ•°æ®
     if (minute < MAX_POINT_NUM)
     {
-        //Ğ¡Ê±-1£¬·ÖÖÓ¼Ó60£¬È»ºó½øĞĞÏà¼õ
+        //å°æ—¶-1ï¼Œåˆ†é’ŸåŠ 60ï¼Œç„¶åè¿›è¡Œç›¸å‡
         hour -= 1;
         minute +=60;
         start_time = currrent_time.replace(
@@ -482,7 +482,7 @@ void StatisticWidget::loadPlotSmoke()
     }
 
     foreach (QString str, data_list) {
-        //½«Ê±¼ä×ª»»ÎªÃë£¬ÕâÑù²ÅÄÜÏÔÊ¾ÔÚ×ø±êÖáÉÏ
+        //å°†æ—¶é—´è½¬æ¢ä¸ºç§’ï¼Œè¿™æ ·æ‰èƒ½æ˜¾ç¤ºåœ¨åæ ‡è½´ä¸Š
         m_plot_smoke_keys << (QDateTime::fromString(str,"yyyyMMddhhmmss").toMSecsSinceEpoch()/1000);
     }
 #if QDEBUG
@@ -494,16 +494,16 @@ void StatisticWidget::loadPlotSmoke()
     m_plots_list.at(2)->graph(0)->addData(m_plot_smoke_keys,
                                           m_plot_smoke_values);
 
-    //×Ô¶¯µ÷Õû×ø±êÖáÏÔÊ¾·¶Î§
+    //è‡ªåŠ¨è°ƒæ•´åæ ‡è½´æ˜¾ç¤ºèŒƒå›´
     m_plots_list.at(2)->rescaleAxes();
 
     m_plots_list.at(2)->yAxis->setRange(0,m_plot_smoke_values.last()+20);
     m_plots_list.at(2)->replot();
 #endif
 
-    //µÚÈı´ÎĞŞ¸Ä
+    //ç¬¬ä¸‰æ¬¡ä¿®æ”¹
     /*
-     *Ö»»ñÈ¡µ±Ç°Ê±¼äµãÇ°Ò»·ÖÖÓÊı¾İ£¬Êı¾İÏÔÊ¾ÊÇÃ¿Ò»·ÖÖÓË¢ĞÂÒ»´ÎµÄ¡£
+     *åªè·å–å½“å‰æ—¶é—´ç‚¹å‰ä¸€åˆ†é’Ÿæ•°æ®ï¼Œæ•°æ®æ˜¾ç¤ºæ˜¯æ¯ä¸€åˆ†é’Ÿåˆ·æ–°ä¸€æ¬¡çš„ã€‚
     */
     QStringList value_list,data_list;
     quint8 hour,minute;
@@ -533,13 +533,13 @@ void StatisticWidget::loadPlotSmoke()
         m_plot_smoke_keys <<(hour*60 +minute);
     }
 
-    //ÅĞ¶ÏÊı¾İÊÇ·ñÎª¿Õ
+    //åˆ¤æ–­æ•°æ®æ˜¯å¦ä¸ºç©º
     if (!value_list.isEmpty())
     {
         m_plots_list.at(2)->graph(0)->addData(m_plot_smoke_keys,
                                               m_plot_smoke_values);
         m_plots_list.at(2)->graph(0)->removeDataBefore(m_plot_smoke_keys.first() - 60);
-        //×Ô¶¯µ÷Õû×ø±êÖáÏÔÊ¾·¶Î§
+        //è‡ªåŠ¨è°ƒæ•´åæ ‡è½´æ˜¾ç¤ºèŒƒå›´
         m_plots_list.at(2)->rescaleAxes();
         m_plots_list.at(2)->xAxis->setRange(0,24*60,Qt::AlignLeft);
         m_plots_list.at(2)->yAxis->setRange(0,60);
@@ -564,7 +564,7 @@ void StatisticWidget::initForm()
     m_plots_list.append(ui->plot_humidity);
     m_plots_list.append(ui->plot_smoke);
 
-    //Ä¬ÈÏÏÔÊ¾Í¼Àı
+    //é»˜è®¤æ˜¾ç¤ºå›¾ä¾‹
 #if SHOW_LEGEND
     m_plots_list.at(0)->legend->setVisible(true);
     m_plots_list.at(1)->legend->setVisible(true);
@@ -575,32 +575,32 @@ void StatisticWidget::initForm()
     ui->label_dateTime->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
 }
 
-//³õÊ¼»¯»æÍ¼Éè±¸
+//åˆå§‹åŒ–ç»˜å›¾è®¾å¤‡
 void StatisticWidget::initPlot()
 {
-    //ÉèÖÃ¸÷¸öÍ¼µÄ×İ×ø±êÃû³Æ
-    m_plots_list.at(0)->yAxis->setLabel(tr("ÎÂ¶ÈÖµ(µ¥Î»:¡ã)"));
-    m_plots_list.at(1)->yAxis->setLabel(tr("Êª¶ÈÖµ(µ¥Î»:%)"));
-    m_plots_list.at(2)->yAxis->setLabel(tr("Å¨¶ÈÖµ(µ¥Î»:%)"));
+    //è®¾ç½®å„ä¸ªå›¾çš„çºµåæ ‡åç§°
+    m_plots_list.at(0)->yAxis->setLabel(tr("æ¸©åº¦å€¼(å•ä½:Â°)"));
+    m_plots_list.at(1)->yAxis->setLabel(tr("æ¹¿åº¦å€¼(å•ä½:%)"));
+    m_plots_list.at(2)->yAxis->setLabel(tr("æµ“åº¦å€¼(å•ä½:%)"));
 
-    m_plots_list.at(0)->xAxis->setLabel(tr("Ê±¼ä"));
-    m_plots_list.at(1)->xAxis->setLabel(tr("Ê±¼ä"));
-    m_plots_list.at(2)->xAxis->setLabel(tr("Ê±¼ä"));
+    m_plots_list.at(0)->xAxis->setLabel(tr("æ—¶é—´"));
+    m_plots_list.at(1)->xAxis->setLabel(tr("æ—¶é—´"));
+    m_plots_list.at(2)->xAxis->setLabel(tr("æ—¶é—´"));
 
-    //ÉèÖÃ×İ×ø±ê·¶Î§
+    //è®¾ç½®çºµåæ ‡èŒƒå›´
     m_plots_list.at(0)->yAxis->setRange(0,PLOT_TEMPTURE_MAX_Y);
     m_plots_list.at(1)->yAxis->setRange(0,PLOT_HUMIDITY_MAX_Y);
     m_plots_list.at(2)->yAxis->setRange(0,PLOT_SMOKE_MAX_Y);
 
     foreach (QCustomPlot *plot, m_plots_list) {
-        //ÉèÖÃ×ø±êÑÕÉ«£¬Ãû³Æ
+        //è®¾ç½®åæ ‡é¢œè‰²ï¼Œåç§°
         plot->yAxis->setLabelColor(TextColor);
         plot->xAxis->setLabelColor(TextColor);
 
-        plot->yAxis->setTickLabelColor(TextColor);  //YÖá±êÇ©ÑÕÉ«
+        plot->yAxis->setTickLabelColor(TextColor);  //Yè½´æ ‡ç­¾é¢œè‰²
         plot->xAxis->setTickLabelColor(TextColor);
 
-        //ÉèÖÃ±È±êÇ©×ÖÌå
+        //è®¾ç½®æ¯”æ ‡ç­¾å­—ä½“
         plot->xAxis->setTickLabelFont(QFont(QFont().family(),10));
 
         plot->xAxis->setBasePen(QPen(TextColor,TextWidth));
@@ -612,7 +612,7 @@ void StatisticWidget::initPlot()
         plot->xAxis->setSubTickPen(QPen(TextColor,TextWidth));
         plot->yAxis->setSubTickPen(QPen(TextColor,TextWidth));
 
-        //ÉèÖÃ»­²¼±³¾°
+        //è®¾ç½®ç”»å¸ƒèƒŒæ™¯
         QLinearGradient plotGradient;
         plotGradient.setStart(0,0);
         plotGradient.setFinalStop(0,350);
@@ -620,7 +620,7 @@ void StatisticWidget::initPlot()
         plotGradient.setColorAt(1,QColor(50,50,50));
         plot->setBackground(plotGradient);
 
-        //ÉèÖÃ×ø±ê±³¾°É«
+        //è®¾ç½®åæ ‡èƒŒæ™¯è‰²
         QLinearGradient axisRectGradient;
         axisRectGradient.setStart(0,0);
         axisRectGradient.setFinalStop(0,350);
@@ -628,7 +628,7 @@ void StatisticWidget::initPlot()
         axisRectGradient.setColorAt(1,QColor(30,30,30));
         plot->axisRect()->setBackground(axisRectGradient);
 
-        //ÉèÖÃÍ¼ÀıÌáÊ¾Î»ÖÃÒÔ¼°±³¾°É«
+        //è®¾ç½®å›¾ä¾‹æç¤ºä½ç½®ä»¥åŠèƒŒæ™¯è‰²
         plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignTop | Qt::AlignRight);
         plot->legend->setBrush(QColor(255, 255, 255, 200));
 
@@ -636,18 +636,18 @@ void StatisticWidget::initPlot()
     }
 }
 
-//³õÊ¼»¯ÎÂ¶ÈÍ³¼ÆÍ¼
+//åˆå§‹åŒ–æ¸©åº¦ç»Ÿè®¡å›¾
 void StatisticWidget::initPlotTempture()
 {
-    //Ïò»­²¼Ìí¼ÓÒ»ÌõÇúÏß
+    //å‘ç”»å¸ƒæ·»åŠ ä¸€æ¡æ›²çº¿
     m_plots_list.at(0)->addGraph();
-    m_plots_list.at(0)->graph(0)->setName(tr("ÎÂ¶ÈÖµ(µ¥Î»:¶È)"));
+    m_plots_list.at(0)->graph(0)->setName(tr("æ¸©åº¦å€¼(å•ä½:åº¦)"));
     m_plots_list.at(0)->graph(0)->setPen(QPen(Plot1_LineColor,LineWidth));
     m_plots_list.at(0)->graph(0)->setScatterStyle(
                 QCPScatterStyle(QCPScatterStyle::ssCircle,
                                 QPen(Plot1_DotColor, LineWidth),
                                 QBrush(Plot1_DotColor), DotWidth));
-    //ÉèÖÃ¾²Ì¬ÇúÏßµÄºá×ø±ê·¶Î§ÒÔ¼°×ÔÊÊÓ¦×ø±ê
+    //è®¾ç½®é™æ€æ›²çº¿çš„æ¨ªåæ ‡èŒƒå›´ä»¥åŠè‡ªé€‚åº”åæ ‡
     //    m_plots_list.at(0)->xAxis->setTickLabelType(QCPAxis::ltDateTime);
     //    m_plots_list.at(0)->xAxis->setDateTimeFormat("hh:mm");
     m_plots_list.at(0)->xAxis->setAutoTickStep(false);
@@ -655,19 +655,19 @@ void StatisticWidget::initPlotTempture()
     m_plots_list.at(0)->xAxis->setRange(0, 24*60,Qt::AlignLeft);
 }
 
-//³õÊ¼»¯Êª¶ÈÍ³¼ÆÍ¼
+//åˆå§‹åŒ–æ¹¿åº¦ç»Ÿè®¡å›¾
 void StatisticWidget::initPlotHumidity()
 {
-    //Ïò»­²¼Ìí¼ÓÒ»ÌõÇúÏß
+    //å‘ç”»å¸ƒæ·»åŠ ä¸€æ¡æ›²çº¿
     m_plots_list.at(1)->addGraph(0);
-    m_plots_list.at(1)->graph(0)->setName(tr("Êª¶ÈÖµ(µ¥Î»:%)"));
+    m_plots_list.at(1)->graph(0)->setName(tr("æ¹¿åº¦å€¼(å•ä½:%)"));
     m_plots_list.at(1)->graph(0)->setPen(QPen(Plot2_LineColor,LineWidth));
     m_plots_list.at(1)->graph(0)->setScatterStyle(
                 QCPScatterStyle(QCPScatterStyle::ssCircle,
                                 QPen(Plot2_DotColor, LineWidth),
                                 QBrush(Plot2_DotColor), DotWidth));
 
-    //ÉèÖÃ¶¯Ì¬ÇúÏßµÄºá×ø±ê¸ñÊ½¼°·¶Î§
+    //è®¾ç½®åŠ¨æ€æ›²çº¿çš„æ¨ªåæ ‡æ ¼å¼åŠèŒƒå›´
     //    m_plots_list.at(1)->xAxis->setTickLabelType(QCPAxis::ltDateTime);
     //    m_plots_list.at(1)->xAxis->setDateTimeFormat("hh:mm");
     m_plots_list.at(1)->xAxis->setAutoTickStep(false);
@@ -675,17 +675,17 @@ void StatisticWidget::initPlotHumidity()
     m_plots_list.at(1)->xAxis->setRange(0, 24*60, Qt::AlignLeft);
 }
 
-//³õÊ¼»¯ÑÌÎíÍ³¼ÆÍ¼
+//åˆå§‹åŒ–çƒŸé›¾ç»Ÿè®¡å›¾
 void StatisticWidget::initPlotSmoke()
 {
     m_plots_list.at(2)->addGraph(0);
-    m_plots_list.at(2)->graph(0)->setName(tr("ÑÌÎíÖµ(µ¥Î»:%)"));
+    m_plots_list.at(2)->graph(0)->setName(tr("çƒŸé›¾å€¼(å•ä½:%)"));
     m_plots_list.at(2)->graph(0)->setPen(QPen(Plot3_LineColor,LineWidth));
     m_plots_list.at(2)->graph(0)->setScatterStyle(
                 QCPScatterStyle(QCPScatterStyle::ssCircle,
                                 QPen(Plot3_DotColor, LineWidth),
                                 QBrush(Plot3_DotColor), DotWidth));
-    //ÉèÖÃ¶¯Ì¬ÇúÏßµÄºá×ø±ê¸ñÊ½¼°·¶Î§
+    //è®¾ç½®åŠ¨æ€æ›²çº¿çš„æ¨ªåæ ‡æ ¼å¼åŠèŒƒå›´
     //    m_plots_list.at(2)->xAxis->setTickLabelType(QCPAxis::ltDateTime);
     //    m_plots_list.at(2)->xAxis->setDateTimeFormat("hh:mm");
     m_plots_list.at(2)->xAxis->setAutoTickStep(false);
@@ -733,7 +733,7 @@ void StatisticWidget::refreshSmoke()
 }
 
 
-//¿ªÆô/¹Ø±ÕÒÆ¶¯Ëõ·Å¹¦ÄÜ
+//å¼€å¯/å…³é—­ç§»åŠ¨ç¼©æ”¾åŠŸèƒ½
 void StatisticWidget::on_ckMove_stateChanged(int arg1)
 {
     bool value = (arg1 == 0? false:true);
@@ -750,7 +750,7 @@ void StatisticWidget::on_ckMove_stateChanged(int arg1)
     }
 }
 
-//´ò¿ª/¹Ø±Õ±³¾°
+//æ‰“å¼€/å…³é—­èƒŒæ™¯
 void StatisticWidget::on_ckBackground_stateChanged(int arg1)
 {
     bool value = (arg1 == 0? false:true);
@@ -771,7 +771,7 @@ void StatisticWidget::on_ckBackground_stateChanged(int arg1)
     m_plots_list.at(2)->replot();
 }
 
-//Ìí¼Ó/È¡ÏûÍ¼Àı
+//æ·»åŠ /å–æ¶ˆå›¾ä¾‹
 void StatisticWidget::on_ckText_stateChanged(int arg1)
 {
     bool value = (arg1 == 0? false:true);
@@ -787,7 +787,7 @@ void StatisticWidget::on_ckText_stateChanged(int arg1)
         m_plots_list.at(2)->legend->setVisible(false);
     }
 
-    //ÖØ»æ
+    //é‡ç»˜
     m_plots_list.at(0)->replot();
     m_plots_list.at(1)->replot();
     m_plots_list.at(2)->replot();
@@ -819,14 +819,14 @@ void StatisticWidget::slotUpdataData()
 
 void StatisticWidget::slotChangeData(int index)
 {
-    //ÏÔÊ¾µ±Ç°Êı¾İ
+    //æ˜¾ç¤ºå½“å‰æ•°æ®
     if (0 == index)
     {
         loadPlotTempture();
         loadPlotHumidity();
         loadPlotSmoke();
     }
-    //ÏÔÊ¾±¾ÖÜÊı¾İ
+    //æ˜¾ç¤ºæœ¬å‘¨æ•°æ®
     else if (1 == index)
     {
         slotShowTempWeekData();
@@ -836,9 +836,9 @@ void StatisticWidget::slotChangeData(int index)
 }
 
 /*
- *Í³¼ÆÒ»ÖÜÊı¾İ£¬Ö»ÏÔÊ¾7¸öµã
- *Ë¼Â·£º´ÓÊı¾İ¿âÖĞ¶ÁÈ¡Ç°7ÌìµÄÊı¾İ£¬½øĞĞÏÔÊ¾
- *ÄÑµã£º»ñÈ¡Ã¿Ò»ÌìÊı¾İµÄÆ½¾ùÖµ
+ *ç»Ÿè®¡ä¸€å‘¨æ•°æ®ï¼Œåªæ˜¾ç¤º7ä¸ªç‚¹
+ *æ€è·¯ï¼šä»æ•°æ®åº“ä¸­è¯»å–å‰7å¤©çš„æ•°æ®ï¼Œè¿›è¡Œæ˜¾ç¤º
+ *éš¾ç‚¹ï¼šè·å–æ¯ä¸€å¤©æ•°æ®çš„å¹³å‡å€¼
 */
 void StatisticWidget::slotShowTempWeekData()
 {
@@ -849,7 +849,7 @@ void StatisticWidget::slotShowTempWeekData()
     QString start_Timer;
     QString month = current_Time.mid(4,2);
     QString date = current_Time.mid(6,2);
-    //¶Ôµ±Ç°ÈÕÆÚ½øĞĞÅĞ¶Ï£¬Í³¼ÆÒ»ÖÜÊı¾İ
+    //å¯¹å½“å‰æ—¥æœŸè¿›è¡Œåˆ¤æ–­ï¼Œç»Ÿè®¡ä¸€å‘¨æ•°æ®
     foreach (QString str, month_list) {
         if (month.contains(str,Qt::CaseSensitive))
         {

@@ -84,7 +84,8 @@ private:
     bool AddParaIsLegal();
     void InitParaInfoModel();
     void ReadParaInfo();
-
+protected:
+    void mouseReleaseEvent(QMouseEvent*);
 };
 
 #endif // FRMCONFIG_H
