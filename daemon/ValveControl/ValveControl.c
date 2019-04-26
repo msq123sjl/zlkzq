@@ -14,13 +14,14 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include <pthread.h>
 
 #include "em335x_gpio.h"
 #include "em335x_drivers.h"
 #include "tinz_common_helper.h"
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
-//#include "tinz_base_data.h"
+#include "tinz_base_data.h"
 //#include "tinz_pub_message.h"
 //#include "tinz_common_db_helper.h"
 
@@ -30,6 +31,9 @@
 #include "TLC5615.h"
 
 pstValveControl pgValveControl;
+pstData pgData;
+pstPara pgPara;
+
 int gPrintLevel = 5;
 int io_fd,spi_fd;
 
@@ -77,9 +81,6 @@ void Valve_Open_Set(int fd)
     GPIO_OutSet(fd, VALVE_OPEN);
     GPIO_OutSet(fd, VALVE_COMMON);
 }
-
-
-
 
 //排水阀门关闭输出使能
 void Valve_Close_Set(int fd)
@@ -150,6 +151,12 @@ static int SpiInitGPIO()
     if(rc < 0)
     {
         DEBUG_PRINT_INFO(gPrintLevel, "GPIO_OutEnable::failed %d\n", rc);
+        return TINZ_ERROR;
+    }
+    rc = GPIO_OutDisable(fd,IN_POWER);   //set GPIO as input
+    if(rc < 0)
+    {
+        DEBUG_PRINT_INFO(gPrintLevel, "GPIO_OutClear::failed %d\n", rc);
         return TINZ_ERROR;
     }
     usleep(10000);
@@ -255,11 +262,27 @@ void Valve_control_IO_mode(uint8_t per,uint8_t zeroes){
 
 }
 
+static void state_thread()
+{
+    DEBUG_PRINT_INFO(gPrintLevel, "state_thread\n");
+    sleep(5);
+    while(1){
+        pgData->state.InPower = (uint8_t)(GetSwitchStatus(io_fd, pgPara->IOPara.In_power) & 0x01);
+        if(pgData->current_Ia[0] <= 2){
+            pgData->state.ValveState = 1;
+        }else{
+            pgData->state.ValveState = 0;
+        }
+        sleep(5);
+    }
+}
+
 int main(int argc, char* argv[])
 {    
     uint8_t  per = 0;
-    uint8_t  per_current = 0;
+    //uint8_t  per_current = 0;
     uint16_t ad_value = 0;
+    pthread_t   thread_id;
     
     io_fd = SpiInitGPIO();
     if(TINZ_ERROR ==  io_fd){
@@ -271,6 +294,9 @@ int main(int argc, char* argv[])
 	DEBUG_PRINT_INFO(gPrintLevel, "getValveParaShm start\n");
 	pgValveControl = (pstValveControl)getValveParaShm();
     DEBUG_PRINT_INFO(gPrintLevel, "config file per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
+    pgData = (pstData)getDataShm();
+    DEBUG_PRINT_INFO(gPrintLevel, "State InPower[%d] ValveState[%d]\n",pgData->state.InPower,pgData->state.ValveState);
+    pgPara = (pstPara)getParaShm();
     #if 0
     spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
     per_current = AdValueToPer(ad_value);
@@ -279,6 +305,12 @@ int main(int argc, char* argv[])
         pgValveControl->per_last = per_current; 
     }
     #endif
+    /*创建状态监测线程*/
+    if(pthread_create(&thread_id,NULL,(void *)(&state_thread),NULL) == -1)
+	{
+		DEBUG_PRINT_INFO(gPrintLevel,"state_thread create error!\n");
+	}
+    /*阀门控制线程*/
     DEBUG_PRINT_INFO(gPrintLevel, "Init per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
     for(;;){
         per = pgValveControl->per;
@@ -294,8 +326,14 @@ int main(int argc, char* argv[])
             pgValveControl->per_last = per;
             syncValveParaShm();
         }
+        /*实时采样阀门开度*/
+        spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
+        pgData->current_Ia[0] = AdValueToIa(ad_value);
         sleep(5);  
     }
+    
+    /*等待线程退出*/
+	pthread_join(thread_id, NULL);
     return 0;
 }
 

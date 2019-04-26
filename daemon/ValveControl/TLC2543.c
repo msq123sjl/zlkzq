@@ -60,6 +60,11 @@ int spi_read_ad(int io_fd, int spi_fd, uint8_t channel, uint16_t *pad_value)
 }
 
 uint8_t AdValueToPer(uint16_t ad_value){
-    return ad_value;
+    return ad_value>>8;
 }
+
+float AdValueToIa(uint16_t ad_value){
+    return ad_value>>8;
+}
+
 

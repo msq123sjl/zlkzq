@@ -108,7 +108,6 @@ int main(int argc, char *argv[])
 		pserver->channes[iLoop].tcplink->isConnected = 0;
 		close(pserver->channes[iLoop].dev_fd);
 	}
-	DEBUG_PRINT_INFO(gPrintLevel, "5\n");
 	/*等待socket 发送线程退出*/
 	
 	free(pserver);

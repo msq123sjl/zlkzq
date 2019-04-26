@@ -23,6 +23,10 @@
 #define SHM_PATH_POLLUTANT_PARA		"/mnt/nandflash/shm/"
 #define SHM_PARA_POLLUTANT_ID	0x01
 
+#define SHM_NAME_DATA		"/mnt/nandflash/shm/shm_data"
+#define SHM_PATH_DATA		"/mnt/nandflash/shm/"
+#define SHM_DATA_ID	0x01
+
 struct  SHM_DESC{
 	int shm_id;
 	char *shm_mem;
@@ -43,4 +47,6 @@ char * getPollutantParaShm();
 void rmPollutantParaShm();
 void syncPollutantParaShm();
 void initPollutantParaShm();
+char * getDataShm();
+void rmDataShm();
 #endif

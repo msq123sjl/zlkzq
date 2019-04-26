@@ -72,6 +72,15 @@ int GPIO_PinState(int fd, unsigned int* pPinState)
     return rc;
 }
 
+int GetSwitchStatus(int fd,int ch)
+{
+    unsigned int dwPinState=0xFFFFFFFF;
+    GPIO_PinState(fd, &dwPinState); //read states of all bits
+
+    return ((dwPinState>>ch)&0x1);
+}
+
+
 /*int InitGPIO()
 {
     int fd,rc;

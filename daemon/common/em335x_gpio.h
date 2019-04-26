@@ -32,12 +32,17 @@
 #define    VALVE_CLOSE      GPIO26
 #define    VALVE_COMMON     GPIO26
 
+#define    IN_POWER     GPIO10
+
+
 
 int  GPIO_OutEnable(int fd, unsigned int dwEnBits);
 int  GPIO_OutDisable(int fd, unsigned int dwDisBits);
 int  GPIO_OutSet(int fd, unsigned int dwSetBits);
 int  GPIO_OutClear(int fd, unsigned int dwClearBits);
 int  GPIO_PinState(int fd, unsigned int* pPinState);
+int GetSwitchStatus(int fd,int ch);
+
 //int  InitGPIO();
 
 

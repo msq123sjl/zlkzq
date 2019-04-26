@@ -45,6 +45,8 @@
 #define POLLUTANT_COD_INDEX     1
 #define POLLUTANT_PH_INDEX     2
 
+#define AD_CNT 2
+#define DA_CNT 2
 
 #define 	MAX_FILENAME_SIZE 	256
 
@@ -124,9 +126,9 @@ typedef struct _SerialPara
 
 typedef struct _IOPara
 {
-    volatile int    Out_drain_open;         //开排水阀
-    volatile int    Out_drain_close;        //关排水阀
-    volatile int    Out_drain_common;        //排水阀总开关
+    int    Out_drain_open;         //开排水阀
+    int    Out_drain_close;        //关排水阀
+    int    Out_drain_common;        //排水阀总开关
     //volatile int    Out_catchment_open;     //开集水阀
     //volatile int    Out_catchment_close;    //关集水阀
     //volatile int    Out_reflux_control;     //回流泵控制
@@ -137,7 +139,7 @@ typedef struct _IOPara
     //volatile int     In_catchment_close;    //输入检测集水阀关
     //volatile int     In_reflux_open;        //输入检测回流泵开
     //volatile int     In_reflux_close;       //输入检测回流泵关
-    volatile int     In_power;              //输入检测市电
+    int     In_power;              //输入检测市电
 }stIOPara,*pstIOPara;
 
 typedef struct _SitePara

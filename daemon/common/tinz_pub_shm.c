@@ -16,7 +16,7 @@ struct SHM_DESC shm_para={-1,0};
 struct SHM_DESC shm_valve_para={-1,0};
 struct SHM_DESC shm_pollutant_data={-1,0};
 struct SHM_DESC shm_pollutant_para={-1,0};
-
+struct SHM_DESC shm_data={-1,0};
 
 
 //创建参数共享内存段
@@ -324,5 +324,15 @@ void initPollutantParaShm(){
         para->Row[iLoop].QutAll = 3000;
         para->Row[iLoop].YeaAll = 12000;
     }
+}
+
+char * getDataShm(){
+	prepareShm(SHM_PATH_DATA,SHM_NAME_DATA,SHM_DATA_ID,0,sizeof(stData),&shm_data);
+
+	return shm_data.shm_mem;
+}
+
+void rmDataShm(){
+	shmctl(shm_data.shm_id,IPC_RMID,NULL);
 }
 

@@ -63,4 +63,16 @@ typedef struct _PollutantData{
     
 }stPollutantData,*pstPollutantData;
 
+typedef struct _State
+{
+    volatile uint8_t InPower;     //0 市电 1 无市电
+    volatile uint8_t ValveState;  //0 阀门正常 1阀门异常
+}stState,*pstState;
+
+typedef struct _Data
+{
+    stState state;
+    float current_Ia[AD_CNT]; //模拟通道采样电流值 单位mA
+}stData,*pstData;
+
 #endif
