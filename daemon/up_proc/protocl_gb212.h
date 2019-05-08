@@ -8,11 +8,6 @@
 #include "tinz_base_data.h"
 #include "nginx_helper.h"
 
-#define MAX_TCPDATA_LEN 1037
-#define MIN_TCPDATA_LEN 80
-
-#define QN_LEN	17
-
 #define RESULT_SUCCESS 1
 #define RESULT_FAILED  2
 #define RESULT_CONDITION_ERR  3
@@ -56,6 +51,7 @@ typedef struct {
 } ngx_ulog_url_t;
 
 int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp);
-
+void PowerState();
+void ValvePowerState();
 
 #endif

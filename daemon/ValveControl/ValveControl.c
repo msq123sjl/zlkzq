@@ -267,12 +267,7 @@ static void state_thread()
     DEBUG_PRINT_INFO(gPrintLevel, "state_thread\n");
     sleep(5);
     while(1){
-        pgData->state.InPower = (uint8_t)(GetSwitchStatus(io_fd, pgPara->IOPara.In_power) & 0x01);
-        if(pgData->current_Ia[0] <= 2){
-            pgData->state.ValveState = 1;
-        }else{
-            pgData->state.ValveState = 0;
-        }
+        pgData->IOState.InPower = (uint8_t)(GetSwitchStatus(io_fd, pgPara->IOPara.In_power) & 0x01);
         sleep(5);
     }
 }
@@ -313,6 +308,10 @@ int main(int argc, char* argv[])
     /*阀门控制线程*/
     DEBUG_PRINT_INFO(gPrintLevel, "Init per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
     for(;;){
+        /*实时采样阀门开度*/
+        spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
+        pgData->current_Ia[0] = AdValueToIa(ad_value);
+    
         per = pgValveControl->per;
         if(pgValveControl->per_last != per){
             DEBUG_PRINT_INFO(gPrintLevel, "per[%d] per_last[%d]\n",per,pgValveControl->per_last);
@@ -326,9 +325,7 @@ int main(int argc, char* argv[])
             pgValveControl->per_last = per;
             syncValveParaShm();
         }
-        /*实时采样阀门开度*/
-        spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-        pgData->current_Ia[0] = AdValueToIa(ad_value);
+
         sleep(5);  
     }
     

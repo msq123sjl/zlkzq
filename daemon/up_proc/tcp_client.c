@@ -10,11 +10,18 @@
 #include <signal.h>
 #include <pthread.h>
 
+#include "up_main.h"
 #include "tcp_client.h"
 #include "tinz_common_helper.h"
 #include "protocl_gb212.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
 
 extern int gPrintLevel;
+extern UpMain* pserver;
+extern pstMessage pgmsgbuff;
+extern pstData pgData;
+extern pstPara pgPara;
 
 static int tcplink_connect(TcpClientDev *pdev);
 
@@ -29,9 +36,9 @@ static int send_message_to_qt_server(QtTcpClientDev* pdev, char* pSendBuf){
 	int iSendLen = 0;
 	iSendLen = send(pdev->dev_fd, pSendBuf, strlen(pSendBuf), 0);
 	if(iSendLen > 0){
-		printf("write Date Len to server (%d) : %s\n",iSendLen, pSendBuf);
+		DEBUG_PRINT_INFO(gPrintLevel,"write Date Len to server (%d) : %s\n",iSendLen, pSendBuf);
 	}else{
-		printf("retry\n");
+		DEBUG_PRINT_INFO(gPrintLevel,"retry\n");
 	}
 	return iSendLen;
 }
@@ -42,7 +49,7 @@ static void qt_tcpclient_thread(void * arg)
     QtTcpClientDev *pdev = (QtTcpClientDev *)arg;
 
 	char* pRecvBuf = (char*)malloc(RECVBUF_LEN);
-	printf("GUI Send msg to TDC server:\n");
+	DEBUG_PRINT_INFO(gPrintLevel,"GUI Send msg to TDC server:\n");
 	while(1){
 		
 		memset(pRecvBuf,0,RECVBUF_LEN);
@@ -102,11 +109,93 @@ static int send_message_to_server(int dev_fd, char* pSendBuf){
 	int iSendLen = 0;
 	iSendLen = send(dev_fd, pSendBuf, strlen(pSendBuf), 0);
 	if(iSendLen > 0){
-		printf("write Date Len to server (%d) : %s\n",iSendLen, pSendBuf);
+		DEBUG_PRINT_INFO(gPrintLevel,"write Date Len to server (%d) : %s\n",iSendLen, pSendBuf);
+        return TINZ_OK;
 	}else{
-		printf("retry\n");
+		DEBUG_PRINT_INFO(gPrintLevel,"retry\n");
+        return TINZ_ERROR;
 	}
 	return iSendLen;
+}
+static void message_buf_clear_func(){
+    int iLoop,jLoop,res;
+    pstMessageData pmsgData = NULL;
+    for(iLoop = 0;iLoop < MESSAGECNT;iLoop++){
+        /*查找已发送的报文*/
+        DEBUG_PRINT_INFO(gPrintLevel,"clear pgmsgbuff->Data[%d].IsUse=%d\n",iLoop,pgmsgbuff->Data[iLoop].IsUse);
+        if(MSGBUF_IS_WAITING == pgmsgbuff->Data[iLoop].IsUse){
+            res = 0;
+            pmsgData = &pgmsgbuff->Data[iLoop];
+            pmsgData->waittime++;
+            //DEBUG_PRINT_INFO(gPrintLevel,"clear1 pmsgData->waittime=%d OverTime=%d flag=%d\n",pmsgData->waittime,pgPara->GeneralPara.OverTime,pmsgData->flag);
+            if(pmsgData->waittime > pgPara->GeneralPara.OverTime){//超时未响应，重新发送报文
+                pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_SENDING;
+            }
+            if(1 == pmsgData->flag){//无需应答，直接清空   
+                for(jLoop =0;jLoop<SITE_CNT;jLoop++){
+                    /*判断服务端是否打开，并且保持连接*/
+                    if(1 == pserver->channes[jLoop].tcplink->ServerOpen && 1 == pserver->channes[jLoop].tcplink->isConnected){
+                        /*判断报文是否已有应答*/
+                        if(0 == pmsgData->IsRespond[jLoop]){ 
+                            /*判断报文是否发送次数超限*/
+                            if(pmsgData->SendTimes[jLoop] < pgPara->GeneralPara.ReCount){
+                                res = 1;
+                                break;
+                            }
+                        }
+                    }                
+                }
+            }
+            if(0 == res){
+                memset(pmsgData,0,sizeof(stMessageData));   
+                //DEBUG_PRINT_INFO(gPrintLevel,"clear2 pmsgData->waittime=%d IsUse=%d flag=%d\n",pmsgData->waittime,pmsgData->IsUse,pmsgData->flag);
+            }
+        }
+    }    
+}
+
+/*每次只发送一个报文*/
+static void send_message_to_server_func(){
+    int iLoop,jLoop;
+    pstMessageData pmsgData = NULL;
+    for(iLoop = 0;iLoop < MESSAGECNT;iLoop++){
+        /*查找需发送的报文*/
+        if(MSGBUF_IS_SENDING == pgmsgbuff->Data[iLoop].IsUse){
+            DEBUG_PRINT_INFO(gPrintLevel,"send pgmsgbuff->Data[%d].IsUse=%d\n",iLoop,pgmsgbuff->Data[iLoop].IsUse);
+            pmsgData = &pgmsgbuff->Data[iLoop];
+            /*往服务端发送报文*/
+            for(jLoop =0;jLoop<SITE_CNT;jLoop++){
+                /*判断服务端是否打开，并且保持连接*/
+                if(1 == pserver->channes[jLoop].tcplink->ServerOpen && 1 == pserver->channes[jLoop].tcplink->isConnected){
+                    /*判断报文是否已有应答*/
+                    if(0 == pmsgData->IsRespond[jLoop]){ 
+                        /*判断报文是否需要发送*/
+                        if((pmsgData->flag && pmsgData->SendTimes[jLoop] < pgPara->GeneralPara.ReCount)\
+                            || (0 == pmsgData->flag && 0 == pmsgData->SendTimes[jLoop])){
+                            /*发送报文*/
+                            pserver->channes[jLoop].packet_send_handle(pserver->channes[jLoop].dev_fd,pmsgData->content);
+                            pmsgData->SendTimes[jLoop]++;
+                            pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_WAITING;
+                            pgmsgbuff->Data[iLoop].waittime = 0;
+                        }
+                    }
+                }                
+            }
+            break;
+        }
+    } 
+    
+}
+static void tcpclient_thread_send()
+{
+    sleep(10);
+    while(1){
+        message_buf_clear_func();
+        PowerState();
+        ValvePowerState();
+        send_message_to_server_func();
+        sleep(10);
+    }
 }
 
 static void tcpclient_thread_recv(void * arg)
@@ -116,7 +205,7 @@ static void tcpclient_thread_recv(void * arg)
     TcpClientDev *pdev = (TcpClientDev *)arg;
 
 	char* pRecvBuf = (char*)malloc(RECVBUF_LEN);
-	printf("GUI Send msg to TDC server:\n");
+	DEBUG_PRINT_ERR(gPrintLevel,"GUI Send msg to TDC server:\n");
 	while(1){
 		
 		memset(pRecvBuf,0,RECVBUF_LEN);
@@ -129,13 +218,17 @@ static void tcpclient_thread_recv(void * arg)
             /* 客户程序重新发起连接请求 */ 
             if(-1 == iRecvLen || -1 == pdev->dev_fd){
                 /* 客户程序开始建立 sockfd描述符 */
+                DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] close start:\n",pdev->dev_fd);
                 close(pdev->dev_fd);
+                DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] close end:\n",pdev->dev_fd);
             	if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
             	{ 
             		DEBUG_PRINT_ERR(gPrintLevel,"Socket Error:\n"); 
-            	}
+            	}else{
+                    DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] success:\n",pdev->dev_fd);
+                }
             }
-            if(-1 != pdev->dev_fd){    
+            if(-1 != pdev->dev_fd){ 
             	if(TINZ_ERROR == tcplink_connect(pdev)){               
                     DEBUG_PRINT_INFO(gPrintLevel,"tcp retry[%d] link[port:%d dstip:%s] connect fail\n",tcplink_rtycnt,pdev->tcplink->ServerPort,pdev->tcplink->ServerIp); 
                 }else{
@@ -161,19 +254,19 @@ static int tcplink_connect(TcpClientDev *pdev){
 	ServAddr.sin_family			=AF_INET;          // IPV4
 	ServAddr.sin_port			=htons(pdev->tcplink->ServerPort);  // (将本机器上的short数据转化为网络上的short数据)端口号
 	ServAddr.sin_addr.s_addr	=inet_addr((char*)pdev->tcplink->ServerIp); // IP地址
-	
 	/* 客户程序发起连接请求 */ 
+    DEBUG_PRINT_ERR(gPrintLevel,"tcplink_connect start\n");
 	if(connect(pdev->dev_fd,(struct sockaddr *)(&ServAddr),sizeof(struct sockaddr))==-1) 
 	{ 
         DEBUG_PRINT_ERR(gPrintLevel,"tcp link[port:%d dstip:%s] connect Error\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
 		close(pdev->dev_fd);
 		return TINZ_ERROR;
 	}
+    DEBUG_PRINT_ERR(gPrintLevel,"tcplink_connect success\n");
     return TINZ_OK;
 }
 
 int tcpclient_open(TcpClientDev *pdev){
-	
 	
 	if(!pdev->tcplink->ServerOpen){
 		return TINZ_ERROR;
@@ -198,3 +291,24 @@ int tcpclient_open(TcpClientDev *pdev){
 	}
 	return TINZ_OK;
 }
+
+int tcpclient_thread_send_create(pthread_t *thread_id){
+    int iLoop;
+    DEBUG_PRINT_INFO(gPrintLevel,"tcpclient_thread_send create\n");
+    for(iLoop=0; iLoop < SITE_CNT; iLoop++){
+		
+		if(pserver->channes[iLoop].tcplink->isConnected && pserver->channes[iLoop].packet_send_handle != NULL){
+            break;
+        }
+        if(SITE_CNT == iLoop+1){
+            DEBUG_PRINT_ERR(gPrintLevel,"tcp link not found\n"); 
+            return TINZ_ERROR;
+        }
+	}
+	if(pthread_create(thread_id,NULL,(void *)(&tcpclient_thread_send),NULL) == -1)
+	{
+		DEBUG_PRINT_INFO(gPrintLevel,"tcpclient_thread_send create error!\n");
+	}
+	return TINZ_OK;
+}
+

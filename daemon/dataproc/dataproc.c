@@ -21,7 +21,8 @@
 //stPollutantRtdData  RtdData;
 pstPara 		pgPara;
 //pstPollutantData pgPollutantData;
-struct _msg *pmsg_upproc[4];
+pstData pgData;
+struct _msg *pmsg_upproc[SITE_CNT];
 char            code[POLLUTANT_CNT][4]={"BO1","011","001"};
 
 
@@ -297,6 +298,7 @@ int main(int argc, char* argv[])
 	DEBUG_PRINT_INFO(gPrintLevel, "getParaShm start\n");
 	pgPara = (pstPara)getParaShm();
     pgPara->GeneralPara.AlarmTime = 60;
+    pgData = (pstData)getDataShm();
     //DEBUG_PRINT_INFO(gPrintLevel, "getPollutantDataShm start\n");
     //pgPollutantData = (pstPollutantData)getPollutantDataShm();
 	/*消息队列*/

@@ -46,7 +46,7 @@ unsigned char	delayxx=0;   //程序启动后前3s 运行灯不闪烁
 static ProgInfo progs[MAX_WATCH_PROGS];
 static pid_t the_pid=0;
 static int wait_for_daemon_status = 0;
-static ProgInfo defaultprogs[]={{0,"dataproc",0}};
+static ProgInfo defaultprogs[]={{0,"dataproc",0},{0,"interface",0},{0,"up_main",0},{0,"ValveControl",0}};
 
 int gPrintLevel = 5;
 static int watchdog_fd = 0;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[], char *env[]){
 	KillProgs();
 	
 	while(1){     
-        DEBUG_PRINT_INFO(gPrintLevel,"Watchdog proc cnt[%d]\r\n",count);
+        //DEBUG_PRINT_INFO(gPrintLevel,"Watchdog proc cnt[%d]\r\n",count);
 	    count++;
 	    if(delayxx<20)
 	   	    delayxx++;
@@ -171,11 +171,16 @@ void CheckProgs(){
 	for(i=0;i<sizeof(progs)/sizeof(ProgInfo);i++){		
 		if(strlen(progs[i].Name)==0)continue;
 		if(progs[i].pid>0)continue;
-		sprintf(cmd,"%s/%s",FS_NAME_PROGDIR,progs[i].Name);
+        sprintf(cmd,"%s/%s",FS_NAME_PROGDIR,progs[i].Name);
 		progs[i].runTimes++;
 		DEBUG_PRINT_ERR(gPrintLevel,"Watchdog now %ldth start %s.\r\n",progs[i].runTimes,progs[i].Name);
 		if(!(progs[i].pid=fork())){
-			execvp(cmd,0);
+            if(0 != strncmp(progs[i].Name,"interface",strlen("interface"))){
+                execvp(cmd,0);
+            }else{
+                char *argv[] = {"interface","-qws",0};
+                execvp(cmd,argv);
+            }
 			exit(1);
 		}
 		setpgid(progs[i].pid,the_pid);
@@ -297,7 +302,7 @@ void sigalrm_fn(int sig){
    	}
     if(runTimes<100){
 		STHL();
-        DEBUG_PRINT_INFO(gPrintLevel,"Watchdog\r\n");
+        //DEBUG_PRINT_INFO(gPrintLevel,"Watchdog\r\n");
         ioctl(watchdog_fd, WDIOC_KEEPALIVE, 0);
     }
 	alarm(1);

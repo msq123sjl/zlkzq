@@ -102,7 +102,7 @@ QTableView{
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>6</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="gbox_general">
@@ -262,7 +262,7 @@ QTableView{
         </rect>
        </property>
        <property name="text">
-        <string>上传检测周期(s)：</string>
+        <string>超时时间(s)：</string>
        </property>
        <property name="buddy">
         <cstring>txtOverTime</cstring>
@@ -2297,6 +2297,16 @@ QTableView{
        </property>
        <property name="text">
         <string>秒</string>
+       </property>
+      </widget>
+      <widget class="QDateTimeEdit" name="dateTimeEdit">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>240</y>
+         <width>194</width>
+         <height>27</height>
+        </rect>
        </property>
       </widget>
      </widget>

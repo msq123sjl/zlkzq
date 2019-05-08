@@ -18,14 +18,19 @@
 #include "protocl_gb212.h"
 #include "tinz_pub_message.h"
 #include "tinz_pub_shm.h"
+#include "tinz_base_data.h"
+#include "tinz_base_def.h"
+
+
 
 extern pstPara pgPara;
 extern pstValveControl pgValveControl;
 extern int gPrintLevel;
 extern pstPollutantData pgPollutantData;
 extern pstPollutantPara pgPollutantPara;
-extern struct _msg *pmsg_upproc[4];
-
+extern pstData pgData;
+extern struct _msg *pmsg_upproc[SITE_CNT];
+extern pstMessage pgmsgbuff;
 
 char            code[POLLUTANT_CNT][4]={"BO1","011","001"};
 
@@ -130,6 +135,88 @@ static int SendCurrentTime(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	return TINZ_OK;
 }
 
+static int Insert_Message_Count(int cn,int flag){
+	//char buf[MAX_TCPDATA_LEN];
+	static uint8_t ms = 0;
+	int nLen,iLoop;
+	int CRC16;
+	time_t      now;
+    struct tm   *tblock;
+    pstMessageData pmsgData = NULL;
+    for(iLoop = 0;iLoop < MESSAGECNT;iLoop++){
+        if(MSGBUF_IS_NULL == pgmsgbuff->Data[iLoop].IsUse){
+            memset(&pgmsgbuff->Data[iLoop],0,sizeof(stMessageData));
+            pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_WRITEING;
+            pgmsgbuff->Data[iLoop].flag = flag;
+            pmsgData = &pgmsgbuff->Data[iLoop];
+            break;
+        }
+    }
+    if(NULL == pmsgData){
+        DEBUG_PRINT_WARN(gPrintLevel, "cn[%d] pgmsgbuff is busy!!!\n", cn);
+        return TINZ_ERROR;
+    }
+	now = time(NULL);
+    tblock = localtime(&now);
+    ms = (ms+1)%256;
+    snprintf(pmsgData->qn,sizeof(pmsgData->qn),"%4d%02d%02d%02d%02d%02d%03d",tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec,ms);
+	nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"##0000QN=%-17.17s;ST=%02d;CN=%04d;PW=%-6.6s;MN=%-14.14s;Flag=%01d;CP=&&&&",\
+								pmsgData->qn,pgPara->GeneralPara.StType,cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,flag);
+	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(pmsgData->content)){
+		CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen);
+		snprintf(&pmsgData->content[nLen + 6],7,"%.4X\r\n",CRC16);
+	
+		nLen = nLen - 6;
+		pmsgData->content[2] = (nLen/1000)+'0';
+    	pmsgData->content[3] = (nLen%1000/100)+'0';
+    	pmsgData->content[4] = (nLen%100/10)+'0';
+    	pmsgData->content[5] = (nLen%10)+'0'; 
+        pmsgData->IsUse = MSGBUF_IS_SENDING;
+		
+	}else{
+        memset(pmsgData,0,sizeof(stMessageData));
+		DEBUG_PRINT_WARN(gPrintLevel, "Insert_Message_Count cn[%d] send nLen[%d] ignore!!!", cn,nLen);
+		return TINZ_ERROR;
+	}
+	return TINZ_OK;
+
+}
+
+//市电状态
+void PowerState()
+{
+    int res = TINZ_ERROR;
+    if(pgData->IOState.InPower != pgData->state.InPower){
+        
+        if(POWERUP == pgData->IOState.InPower){
+            res=Insert_Message_Count(CN_SendPowerUp, 0);               
+        }else{
+            res=Insert_Message_Count(CN_SendPowerDown, 0);
+        }
+        if(TINZ_OK == res){
+            pgData->state.InPower = pgData->IOState.InPower;
+        }
+    }
+}
+
+//电动阀供电状态
+void ValvePowerState()
+{
+    int res = TINZ_ERROR;
+    if(pgData->current_Ia[0] <= 2 && 0 == pgData->state.ValveState){
+        res=Insert_Message_Count(CN_SendValvePowerDown, 0);
+        if(TINZ_OK == res){
+            pgData->state.ValveState = 1;
+        }
+    }else if(pgData->current_Ia[0] > 2 && 1 == pgData->state.ValveState){
+        res=Insert_Message_Count(CN_SendValvePowerUp, 0);
+        if(TINZ_OK == res){
+            pgData->state.ValveState = 0;
+        }
+    }
+
+}
+
 //远程设定时间
 static int messageSetTime(u_char *pSystemTime)
 {
@@ -180,6 +267,7 @@ static int SendValveStatus(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	}
 	return TINZ_OK;
 }
+
 #if 0
 static void rtd_data_proc(stPollutantRtdData  RtdData,TcpClientDev *tcp){
 	char 	TableName[TABLE_NAME_LEN];
@@ -697,7 +785,7 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 	if(TINZ_ERROR == parse_url(str, iRecvLen, &url_args)){
 		return TINZ_ERROR;
 	}
-	if(url_args.qn.len != QN_LEN \
+	if(url_args.qn.len != QN_LEN-1 \
 		|| url_args.cn <= 0 \
 		|| url_args.flag < 0\
 		|| url_args.pw.len != PW_LEN-1){
@@ -805,7 +893,6 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 			break;
 		default:
 			RequestRespond(REQUEST_CODE_ERR,&url_args, com, tcp);
-			
 			break;
 	}
     return TINZ_OK;

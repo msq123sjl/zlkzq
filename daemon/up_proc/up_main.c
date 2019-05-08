@@ -21,9 +21,10 @@ pstPara pgPara;
 pstValveControl pgValveControl;
 pstPollutantData pgPollutantData;
 pstPollutantPara pgPollutantPara;
+pstData pgData;
 
 struct _msg *pmsg_upproc[SITE_CNT];
-
+pstMessage pgmsgbuff = NULL;
 
 int gPrintLevel = 5;
 UpMain* pserver = NULL;
@@ -56,17 +57,21 @@ static void wait_for_serveropen_set(){
 int main(int argc, char *argv[])
 {
 	int iLoop;
+    pthread_t thread_id_send = 0;
 	//DEBUG_PRINT_INFO(gPrintLevel,"== port = %d\n", atoi(argv[1]));
     pgPara = (pstPara)getParaShm();
 	DEBUG_PRINT_INFO(gPrintLevel,"== AlarmTime = %d\n", pgPara->GeneralPara.AlarmTime);
-    DEBUG_PRINT_INFO(gPrintLevel, "getValveParaShm start\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getValveParaShm start\n");
     pgValveControl = (pstValveControl)getValveParaShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "getPollutantDataShm start\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantDataShm start\n");
     pgPollutantData = (pstPollutantData)getPollutantDataShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "getPollutantDataShm end\n");
-    DEBUG_PRINT_INFO(gPrintLevel, "getPollutantParaShm start\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantDataShm end\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantParaShm start\n");
     pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "getPollutantParaShm end\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantParaShm end\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getDataShm start\n");
+    pgData = (pstData)getDataShm();
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getDataShm end\n");
 
     /*测试临时用*/
     //pgPara->SitePara[0].ServerOpen   = 1;
@@ -74,7 +79,7 @@ int main(int argc, char *argv[])
     wait_for_serveropen_set();
     /*消息队列*/
     MessageInit();
-    DEBUG_PRINT_INFO(gPrintLevel, "MessageInit end\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "up_proc MessageInit end\n");
 
 	pserver = (UpMain*)malloc(sizeof(UpMain));
 	if(NULL == pgPara || NULL == pserver){
@@ -82,7 +87,10 @@ int main(int argc, char *argv[])
 		free(pserver);
 		return 0;
 	}
-	memset(pserver,0,sizeof(sizeof(UpMain)));
+	memset(pserver,0,sizeof(UpMain));
+    
+    pgmsgbuff = (pstMessage)malloc(sizeof(stMessage));
+    memset(pgmsgbuff,0,sizeof(stMessage));    
 	signal(SIGPIPE, SIG_IGN);
     //pgPara->SitePara[0].ServerOpen   = 1;
     //pgPara->SitePara[0].isConnected  = 0;
@@ -101,6 +109,9 @@ int main(int argc, char *argv[])
 		pserver->channes[iLoop].tcplink = &pgPara->SitePara[iLoop];
 		tcpclient_open(&pserver->channes[iLoop]);
 	}
+    tcpclient_thread_send_create(&thread_id_send);
+    /*等待socket 发送线程退出*/
+    pthread_join(thread_id_send, NULL);
 	/*等待socket 平台通道接收线程退出*/
 	for(iLoop = 0; iLoop < SITE_CNT; iLoop++){
 		if(!pserver->channes[iLoop].tcplink->ServerOpen || !pserver->channes[iLoop].tcplink->isConnected){continue;}
@@ -108,8 +119,7 @@ int main(int argc, char *argv[])
 		pserver->channes[iLoop].tcplink->isConnected = 0;
 		close(pserver->channes[iLoop].dev_fd);
 	}
-	/*等待socket 发送线程退出*/
-	
+	printf("5\n");
 	free(pserver);
 	
 	return 0;

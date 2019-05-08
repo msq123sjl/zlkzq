@@ -48,7 +48,23 @@
 #define AD_CNT 2
 #define DA_CNT 2
 
+#define POWERUP 0
+#define POWERDOWN 1
+
 #define 	MAX_FILENAME_SIZE 	256
+
+#define MESSAGECNT 16
+
+#define MSGBUF_IS_NULL 0
+#define MSGBUF_IS_WRITEING 1
+#define MSGBUF_IS_SENDING 2
+#define MSGBUF_IS_WAITING 3
+
+#define MAX_TCPDATA_LEN 1037
+#define MIN_TCPDATA_LEN 80
+
+#define QN_LEN	18
+
 
 #define BIN4BCD(val) ((((val)/1000)<<12)+((((val)%1000)/100)<<8)+((((val)%1000)%100)/10<<4)+(val)%10)
 #define BIN2BCD(val) ((((val)/10)<<4) + (val)%10)
@@ -74,7 +90,7 @@ typedef struct _GeneralPara
     //uint8_t   MinInterval;            //分钟数据间隔（min）
     //uint8_t   CatchmentTime;          //集水时间（min）
     //uint8_t   COD_CollectInterval;    //COD采集数据间隔（min）
-    uint8_t   OverTime;               //上报周期（s）
+    uint8_t   OverTime;               //超时时间（s）
     uint8_t   ReCount;                //超时重发次数
     uint16_t  AlarmTime;              //超限报警时间
     uint8_t   StType;                 //污染源类型

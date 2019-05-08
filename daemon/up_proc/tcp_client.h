@@ -112,4 +112,5 @@ typedef struct _QtTcpClientDev{
 
 int tcpclient_open(TcpClientDev *pdev);
 int qt_tcpclient_open(QtTcpClientDev *pdev);
+int tcpclient_thread_send_create(pthread_t *thread_id);
 #endif

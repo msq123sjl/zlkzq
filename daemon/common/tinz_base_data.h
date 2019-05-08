@@ -68,11 +68,32 @@ typedef struct _State
     volatile uint8_t InPower;     //0 市电 1 无市电
     volatile uint8_t ValveState;  //0 阀门正常 1阀门异常
 }stState,*pstState;
+typedef struct _IOState
+{
+    volatile uint8_t InPower;     //0 市电 1 无市电
+}stIOState,*pstIOState;
 
 typedef struct _Data
 {
     stState state;
+    stIOState IOState;
     float current_Ia[AD_CNT]; //模拟通道采样电流值 单位mA
 }stData,*pstData;
+
+typedef struct _MessageData
+{
+    uint8_t IsUse;   // 0 空闲 1 正在写入 2 待发送
+    uint8_t flag;   // 0 不应答 1 应答
+    uint8_t waittime; //单位s
+    char qn[QN_LEN];
+    char content[MAX_TCPDATA_LEN];
+    uint8_t SendTimes[SITE_CNT];
+    uint8_t IsRespond[SITE_CNT];  //0 未应答 1 应答
+}stMessageData,*pstMessageData;
+
+typedef struct _Message
+{
+    stMessageData Data[MESSAGECNT];
+}stMessage,*pstMessage;
 
 #endif
