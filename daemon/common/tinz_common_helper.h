@@ -56,4 +56,5 @@ u_char HexToAscii(u_char data_hex);
 void DoubleToString(double value, int Decimals, char *buf);
 inline double double_div_uint(double a, unsigned int b);
 inline int cmpfunc_uint16(const void * a, const void * b);
+inline uint8_t month_to_qut(uint8_t month);
 #endif

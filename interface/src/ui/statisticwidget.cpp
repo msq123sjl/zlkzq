@@ -1,63 +1,26 @@
 ﻿/*************************************************
-Copyright:kevin
-Author:Kevin LiQi
-Date:2015-12-07
-Email:kevinlq0912@163.com
-QQ:936563422
-Description:智能家居--统计模块的实现
-            温度统计、湿度统计、烟雾浓度统计
+Copyright:tinz
+Author:tinz msq
+Date:2019-04-01
+Email:718657309@qq.com
+QQ:718657309
+Version:V1.0
+Description:总量控制器--历史数据界面功能的实现
 **************************************************/
 #include "statisticwidget.h"
 #include "ui_statisticwidget.h"
-#include  "control.h"
-#include "sqlhelp.h"
 #include <QDateTime>
 #include <QTime>
 #include <QDate>
-#include <QSqlQuery>
-#include <QSqlError>
+#include <QDebug>
+#include "myhelper.h"
 
-//界面上要绘制的点数
-#define MAX_POINT_NUM   18
-
-//纵坐标最大值
-#define PLOT_TEMPTURE_MAX_Y         100     //温度值
-#define PLOT_HUMIDITY_MAX_Y         100     //湿度值
-#define PLOT_SMOKE_MAX_Y            100   //烟雾浓度值
-
-#define TextColor QColor(255,255,0)         //黄色
-#define Plot_NoColor QColor(0,0,0,0)        //黑色
-
-#define Plot1_DotColor QColor(5,189,251)
-#define Plot1_LineColor QColor(41,138,220)
-#define Plot1_BGColor QColor(41,138,220,80)
-
-#define Plot2_DotColor QColor(236,110,0)
-#define Plot2_LineColor QColor(246,98,0)
-#define Plot2_BGColor QColor(246,98,0,80)
-
-#define Plot3_DotColor QColor(204,0,0)
-#define Plot3_LineColor QColor(246,0,0,200)
-#define Plot3_BGColor QColor(246,98,0,80)
-
-#define Plot1_Count 12
-#define Plot2_Count 10
-
-#define Plot1_MaxY 50
-#define Plot2_MaxY 100
-#define Plot3_MaxY 500
-#define Plot4_MaxY 100
-
-#define TextWidth 1
-#define LineWidth 1.2
-#define DotWidth  3
-
-#ifdef _ARM_
-#define Plot5_MaxY 20
-#else
-#define Plot5_MaxY 50
-#endif
-
+extern "C"{
+#include "tinz_pub_shm.h"
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+}
+extern pstHistoryData pgHistoryData;
 
 StatisticWidget::StatisticWidget(QWidget *parent) :
     QWidget(parent),
@@ -67,808 +30,206 @@ StatisticWidget::StatisticWidget(QWidget *parent) :
 
     initForm();
     initStyle();
-    initPlot();
-
-    initPlotTempture();
-    initPlotHumidity();
-    initPlotSmoke();
-
-    loadPlotTempture();
-    loadPlotHumidity();
-    loadPlotSmoke();
-
-    initConnect();
+    InitTable();
 }
 
 StatisticWidget::~StatisticWidget()
 {
     delete ui;
-    if (m_sqlhelp != NULL)
-    {
-        delete m_sqlhelp;
-        m_sqlhelp = NULL;
-    }
-}
-
-void StatisticWidget::loadPlotTempture()
-{
-#if 0
-    //每分钟绘制一次数据
-    QStringList value_list,data_list;
-    QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='01'";
-    QString currrent_time = "20160401174000";
-    QString start_time;
-    quint8 hour,minute;
-    hour = currrent_time.mid(8,2).toUInt();
-    minute = currrent_time.mid(10,2).toUInt();
-    //因为界面上要绘制12个点，所以这里获取这个时间段内，12个点的数据
-    if (minute < MAX_POINT_NUM)
-    {
-        //小时-1，分钟加60，然后进行相减
-        hour -= 1;
-        minute +=60;
-        start_time = currrent_time.replace(
-                    8,4,QString::number(hour).append(QString::number(minute - MAX_POINT_NUM)));
-    }else if (minute >= MAX_POINT_NUM)
-    {
-        start_time = QString::number(currrent_time.toLongLong() - MAX_POINT_NUM*100);
-    }
-
-    sql += " AND [device_data] > '" +start_time + "'";
-    sql += " AND [device_data] < '" +currrent_time + "'";
-    QSqlQuery query;
-    if (query.exec(sql))
-    {
-        while (query.next())
-        {
-            value_list << query.value(0).toString();
-            data_list << query.value(1).toString();
-        }
-    }else
-    {
-        qDebug()<<query.lastError();
-    }
-
-    if (value_list.isEmpty())
-    {
-        m_plots_list.at(0)->xAxis->setRange(0,MAX_POINT_NUM*20,Qt::AlignLeft);
-        return;
-    }
-    m_plot_tempture_keys.clear();
-    m_plot_tempture_values.clear();
-
-    foreach (QString str, value_list) {
-        m_plot_tempture_values << str.toDouble();
-    }
-
-    foreach (QString str, data_list) {
-        //将时间转换为秒，这样才能显示在坐标轴上
-        m_plot_tempture_keys << (QDateTime::fromString(str,"yyyyMMddhhmmss").toMSecsSinceEpoch()/1000);
-    }
-#if QDEBUG
-    //qDebug()<<"temp_value_count:"<<m_plot_tempture_values.count();
-    qDebug()<<"temp_value:"<<m_plot_tempture_values;
-    qDebug()<<"temp_data:"<<m_plot_tempture_keys;
-#endif
-
-    m_plots_list.at(0)->graph(0)->addData(m_plot_tempture_keys,
-                                          m_plot_tempture_values);
-    //    m_plots_list.at(0)->graph(0)->removeDataBefore(m_plot_tempture_keys.at(MAX_POINT_NUM-1) -MAX_POINT_NUM -1);
-    //    m_plots_list.at(0)->xAxis->setRange(m_plot_tempture_keys.at(MAX_POINT_NUM-1),MAX_POINT_NUM,Qt::AlignLeft);
-    //自动调整坐标轴显示范围
-    m_plots_list.at(0)->rescaleAxes();
-    m_plots_list.at(0)->yAxis->setRange(0,50);
-    m_plots_list.at(0)->replot();
-
-#endif
-
-    //第三次修改
-    /*
-     *只获取当前时间点前一分钟数据，数据显示是每一分钟刷新一次的。
-    */
-    QStringList value_list,data_list;
-    quint8 hour,minute;
-    QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='01'";
-    QString currrent_time = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-    //    QString currrent_time = "20160401174000";
-    QString start_time = currrent_time.left(8).append("000000");
-
-    sql += " AND [device_data]>='" +start_time+"' AND [device_data]<='"+currrent_time+"'";
-    QSqlQuery query;
-    query.exec(sql);
-    while (query.next())
-    {
-        value_list <<query.value(0).toString();
-        data_list <<query.value(1).toString();
-    }
-
-    foreach (QString str,value_list)
-    {
-        m_plot_tempture_values <<str.toDouble();
-    }
-
-    foreach (QString str,data_list)
-    {
-        hour = str.mid(8,2).toUInt();
-        minute = str.mid(10,2).toUInt();
-        m_plot_tempture_keys <<(hour*60 +minute);
-    }
-
-    //判断数据是否为空
-    if (!value_list.isEmpty())
-    {
-        m_plots_list.at(0)->graph(0)->addData(m_plot_tempture_keys,
-                                              m_plot_tempture_values);
-        m_plots_list.at(0)->graph(0)->removeDataBefore(m_plot_tempture_keys.first() - 60);
-        //自动调整坐标轴显示范围
-        m_plots_list.at(0)->rescaleAxes();
-
-        //        if (m_plot_tempture_keys.count() <= 10)
-        //        {
-        //            m_plots_list.at(0)->xAxis->setTickStep(60);
-        //            m_plots_list.at(0)->xAxis->setRange(m_plot_tempture_keys.first(),
-        //                                                m_plot_tempture_keys.last(),Qt::AlignLeft);
-        //        }else
-        //        {
-        //            m_plots_list.at(0)->xAxis->setRange(0,24*60,Qt::AlignLeft);
-        //        }
-
-        m_plots_list.at(0)->xAxis->setRange(0,24*60,Qt::AlignLeft);
-        m_plots_list.at(0)->yAxis->setRange(0,60);
-        m_plots_list.at(0)->replot();
-    }else
-    {
-        qDebug()<<"\n tempture data is empty!\n";
-    }
-
-}
-
-/*修改说明:
- * 2016-03-25 22:45:53:
- * 修改数据统计显示方式：一行(也就是每次只显示10条数据，按分钟显示)
- * 获取思路：获取当前时间，然后减去1分钟，再在数据库中查找这个区间内的湿度信息
- *         显示在绘图面板上
- *2016年4月2日21:30:47
- *重新修改
- *获取当前时间点前12条记录，进行显示操作
-*/
-void StatisticWidget::loadPlotHumidity()
-{
-    /*
-    //获取当前系统时间，用于计算数据日期区间
-    QString curTime = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-    QString befTime = QString::number(curTime.toLongLong() - 100);
-
-    qDebug()<<"current time:"<<curTime;
-    qDebug()<<"before time:"<<befTime;
-
-    QString sql = "SELECT [device_value] FROM [device_info] WHERE ";
-    sql += "[device_id] = '02' AND [device_data] >= '"+befTime;
-    sql +="' AND [device_data] <= '"+curTime +"'";
-
-    qDebug()<<"select sql:\n"<<sql<<endl;
-
-    plot2_key = QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000.0;
-    plot2_value = qrand() % Plot2_MaxY;
-    m_plots_list.at(1)->graph(0)->addData(plot2_key, plot2_value);
-    m_plots_list.at(1)->graph(0)->removeDataBefore(plot2_key - Plot2_Count - 1);
-    m_plots_list.at(1)->xAxis->setRange(plot2_key, Plot2_Count , Qt::AlignRight);
-    m_plots_list.at(1)->replot();
-    */
-#if 0
-    /*
-     *第二次修改
-    */
-    //每分钟绘制一次数据
-    QStringList value_list,data_list;
-    QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='02'";
-    //QString currrent_time = "20160401174000";
-    QString currrent_time = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-    QString start_time;
-    quint8 hour,minute;
-    hour = currrent_time.mid(8,2).toUInt();
-    minute = currrent_time.mid(10,2).toUInt();
-    //因为界面上要绘制12个点，所以这里获取这个时间段内，12个点的数据
-    if (minute < MAX_POINT_NUM)
-    {
-        //小时-1，分钟加60，然后进行相减
-        hour -= 1;
-        minute +=60;
-        start_time = currrent_time.replace(
-                    8,4,QString::number(hour).append(QString::number(minute - MAX_POINT_NUM)));
-    }else if (minute >= MAX_POINT_NUM)
-    {
-        start_time = QString::number(currrent_time.toLongLong() - MAX_POINT_NUM*100);
-    }
-
-    sql += " AND [device_data] > '" +start_time + "'";
-    sql += " AND [device_data] < '" +currrent_time + "'";
-    QSqlQuery query;
-    if (query.exec(sql))
-    {
-        while (query.next())
-        {
-            value_list << query.value(0).toString();
-            data_list << query.value(1).toString();
-        }
-    }else
-    {
-        qDebug()<<query.lastError();
-    }
-
-    //如果数据为空，则调整横坐标
-    if (value_list.isEmpty())
-    {
-        m_plots_list.at(1)->xAxis->setRange(0,MAX_POINT_NUM*20,Qt::AlignLeft);
-        m_plot_hum_values <<0;
-    }else
-    {
-        m_plot_hum_keys.clear();
-        m_plot_hum_values.clear();
-
-        foreach (QString str, value_list) {
-            m_plot_hum_values << str.toDouble();
-        }
-
-        foreach (QString str, data_list) {
-            //将时间转换为秒，这样才能显示在坐标轴上
-            m_plot_hum_keys << (QDateTime::fromString(str,"yyyyMMddhhmmss").toMSecsSinceEpoch()/1000);
-        }
-#if QDEBUG
-        //qDebug()<<"temp_value_count:"<<m_plot_tempture_values.count();
-        qDebug()<<"temp_value:"<<m_plot_hum_values;
-        qDebug()<<"temp_data:"<<m_plot_hum_keys;
-#endif
-    }
-    m_plots_list.at(1)->graph(0)->addData(m_plot_hum_keys,
-                                          m_plot_hum_values);
-
-    //自动调整坐标轴显示范围
-    m_plots_list.at(1)->rescaleAxes();
-    m_plots_list.at(1)->yAxis->setRange(0,m_plot_hum_values.last()+20);
-    m_plots_list.at(1)->replot();
-#endif
-    //第三次修改
-    /*
-     *只获取当前时间点前一分钟数据，数据显示是每一分钟刷新一次的。
-    */
-    QStringList value_list,data_list;
-    quint8 hour,minute;
-    QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='02'";
-    QString currrent_time = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-    //    QString currrent_time = "20160401174000";
-    QString start_time = currrent_time.left(8).append("000000");
-
-    sql += " AND [device_data]>='" +start_time+"' AND [device_data]<='"+currrent_time+"'";
-    QSqlQuery query;
-    query.exec(sql);
-    while (query.next())
-    {
-        value_list <<query.value(0).toString();
-        data_list <<query.value(1).toString();
-    }
-
-    foreach (QString str,value_list)
-    {
-        m_plot_hum_values <<str.toDouble();
-    }
-
-    foreach (QString str,data_list)
-    {
-        hour = str.mid(8,2).toUInt();
-        minute = str.mid(10,2).toUInt();
-        m_plot_hum_keys <<(hour*60 +minute);
-    }
-
-    //判断数据是否为空
-    if (!value_list.isEmpty())
-    {
-        m_plots_list.at(1)->graph(0)->addData(m_plot_hum_keys,
-                                              m_plot_hum_values);
-        m_plots_list.at(1)->graph(0)->removeDataBefore(m_plot_hum_keys.first() - 60);
-        //自动调整坐标轴显示范围
-        m_plots_list.at(1)->rescaleAxes();
-        m_plots_list.at(1)->xAxis->setRange(0,24*60,Qt::AlignLeft);
-        m_plots_list.at(1)->yAxis->setRange(0,60);
-        m_plots_list.at(1)->replot();
-    }else
-    {
-        qDebug()<<"\n humidity data is empty!\n";
-    }
-
-}
-
-void StatisticWidget::loadPlotSmoke()
-{
-    /*
-    QStringList value,key;
-    QString cur_time = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-
-    QString sql_value = "SELECT device_value FROM device_info WHERE";
-    sql_value += " device_id = '03' AND device_data >= "+cur_time.left(8).append("000000");
-    sql_value += " AND device_data <=" + cur_time;
-
-    QString sql_key = "SELECT device_data FROM device_info WHERE";
-    sql_key += " device_id = '03' AND device_data >= "+ cur_time.left(8).append("000000");
-    sql_key += " AND device_data <=" + cur_time;
-#if QDEBUG
-    qDebug()<<"seach data from database:";
-    qDebug()<< sql_value;
-#endif
-    value = m_sqlhelp->getColumnData(sql_value);
-    key = m_sqlhelp->getColumnData(sql_key);
-#if QDEBUG
-    qDebug("\n\n");
-    qDebug()<<"size:"<<value.count();
-    qDebug() <<"value:"<<value;
-    qDebug() <<"key:"<<key;
-    qDebug("\n\n");
-#endif
-
-    m_smoke_count = value.count();
-    m_plot_smoke_values.clear();
-    m_plot_smoke_key.clear();
-
-    foreach (QString str,value)
-    {
-        m_plot_smoke_values << str.toDouble();
-    }
-    foreach (QString str,key)
-    {
-        m_plot_smoke_key <<str.mid(8,4).toDouble();
-    }
-
-    qDebug()<<"m_plot_smoke_values:\n"<<m_plot_smoke_values;
-    qDebug()<<"m_plot_smoke_key:\n"<<m_plot_smoke_key;
-
-
-    m_plots_list.at(2)->graph(0)->setData(m_plot_smoke_key, m_plot_smoke_values);
-    m_plots_list.at(2)->xAxis->setAutoTickCount(12);
-    m_plots_list.at(2)->yAxis->setAutoTickCount(10);
-    m_plots_list.at(2)->graph(0)->rescaleAxes();
-    m_plots_list.at(2)->replot();
-    */
-
-#if 0
-    /*
-     *2016年4月2日21:36:08  再次修改
-    */
-    //每分钟绘制一次数据
-    QStringList value_list,data_list;
-    QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='03'";
-    QString currrent_time = "20160401174000";
-    QString start_time;
-    quint8 hour,minute;
-    hour = currrent_time.mid(8,2).toUInt();
-    minute = currrent_time.mid(10,2).toUInt();
-    //因为界面上要绘制12个点，所以这里获取这个时间段内，12个点的数据
-    if (minute < MAX_POINT_NUM)
-    {
-        //小时-1，分钟加60，然后进行相减
-        hour -= 1;
-        minute +=60;
-        start_time = currrent_time.replace(
-                    8,4,QString::number(hour).append(QString::number(minute - MAX_POINT_NUM)));
-    }else if (minute >= MAX_POINT_NUM)
-    {
-        start_time = QString::number(currrent_time.toLongLong() - MAX_POINT_NUM*100);
-    }
-
-    sql += " AND [device_data] > '" +start_time + "'";
-    sql += " AND [device_data] < '" +currrent_time + "'";
-    QSqlQuery query;
-    if (query.exec(sql))
-    {
-        while (query.next())
-        {
-            value_list << query.value(0).toString();
-            data_list << query.value(1).toString();
-        }
-    }else
-    {
-        qDebug()<<query.lastError();
-    }
-
-    if (value_list.isEmpty())
-    {
-        m_plots_list.at(2)->xAxis->setRange(0,MAX_POINT_NUM*20,Qt::AlignLeft);
-        return;
-    }
-    m_plot_smoke_keys.clear();
-    m_plot_smoke_values.clear();
-
-    foreach (QString str, value_list) {
-        m_plot_smoke_values << str.toDouble();
-    }
-
-    foreach (QString str, data_list) {
-        //将时间转换为秒，这样才能显示在坐标轴上
-        m_plot_smoke_keys << (QDateTime::fromString(str,"yyyyMMddhhmmss").toMSecsSinceEpoch()/1000);
-    }
-#if QDEBUG
-    //qDebug()<<"temp_value_count:"<<m_plot_tempture_values.count();
-    qDebug()<<"temp_value:"<<m_plot_smoke_values;
-    qDebug()<<"temp_data:"<<m_plot_smoke_keys;
-#endif
-
-    m_plots_list.at(2)->graph(0)->addData(m_plot_smoke_keys,
-                                          m_plot_smoke_values);
-
-    //自动调整坐标轴显示范围
-    m_plots_list.at(2)->rescaleAxes();
-
-    m_plots_list.at(2)->yAxis->setRange(0,m_plot_smoke_values.last()+20);
-    m_plots_list.at(2)->replot();
-#endif
-
-    //第三次修改
-    /*
-     *只获取当前时间点前一分钟数据，数据显示是每一分钟刷新一次的。
-    */
-    QStringList value_list,data_list;
-    quint8 hour,minute;
-    QString sql = "SELECT [device_value],[device_data]  FROM [device_info] WHERE [device_id]='03'";
-    QString currrent_time = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-    //    QString currrent_time = "20160401174000";
-    QString start_time = currrent_time.left(8).append("000000");
-
-    sql += " AND [device_data]>='" +start_time+"' AND [device_data]<='"+currrent_time+"'";
-    QSqlQuery query;
-    query.exec(sql);
-    while (query.next())
-    {
-        value_list <<query.value(0).toString();
-        data_list <<query.value(1).toString();
-    }
-
-    foreach (QString str,value_list)
-    {
-        m_plot_smoke_values <<str.toDouble();
-    }
-
-    foreach (QString str,data_list)
-    {
-        hour = str.mid(8,2).toUInt();
-        minute = str.mid(10,2).toUInt();
-        m_plot_smoke_keys <<(hour*60 +minute);
-    }
-
-    //判断数据是否为空
-    if (!value_list.isEmpty())
-    {
-        m_plots_list.at(2)->graph(0)->addData(m_plot_smoke_keys,
-                                              m_plot_smoke_values);
-        m_plots_list.at(2)->graph(0)->removeDataBefore(m_plot_smoke_keys.first() - 60);
-        //自动调整坐标轴显示范围
-        m_plots_list.at(2)->rescaleAxes();
-        m_plots_list.at(2)->xAxis->setRange(0,24*60,Qt::AlignLeft);
-        m_plots_list.at(2)->yAxis->setRange(0,60);
-        m_plots_list.at(2)->replot();
-    }else
-    {
-        qDebug()<<"\n smoke data is empty!\n";
-    }
-
 }
 
 void StatisticWidget::initStyle()
 {
-    m_sqlhelp = new SqlHelp;
+    //m_sqlhelp = new SqlHelp;
 }
 
 void StatisticWidget::initForm()
 {
     m_currentIndex = 0;
-
-    m_plots_list.append(ui->plot_tempture);
-    m_plots_list.append(ui->plot_humidity);
-    m_plots_list.append(ui->plot_smoke);
-
-    //默认显示图例
-#if SHOW_LEGEND
-    m_plots_list.at(0)->legend->setVisible(true);
-    m_plots_list.at(1)->legend->setVisible(true);
-    m_plots_list.at(2)->legend->setVisible(true);
-    ui->ckText->setChecked(true);
-#endif
-
-    ui->label_dateTime->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
+    //ui->label_dateTime->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
 }
 
-//初始化绘图设备
-void StatisticWidget::initPlot()
+void StatisticWidget::InitTable()
 {
-    //设置各个图的纵坐标名称
-    m_plots_list.at(0)->yAxis->setLabel(tr("温度值(单位:°)"));
-    m_plots_list.at(1)->yAxis->setLabel(tr("湿度值(单位:%)"));
-    m_plots_list.at(2)->yAxis->setLabel(tr("浓度值(单位:%)"));
-
-    m_plots_list.at(0)->xAxis->setLabel(tr("时间"));
-    m_plots_list.at(1)->xAxis->setLabel(tr("时间"));
-    m_plots_list.at(2)->xAxis->setLabel(tr("时间"));
-
-    //设置纵坐标范围
-    m_plots_list.at(0)->yAxis->setRange(0,PLOT_TEMPTURE_MAX_Y);
-    m_plots_list.at(1)->yAxis->setRange(0,PLOT_HUMIDITY_MAX_Y);
-    m_plots_list.at(2)->yAxis->setRange(0,PLOT_SMOKE_MAX_Y);
-
-    foreach (QCustomPlot *plot, m_plots_list) {
-        //设置坐标颜色，名称
-        plot->yAxis->setLabelColor(TextColor);
-        plot->xAxis->setLabelColor(TextColor);
-
-        plot->yAxis->setTickLabelColor(TextColor);  //Y轴标签颜色
-        plot->xAxis->setTickLabelColor(TextColor);
-
-        //设置比标签字体
-        plot->xAxis->setTickLabelFont(QFont(QFont().family(),10));
-
-        plot->xAxis->setBasePen(QPen(TextColor,TextWidth));
-        plot->yAxis->setBasePen(QPen(TextColor,TextWidth));
-
-        plot->xAxis->setTickPen(QPen(TextColor,TextWidth));
-        plot->yAxis->setTickPen(QPen(TextColor,TextWidth));
-
-        plot->xAxis->setSubTickPen(QPen(TextColor,TextWidth));
-        plot->yAxis->setSubTickPen(QPen(TextColor,TextWidth));
-
-        //设置画布背景
-        QLinearGradient plotGradient;
-        plotGradient.setStart(0,0);
-        plotGradient.setFinalStop(0,350);
-        plotGradient.setColorAt(0,QColor(80,80,80));
-        plotGradient.setColorAt(1,QColor(50,50,50));
-        plot->setBackground(plotGradient);
-
-        //设置坐标背景色
-        QLinearGradient axisRectGradient;
-        axisRectGradient.setStart(0,0);
-        axisRectGradient.setFinalStop(0,350);
-        axisRectGradient.setColorAt(0,QColor(80,80,80));
-        axisRectGradient.setColorAt(1,QColor(30,30,30));
-        plot->axisRect()->setBackground(axisRectGradient);
-
-        //设置图例提示位置以及背景色
-        plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignTop | Qt::AlignRight);
-        plot->legend->setBrush(QColor(255, 255, 255, 200));
-
-        plot->replot();
+    int iLoop;
+    model_calibration = new QStandardItemModel(this);
+    model_calibration->setColumnCount(3);
+    model_calibration->setHeaderData( 0,Qt::Horizontal,QString::fromLocal8Bit("时间"));
+    model_calibration->setHeaderData( 1,Qt::Horizontal,QString::fromLocal8Bit("测量值"));
+    model_calibration->setHeaderData( 2,Qt::Horizontal,QString::fromLocal8Bit("单位"));
+    ColumnWidths[0]=200;
+    ColumnWidths[1]=150;
+    ColumnWidths[2]=80;
+    ui->tableView->setModel(model_calibration);
+    //表头信息显示居中
+    ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
+    //设置列宽根据内容变化
+    for(iLoop=0;iLoop<model_calibration->columnCount();iLoop++){
+        ui->tableView->horizontalHeader()->setResizeMode(iLoop,QHeaderView::Interactive);
+        ui->tableView->setColumnWidth(iLoop,ColumnWidths[iLoop]);
     }
+    //点击表头时不对表头光亮
+    ui->tableView->horizontalHeader()->setHighlightSections(false);
+    //选中模式为单行选中
+    ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    //选中整行
+    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableView->setStyleSheet( "QTableView::item:hover{background-color:rgb(0,200,255,255)}"
+                                                             "QTableView::item:selected{background-color:#0000AA}");
+    //设置非编辑状态
+    ui->tableView->setEditTriggers(QTableView::NoEditTriggers);
+    //设置表头背景色
+    ui->tableView->horizontalHeader()->setStyleSheet("QHeaderView::section{background:skyblue}");
+    ui->tableView->verticalHeader()->setStyleSheet("QHeaderView::section{background:skyblue}");
+
+    //ui->tableView->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);//垂直滚动条按项移动
 }
-
-//初始化温度统计图
-void StatisticWidget::initPlotTempture()
+void StatisticWidget::ShowData()
 {
-    //向画布添加一条曲线
-    m_plots_list.at(0)->addGraph();
-    m_plots_list.at(0)->graph(0)->setName(tr("温度值(单位:度)"));
-    m_plots_list.at(0)->graph(0)->setPen(QPen(Plot1_LineColor,LineWidth));
-    m_plots_list.at(0)->graph(0)->setScatterStyle(
-                QCPScatterStyle(QCPScatterStyle::ssCircle,
-                                QPen(Plot1_DotColor, LineWidth),
-                                QBrush(Plot1_DotColor), DotWidth));
-    //设置静态曲线的横坐标范围以及自适应坐标
-    //    m_plots_list.at(0)->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    //    m_plots_list.at(0)->xAxis->setDateTimeFormat("hh:mm");
-    m_plots_list.at(0)->xAxis->setAutoTickStep(false);
-    m_plots_list.at(0)->xAxis->setTickStep(2*60);
-    m_plots_list.at(0)->xAxis->setRange(0, 24*60,Qt::AlignLeft);
-}
+    int row=0;
+    //int column=0;
+    unsigned int iLoop;
+    //QString Unit;
+    QFont ft;
+    ft.setPointSize(9);
 
-//初始化湿度统计图
-void StatisticWidget::initPlotHumidity()
-{
-    //向画布添加一条曲线
-    m_plots_list.at(1)->addGraph(0);
-    m_plots_list.at(1)->graph(0)->setName(tr("湿度值(单位:%)"));
-    m_plots_list.at(1)->graph(0)->setPen(QPen(Plot2_LineColor,LineWidth));
-    m_plots_list.at(1)->graph(0)->setScatterStyle(
-                QCPScatterStyle(QCPScatterStyle::ssCircle,
-                                QPen(Plot2_DotColor, LineWidth),
-                                QBrush(Plot2_DotColor), DotWidth));
-
-    //设置动态曲线的横坐标格式及范围
-    //    m_plots_list.at(1)->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    //    m_plots_list.at(1)->xAxis->setDateTimeFormat("hh:mm");
-    m_plots_list.at(1)->xAxis->setAutoTickStep(false);
-    m_plots_list.at(1)->xAxis->setTickStep(120);
-    m_plots_list.at(1)->xAxis->setRange(0, 24*60, Qt::AlignLeft);
-}
-
-//初始化烟雾统计图
-void StatisticWidget::initPlotSmoke()
-{
-    m_plots_list.at(2)->addGraph(0);
-    m_plots_list.at(2)->graph(0)->setName(tr("烟雾值(单位:%)"));
-    m_plots_list.at(2)->graph(0)->setPen(QPen(Plot3_LineColor,LineWidth));
-    m_plots_list.at(2)->graph(0)->setScatterStyle(
-                QCPScatterStyle(QCPScatterStyle::ssCircle,
-                                QPen(Plot3_DotColor, LineWidth),
-                                QBrush(Plot3_DotColor), DotWidth));
-    //设置动态曲线的横坐标格式及范围
-    //    m_plots_list.at(2)->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    //    m_plots_list.at(2)->xAxis->setDateTimeFormat("hh:mm");
-    m_plots_list.at(2)->xAxis->setAutoTickStep(false);
-    m_plots_list.at(2)->xAxis->setTickStep(2*60);
-    m_plots_list.at(2)->xAxis->setRange(0, 24*60, Qt::AlignLeft);
-    m_plots_list.at(2)->replot();
-}
-
-
-void StatisticWidget::initConnect()
-{
-    connect(ui->comboBox_view_data,SIGNAL(currentIndexChanged(int)),
-            this,SLOT(slotChangeData(int)));
-}
-
-void StatisticWidget::refreshTempture()
-{
-    QStringList temp_value =  m_sqlhelp->getDeviceLastValue(DEVICE_TEMP);
-    quint8 hour = temp_value.at(1).mid(8,2).toUInt();
-    quint8 minute = temp_value.at(1).mid(10,2).toUInt();
-
-    m_plots_list.at(0)->graph(0)->addData(hour*60+minute,temp_value.at(0).toDouble());
-    m_plots_list.at(0)->replot();
-
-}
-
-void StatisticWidget::refreshHumidity()
-{
-    QStringList hum_value =  m_sqlhelp->getDeviceLastValue(DEVICE_HUM);
-    quint8 hour = hum_value.at(1).mid(8,2).toUInt();
-    quint8 minute = hum_value.at(1).mid(10,2).toUInt();
-
-    m_plots_list.at(1)->graph(0)->addData(hour*60+minute,hum_value.at(0).toDouble());
-    m_plots_list.at(1)->replot();
-}
-
-void StatisticWidget::refreshSmoke()
-{
-    QStringList smoke_value =  m_sqlhelp->getDeviceLastValue(DEVICE_SMOKE);
-    quint8 hour = smoke_value.at(1).mid(8,2).toUInt();
-    quint8 minute = smoke_value.at(1).mid(10,2).toUInt();
-    m_plots_list.at(2)->graph(0)->addData(hour*60+minute,
-                                          smoke_value.at(0).toDouble());
-    m_plots_list.at(2)->replot();
-}
-
-
-//开启/关闭移动缩放功能
-void StatisticWidget::on_ckMove_stateChanged(int arg1)
-{
-    bool value = (arg1 == 0? false:true);
-    if (value)
-    {
-        ui->plot_tempture->setInteractions(QCP::iRangeDrag |QCP::iRangeZoom);
-        ui->plot_humidity->setInteractions(QCP::iRangeDrag |QCP::iRangeZoom);
-        ui->plot_smoke->setInteractions(QCP::iRangeDrag |QCP::iRangeZoom);
-    }else
-    {
-        ui->plot_tempture->setInteractions(QCP::iSelectOther);
-        ui->plot_humidity->setInteractions(QCP::iSelectOther);
-        ui->plot_smoke->setInteractions(QCP::iSelectOther);
+    model_calibration->removeRows(0,model_calibration->rowCount()); //清空数据表
+    //ui->tableView->scrollToTop();  //滚动到顶部
+    for(iLoop=0;iLoop<pgHistoryData->Pollutant.cnt;iLoop++){
+        //column = 0;
+        QDateTime datatime = QDateTime::fromString(QString(pgHistoryData->Pollutant.Row[iLoop].DataTime),"yyyyMMddhhmmss");
+        switch(pgHistoryData->Pollutant.DataType){
+            case 1:
+                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM-dd hh:mm")));
+                break;
+            case 2:
+                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM-dd")));
+                break;
+            case 5:
+                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy")));
+                break;
+        default:
+                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM")));
+        }
+        model_calibration->item(row,0)->setTextAlignment(Qt::AlignCenter);           //设置字符位置
+        model_calibration->setItem(row,1,new QStandardItem(QString::number(pgHistoryData->Pollutant.Row[iLoop].data,'f',2)));
+        model_calibration->item(row,1)->setTextAlignment(Qt::AlignCenter);        //设置字符位置
+        model_calibration->setItem(row,2,new QStandardItem(QString("mg/m3")));
+        model_calibration->item(row,2)->setTextAlignment(Qt::AlignCenter);        //设置字符位置
+        //ui->tableView->scrollToBottom();//滚动到底部
+        //ui->tableView->scrollTo(model_calibration->index(row,1));
+        row++;
     }
+    ui->tableView->scrollToTop();  //滚动到顶部
+}
+void StatisticWidget::initData()
+{
+/*     ColumnNames[0] = tr("device_name");
+    ColumnNames[1] = tr("device_value");
+    ColumnNames[2] = tr("device_data");
+    ColumnNames[3] = tr("device_remark");
+
+    ColumnWidths[0] = 120;
+    ColumnWidths[1] = 110;
+    ColumnWidths[2] = 160;
+    ColumnWidths[3] = 100; */
+
+    //设置需要显示数据的表格和翻页的按钮
+   // m_sqlhelp->SetControlTable(ui->tableView,ui->labInfo,ui->btnFirst,ui->btnPre,ui->btnNext,ui->btnLast);
+    //加载初始数据,按编号正序显示
+    //m_sqlhelp->BindData("v_device_info","device_data","",7,ColumnNames,ColumnWidths);
 }
 
-//打开/关闭背景
-void StatisticWidget::on_ckBackground_stateChanged(int arg1)
+int StatisticWidget::query_term_check()
 {
-    bool value = (arg1 == 0? false:true);
-    if (value)
-    {
-        m_plots_list.at(0)->graph(0)->setBrush(QBrush(Plot1_BGColor));
-        m_plots_list.at(1)->graph(0)->setBrush(QBrush(Plot2_BGColor));
-        m_plots_list.at(2)->graph(0)->setBrush(QBrush(Plot3_BGColor));
-    }else
-    {
-        m_plots_list.at(0)->graph(0)->setBrush(QBrush(Plot_NoColor));
-        m_plots_list.at(1)->graph(0)->setBrush(QBrush(Plot_NoColor));
-        m_plots_list.at(2)->graph(0)->setBrush(QBrush(Plot_NoColor));
+    int res =0;
+    int index = ui->comboBox_data_type->currentIndex();
+    res = ui->dateTimeStart->dateTime().secsTo(ui->dateTimeStop->dateTime());
+    if(res < 0){
+        myHelper::showMessageBoxInfo(QString("结束时间必须大于起始时间"));
+        return TINZ_ERROR;
     }
-
-    m_plots_list.at(0)->replot();
-    m_plots_list.at(1)->replot();
-    m_plots_list.at(2)->replot();
-}
-
-//添加/取消图例
-void StatisticWidget::on_ckText_stateChanged(int arg1)
-{
-    bool value = (arg1 == 0? false:true);
-    if (value)
-    {
-        m_plots_list.at(0)->legend->setVisible(true);
-        m_plots_list.at(1)->legend->setVisible(true);
-        m_plots_list.at(2)->legend->setVisible(true);
-    }else
-    {
-        m_plots_list.at(0)->legend->setVisible(false);
-        m_plots_list.at(1)->legend->setVisible(false);
-        m_plots_list.at(2)->legend->setVisible(false);
+    switch(index+1){
+       case 1:
+           res = ui->dateTimeStart->dateTime().secsTo(ui->dateTimeStop->dateTime());
+           if(res > 6 * 60 * 60){
+                myHelper::showMessageBoxInfo(QString("实时数据查询时间范围不能超过6小时"));
+                return TINZ_ERROR;
+           }
+           break;
+       case 2:
+           res = ui->dateTimeStart->dateTime().daysTo(ui->dateTimeStop->dateTime());
+           if(res > 180){
+                myHelper::showMessageBoxInfo(QString("天数据查询时间范围不能超过180天"));
+                return TINZ_ERROR;
+           }
+           break;
+        case 3:
+            break;
+        case 4:
+            break;
+        case 5:
+            break;
+        default:
+            return TINZ_ERROR;
     }
-
-    //重绘
-    m_plots_list.at(0)->replot();
-    m_plots_list.at(1)->replot();
-    m_plots_list.at(2)->replot();
+    return TINZ_OK;
 }
 
-void StatisticWidget::slotUpdataData()
+void StatisticWidget::on_pushButton_clicked()
 {
-
-#if QDEBUG
-    qDebug()<<"=================================";
-    qDebug()<<"start update statistic data";
-    qDebug()<<"=================================";
-#endif
-
-    //    QString new_smoke_value = m_sqlhelp->getLastRecord("device_info","device_value",
-    //                                                       "device_id",DEVICE_SMOKE);
-    //    QString new_smoke_key = m_sqlhelp->getLastRecord("device_info","device_data",
-    //                                                     "device_id",DEVICE_SMOKE);
-
-
-    //    loadPlotTempture();
-    //    loadPlotHumidity();
-    //    loadPlotSmoke();
-
-    refreshTempture();
-    refreshHumidity();
-    refreshSmoke();
-}
-
-void StatisticWidget::slotChangeData(int index)
-{
-    //显示当前数据
-    if (0 == index)
-    {
-        loadPlotTempture();
-        loadPlotHumidity();
-        loadPlotSmoke();
-    }
-    //显示本周数据
-    else if (1 == index)
-    {
-        slotShowTempWeekData();
-        slotShowHumWeekData();
-        slotShowSmokeWeedData();
-    }
-}
-
-/*
- *统计一周数据，只显示7个点
- *思路：从数据库中读取前7天的数据，进行显示
- *难点：获取每一天数据的平均值
-*/
-void StatisticWidget::slotShowTempWeekData()
-{
-    QStringList month_list;
-    month_list <<"01" <<"03" <<"05"<<"07"<<"08"<<"10"<<"12";
-    //    QString current_Time = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
-    QString current_Time = "20160302221632";
-    QString start_Timer;
-    QString month = current_Time.mid(4,2);
-    QString date = current_Time.mid(6,2);
-    //对当前日期进行判断，统计一周数据
-    foreach (QString str, month_list) {
-        if (month.contains(str,Qt::CaseSensitive))
-        {
-            qDebug()<<"is leap month ";
-        }else
-        {
-            qDebug()<<"not leap month";
+    QString str;
+    int iLoop;
+    pgHistoryData->Pollutant.DataType =  ui->comboBox_data_type->currentIndex() + 1;
+    pgHistoryData->Pollutant.PollutantType = ui->comboBox_pollutant_type->currentIndex();
+    str = ui->dateTimeStart->dateTime().toString("yyyyMMddhhmmss");
+    myHelper::StringToChar(str,pgHistoryData->Pollutant.StartDataTime,sizeof(pgHistoryData->Pollutant.StartDataTime));
+    str = ui->dateTimeStop->dateTime().toString("yyyyMMddhhmmss");
+    myHelper::StringToChar(str,pgHistoryData->Pollutant.StopDataTime,sizeof(pgHistoryData->Pollutant.StopDataTime));
+    pgHistoryData->Pollutant.cnt = 0;
+    pgHistoryData->Pollutant.flag = 1;
+    qDebug()<<"start:"<< pgHistoryData->Pollutant.StartDataTime;
+    qDebug()<<"stop:"<< pgHistoryData->Pollutant.StopDataTime;
+    qDebug()<<"DataType"<<pgHistoryData->Pollutant.DataType;
+    qDebug()<<"PollutantType"<<pgHistoryData->Pollutant.PollutantType;
+    if(TINZ_ERROR != query_term_check()){
+        /*等待查询数据*/
+        for(iLoop = 0;iLoop<3;iLoop++){
+            if(2 == pgHistoryData->Pollutant.flag){break;}
+            sleep(1);
+        }
+        qDebug()<<QString("flag:%1 cnt:%2").arg(pgHistoryData->Pollutant.flag).arg(pgHistoryData->Pollutant.cnt);
+        if(2 == pgHistoryData->Pollutant.flag && pgHistoryData->Pollutant.cnt > 0){
+            this->ShowData();
+        }else{
+            myHelper::showMessageBoxInfo(QString("无查询数据，或查询超时"));
         }
     }
-
-    QString sql = "SELECT [device_value],[device_data] FROM [device_info] WHERE [device_id]='";
-    sql += " 01' AND [device_data] >";
 }
 
-void StatisticWidget::slotShowHumWeekData()
+void StatisticWidget::on_comboBox_data_type_currentIndexChanged(int index)
 {
+     qDebug()<<"index:"<<index+1;
+     switch(index+1){
+        case 1:
+            ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addSecs(-6*60*60));
+            ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
+            break;
+        case 2:
+            ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addMonths(-1));
+            ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
+            break;
+         case 3:
+             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addYears(-1));
+             ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
+             break;
+         case 4:
+             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addYears(-1));
+             ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
+             break;
+         case 5:
+             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addYears(-5));
+             ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
+             break;
+     }
 }
-
-void StatisticWidget::slotShowSmokeWeedData()
-{
-}
-

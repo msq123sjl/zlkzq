@@ -45,6 +45,8 @@
 #define POLLUTANT_COD_INDEX     1
 #define POLLUTANT_PH_INDEX     2
 
+#define HISTORYCNT 180
+
 #define AD_CNT 2
 #define DA_CNT 2
 

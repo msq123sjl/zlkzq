@@ -27,6 +27,10 @@
 #define SHM_PATH_DATA		"/mnt/nandflash/shm/"
 #define SHM_DATA_ID	0x01
 
+#define SHM_NAME_HISTORY_DATA		"/mnt/nandflash/shm/shm_history_data"
+#define SHM_PATH_HISTORY_DATA		"/mnt/nandflash/shm/"
+#define SHM_DATA_HISTORY_ID	0x01
+
 struct  SHM_DESC{
 	int shm_id;
 	char *shm_mem;
@@ -49,4 +53,7 @@ void syncPollutantParaShm();
 void initPollutantParaShm();
 char * getDataShm();
 void rmDataShm();
+char * getHistoryDataShm();
+void rmHistoryDataShm();
+void initHistoryDataShm();
 #endif

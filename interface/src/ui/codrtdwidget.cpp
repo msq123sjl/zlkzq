@@ -77,12 +77,3 @@ void CODRtdwidget::slotShowCurrentData()
     ui->label_set_qut->setText(QString::number(pgPollutantPara->Row[POLLUTANT_COD_INDEX].QutAll));
     ui->label_set_yea->setText(QString::number(pgPollutantPara->Row[POLLUTANT_COD_INDEX].YeaAll));
 }
-
-
-
-
-
-
-
-
-

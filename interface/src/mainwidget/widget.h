@@ -10,8 +10,7 @@ class CODRtdwidget;
 class PHRtdwidget;
 class ValveWidget;
 class ModelChooseWidget;
-
-//class StatisticWidget;
+class StatisticWidget;
 class frmlogin;
 
 namespace Ui {
@@ -29,6 +28,7 @@ class Widget : public QWidget
         E_COD_WIDGET,             //COD
         E_PH_WIDGET,              //PH
         E_VALVE_WIDGET,       //阀门控制
+        E_STATISTIC_WIDGET,        //统计
         E_MODEL_WIDGET        //模式
     };
     enum E_TEXTSIZE{
@@ -76,7 +76,7 @@ private:
     CODRtdwidget *m_codrtdWidget;                 //COD界面
     PHRtdwidget *m_phrtdWidget;                 //PH界面
     ValveWidget *m_valveWidget;                 //厨房界面
-    //StatisticWidget *m_statisticWidget;             //统计界面
+    StatisticWidget *m_statisticWidget;             //统计界面
 
     ModelChooseWidget *m_modelWidget;               //模式选择控制界面
     frmlogin *m_frmlogin;

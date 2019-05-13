@@ -8,7 +8,7 @@ ifndef TOPDIR
 endif
 
 ifndef BINDIR
-	BINDIR = $(TOPDIR)/bin
+	BINDIR = $(TOPDIR)/../bin
 endif
 
 ifndef LIBDIR

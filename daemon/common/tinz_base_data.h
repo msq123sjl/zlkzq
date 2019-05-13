@@ -24,12 +24,25 @@ typedef struct _PollutantRtdData{
     char                    DataTime[DATATIME_LEN];
 }stPollutantRtdData,*pstPollutantRtdData;
 
-typedef struct _PollutantHistoryData{
+typedef struct _PollutantHistoryDataRow{
     
-    float rtd;
-    float cou;
-    u_char      DataTime[DATATIME_LEN];
+    float data;
+    char  DataTime[DATATIME_LEN];
+}stPollutantHistoryDataRow,*pstPollutantHistoryDataRow;
+
+typedef struct _PollutantHistoryData{
+    uint8_t flag;       //0:无动作 1：请求数据 2：数据已写入
+    uint8_t DataType;  //0：无数据 1：实时数据 2：天数据 3：月数据 4：季度数据 5 年数据 
+    uint8_t PollutantType; //0:流量 1:COD 2:PH
+    uint8_t cnt;       //查询到的数据条数
+    char  StartDataTime[DATATIME_LEN];
+    char  StopDataTime[DATATIME_LEN];
+    stPollutantHistoryDataRow Row[HISTORYCNT];
 }stPollutantHistoryData,*pstPollutantHistoryData;
+
+typedef struct _HistoryData{
+    stPollutantHistoryData Pollutant;
+}stHistoryData,*pstHistoryData;
 
 typedef struct _MeterRtdData
 {

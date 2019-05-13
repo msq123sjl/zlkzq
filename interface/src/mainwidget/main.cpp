@@ -45,6 +45,7 @@ pstPara pgPara;
 pstValveControl pgValveControl;
 pstPollutantData pgPollutantData;
 pstPollutantPara pgPollutantPara;
+pstHistoryData pgHistoryData;
 
 int main(int argc, char *argv[])
 {
@@ -75,6 +76,7 @@ int main(int argc, char *argv[])
     qDebug()<<QString("per:%1 per_last:%2").arg(pgValveControl->per).arg(pgValveControl->per_last);
     pgPollutantData = (pstPollutantData)getPollutantDataShm();
     pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
+    pgHistoryData = (pstHistoryData)getHistoryDataShm();
     /**/
 
     Widget w;

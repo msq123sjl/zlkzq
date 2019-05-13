@@ -1,7 +1,7 @@
 #ifndef __TINZ_COMMON_DB_HELPER__
 #define __TINZ_COMMON_DB_HELPER__
 #include "sqlite3.h"
-#define SCY_DATA		"/mnt/nandflash/zlkzq.db"
+#define SCY_DATA		"/mnt/nandflash/bin/zlkzq.db"
 #define SCY_DATA_bak	"/mnt/sdcard/zlkzq.db.bak"
 
 #define TABLE_NAME_LEN	32

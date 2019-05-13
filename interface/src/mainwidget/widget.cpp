@@ -23,7 +23,7 @@ Description:总量控制器--主界面功能的实现
 #include "flowrtdwidget.h"          //流量
 #include "codrtdwidget.h"          //COD
 #include "phrtdwidget.h"          //PH
-#include "valvewidget.h"          //厨房
+#include "valvewidget.h"          //阀门
 #include "statisticwidget.h"        //统计界面
 #include "modelchoosewidget.h"      //模式选择控制界面
 
@@ -109,23 +109,17 @@ void Widget::initWidget()
     m_codrtdWidget = new CODRtdwidget;              //COD
     m_phrtdWidget = new PHRtdwidget;              //PH
     m_valveWidget = new ValveWidget;              //厨房
-    //m_statisticWidget = new StatisticWidget;          //统计
+    m_statisticWidget = new StatisticWidget;          //统计
     m_modelWidget = new ModelChooseWidget;            //模式控制界面
 
     //m_menuWidget = new MenuWidget(this);
     //ui->tbnSetting->setMenu(m_menuWidget);
-    //开启线程定时保存数据
-//    m_saveDataThread = new SaveDataThread;
-//    if (gIsOpenPort)
-//    {
-//        m_saveDataThread->start();
-//    }
 
     ui->stackedWidget->addWidget(m_flowrtdWidget);
     ui->stackedWidget->addWidget(m_codrtdWidget);
     ui->stackedWidget->addWidget(m_phrtdWidget);
     ui->stackedWidget->addWidget(m_valveWidget);
-    //ui->stackedWidget->addWidget(m_statisticWidget);
+    ui->stackedWidget->addWidget(m_statisticWidget);
     ui->stackedWidget->addWidget(m_modelWidget);
 }
 void Widget::initConnect()
@@ -172,10 +166,10 @@ void Widget::deletWidget()
         delete m_valveWidget;
         m_valveWidget = NULL;
     }
-//    if (m_statisticWidget != NULL){
-//        delete m_statisticWidget;
-//        m_statisticWidget = NULL;
-//    }
+    if (m_statisticWidget != NULL){
+        delete m_statisticWidget;
+        m_statisticWidget = NULL;
+    }
 
     if (m_modelWidget != NULL)
     {
@@ -259,7 +253,7 @@ void Widget::on_tbnValve_clicked()
 
 void Widget::on_tbnStatistic_clicked()
 {
-    this->setCurrentWidget(E_RTD_WIDGET);
+    this->setCurrentWidget(E_STATISTIC_WIDGET);
 }
 
 void Widget::on_tbnADDA_clicked()

@@ -139,3 +139,17 @@ inline int cmpfunc_uint16(const void * a, const void * b)
    return ( *(uint16_t*)a - *(uint16_t*)b );
 }
 
+//返回当前季度的第一个月份
+inline uint8_t month_to_qut(uint8_t month){
+    if(month >0 && month <4){
+        return 1;
+    }else if(month >3 && month <7){
+        return 4;
+    }else if(month >6 && month <10){
+        return 7;
+    }else if(month >9 && month <=12){
+        return 10;
+    }
+    return TINZ_ERROR;
+}
+

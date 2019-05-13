@@ -17,6 +17,8 @@ struct SHM_DESC shm_valve_para={-1,0};
 struct SHM_DESC shm_pollutant_data={-1,0};
 struct SHM_DESC shm_pollutant_para={-1,0};
 struct SHM_DESC shm_data={-1,0};
+struct SHM_DESC shm_history_data={-1,0};
+
 
 
 //创建参数共享内存段
@@ -335,4 +337,19 @@ char * getDataShm(){
 void rmDataShm(){
 	shmctl(shm_data.shm_id,IPC_RMID,NULL);
 }
+
+char * getHistoryDataShm(){
+	prepareShm(SHM_PATH_HISTORY_DATA,SHM_NAME_HISTORY_DATA,SHM_DATA_HISTORY_ID,0,sizeof(stHistoryData),&shm_history_data);
+
+	return shm_history_data.shm_mem;
+}
+
+void rmHistoryDataShm(){
+	shmctl(shm_history_data.shm_id,IPC_RMID,NULL);
+}
+
+void initHistoryDataShm(){
+    memset(shm_history_data.shm_mem,0,sizeof(stHistoryData));
+}
+
 

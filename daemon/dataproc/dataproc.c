@@ -8,7 +8,7 @@
 #include <time.h>
 #include "sqlite3.h"
 
-
+#include "nginx_helper.h"
 #include "tinz_common_helper.h"
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
@@ -22,6 +22,7 @@
 pstPara 		pgPara;
 //pstPollutantData pgPollutantData;
 pstData pgData;
+pstHistoryData pgHistoryData;
 struct _msg *pmsg_upproc[SITE_CNT];
 char            code[POLLUTANT_CNT][4]={"BO1","011","001"};
 
@@ -122,7 +123,7 @@ static void pollutant_data_proc_rtd(pstPollutantRtdData  pRtdData){
                 RtdTableCreate(&scy_data,TableName);
             }
     		
-    		snprintf(sql,SQL_LEN,"insert or replace into %s values (\'%-4.4s-%-2.2s-%-2.2s %-2.2s:%-2.2s:%-2.2s\',%4.2f,%8.2f);",TableName,\
+    		snprintf(sql,SQL_LEN,"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s%-2.2s%-2.2s%-2.2s\',%4.2f,%8.2f);",TableName,\
     									&pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
     									&pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
     									pRtdData->Row[iLoop].rtd,
@@ -148,9 +149,8 @@ static void pollutant_data_proc_day(pstPollutantRtdData  pRtdData){
             if(TINZ_OK != TableIsExist(&scy_data,TableName)){
                 CountDataTableCreate(&scy_data,TableName);
             }
-            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s-%-2.2s-%-2.2s %-2.2s:%-2.2s:%-2.2s\',%8.2f,%8.2f);",TableName,\
+            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s000000\',%8.2f,%8.2f);",TableName,\
                                         &pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
-                                        &pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
                                         pRtdData->Row[iLoop].day,
                                         pRtdData->Row[iLoop].cou);
             //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
@@ -174,9 +174,8 @@ static void pollutant_data_proc_month(pstPollutantRtdData  pRtdData){
             if(TINZ_OK != TableIsExist(&scy_data,TableName)){
                 CountDataTableCreate(&scy_data,TableName);
             }
-            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s-%-2.2s-%-2.2s %-2.2s:%-2.2s:%-2.2s\',%8.2f,%8.2f);",TableName,\
-                                        &pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
-                                        &pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
+            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s%-2.2s01000000\',%8.2f,%8.2f);",TableName,\
+                                        &pRtdData->DataTime[0], &pRtdData->DataTime[4],\
                                         pRtdData->Row[iLoop].mon,
                                         pRtdData->Row[iLoop].cou);
             //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
@@ -191,24 +190,30 @@ static void pollutant_data_proc_qut(pstPollutantRtdData  pRtdData){
     char    TableName[TABLE_NAME_LEN];
     char 	sql[SQL_LEN];
     int     iLoop;
+    uint8_t res = 0;
+    uint8_t month = 0;
     //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
     for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
         
         if(pRtdData->Row[iLoop].qut >= 0){
-    
-            snprintf(TableName,sizeof(TableName)-1,"Qut_%s",code[iLoop]);
-            if(TINZ_OK != TableIsExist(&scy_data,TableName)){
-                CountDataTableCreate(&scy_data,TableName);
+            res = (uint8_t)ngx_atoi((u_char*)&pRtdData->DataTime[4], 2);
+            if(TINZ_ERROR != (month = month_to_qut(res))){
+               
+                snprintf(TableName,sizeof(TableName)-1,"Qut_%s",code[iLoop]);
+                if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+                    CountDataTableCreate(&scy_data,TableName);
+                }
+                snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s%.2d01000000\',%8.2f,%8.2f);",TableName,\
+                                            &pRtdData->DataTime[0], month,\
+                                            pRtdData->Row[iLoop].qut,
+                                            pRtdData->Row[iLoop].cou);
+                //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
+                //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
+                tinz_db_exec(&scy_data,sql);
+                DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+            }else{
+                DEBUG_PRINT_INFO(gPrintLevel, "month_to_qut[%s] err\n",pRtdData->DataTime);
             }
-            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s-%-2.2s-%-2.2s %-2.2s:%-2.2s:%-2.2s\',%8.2f,%8.2f);",TableName,\
-                                        &pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
-                                        &pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
-                                        pRtdData->Row[iLoop].qut,
-                                        pRtdData->Row[iLoop].cou);
-            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
-            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
-            tinz_db_exec(&scy_data,sql);
-            DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
         } 
     }
 }
@@ -226,9 +231,8 @@ static void pollutant_data_proc_year(pstPollutantRtdData  pRtdData){
             if(TINZ_OK != TableIsExist(&scy_data,TableName)){
                 CountDataTableCreate(&scy_data,TableName);
             }
-            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s-%-2.2s-%-2.2s %-2.2s:%-2.2s:%-2.2s\',%8.2f,%8.2f);",TableName,\
-                                        &pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
-                                        &pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
+            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s0101000000\',%8.2f,%8.2f);",TableName,\
+                                        &pRtdData->DataTime[0],\
                                         pRtdData->Row[iLoop].year,
                                         pRtdData->Row[iLoop].cou);
             //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
@@ -270,8 +274,34 @@ static void MessageRecv(){
     }
 }
 
+void tinz_select_historydata_db_table_cb(tinz_db_ctx_t* ctx){
+    DEBUG_PRINT_ERR(5, "11\n");
+    const unsigned char *gettime;
+    pgHistoryData->Pollutant.cnt = 0;
+    while(SQLITE_ROW == sqlite3_step(ctx->stat)){
+        gettime = sqlite3_column_text(ctx->stat, 0);
+        pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data = sqlite3_column_double(ctx->stat, 1);
+        snprintf(pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].DataTime,DATATIME_LEN,"%s",gettime);
+        DEBUG_PRINT_INFO(5, "gettime[%s],data[%f]\n",gettime,pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data);
+        pgHistoryData->Pollutant.cnt++;
+    }
+    DEBUG_PRINT_ERR(5, "12\n");
+}
+
 //数据表查询
-void sqlite3_select(tinz_db_ctx_t* ctx, char *tableName)
+void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx))
+{
+    DEBUG_PRINT_ERR(5, "sql: %s\n",sql);
+	if(SQLITE_OK != sqlite3_prepare(ctx->db, sql, -1, &ctx->stat, 0)){
+        DEBUG_PRINT_ERR(5, "1\n");
+        return;
+    }
+    DEBUG_PRINT_ERR(5, "2\n");
+    cb(ctx);
+    DEBUG_PRINT_ERR(5, "3\n");
+    sqlite3_finalize(ctx->stat);
+}
+/*void sqlite3_select(tinz_db_ctx_t* ctx, char *tableName)
 {
     const unsigned char *gettime;
     float max,min,avg,cou;
@@ -290,6 +320,42 @@ void sqlite3_select(tinz_db_ctx_t* ctx, char *tableName)
         DEBUG_PRINT_ERR(5, "gettime: %s,max:%f,min:%f,avg:%f,cou:%f\n",gettime,max,min,avg,cou);
     }
     sqlite3_finalize(ctx->stat);
+}*/
+
+void history_data_query(){
+    if(1 == pgHistoryData->Pollutant.flag && pgHistoryData->Pollutant.DataType > 0){
+        char    TableName[TABLE_NAME_LEN];
+        uint8_t PollutantType = pgHistoryData->Pollutant.PollutantType%POLLUTANT_CNT;
+        switch (pgHistoryData->Pollutant.DataType)
+        {
+            case 1: //实时
+                snprintf(TableName,sizeof(TableName),"Rtd_%-3.3s_%-4.4s%-2.2s",code[PollutantType],\
+                             &pgHistoryData->Pollutant.StartDataTime[0],&pgHistoryData->Pollutant.StartDataTime[4]);
+                break;
+            case 2: //天
+                snprintf(TableName,sizeof(TableName),"Day_%-3.3s",code[PollutantType]);
+                break;
+            case 3: //月 
+                snprintf(TableName,sizeof(TableName),"Mon_%-3.3s",code[PollutantType]);
+                break;
+            case 4: //季度
+                snprintf(TableName,sizeof(TableName),"Qut_%-3.3s",code[PollutantType]);
+                break;
+            case 5: //年
+                snprintf(TableName,sizeof(TableName),"Year_%-3.3s",code[PollutantType]);
+                break;
+            default:   
+                DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] PollutantType wrong\n");
+                pgHistoryData->Pollutant.flag = 2;
+                return;
+        }
+    
+        char sql[SQL_LEN];
+        snprintf(sql,sizeof(sql),"select * from %s where GetTime >= '%-14.14s' and GetTime <= '%-14.14s' order by GetTime desc limit %d;",\
+                            TableName,pgHistoryData->Pollutant.StartDataTime,pgHistoryData->Pollutant.StopDataTime,HISTORYCNT);
+        sqlite3_select(&scy_data, sql,tinz_select_historydata_db_table_cb);
+        pgHistoryData->Pollutant.flag = 2;
+    }
 }
 
 int main(int argc, char* argv[])
@@ -299,6 +365,8 @@ int main(int argc, char* argv[])
 	pgPara = (pstPara)getParaShm();
     pgPara->GeneralPara.AlarmTime = 60;
     pgData = (pstData)getDataShm();
+    pgHistoryData = (pstHistoryData)getHistoryDataShm();
+    initHistoryDataShm();
     //DEBUG_PRINT_INFO(gPrintLevel, "getPollutantDataShm start\n");
     //pgPollutantData = (pstPollutantData)getPollutantDataShm();
 	/*消息队列*/
@@ -309,7 +377,7 @@ int main(int argc, char* argv[])
 	if(TINZ_ERROR == tinz_db_open(&scy_data)){
 		exit(0);	
 	}
-    sqlite3_select(&scy_data, "Mins_w09008");
+    //sqlite3_select(&scy_data, "Mins_w09008");
 	/*数据初始化*/
 	DEBUG_PRINT_INFO(gPrintLevel, "data init\n");
 	//meter_data_init();
@@ -317,6 +385,7 @@ int main(int argc, char* argv[])
         
 		/**/
 		MessageRecv();
+        history_data_query();
 		sleep(1);
 	}
 	tinz_db_close(&scy_data);

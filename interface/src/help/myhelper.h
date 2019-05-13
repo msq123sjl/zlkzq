@@ -288,6 +288,13 @@ public:
     {
         QSound::play(soundName);
     }
+
+    static void StringToChar(const QString &str,char *buf,size_t len)
+    {
+        QByteArray ba;
+        ba = str.toLatin1();
+        snprintf(buf,len,"%s",ba.data());
+    }
 };
 
 #endif

@@ -102,7 +102,7 @@ QTableView{
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="currentIndex">
-     <number>6</number>
+     <number>8</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="gbox_general">
@@ -2101,6 +2101,11 @@ QTableView{
         <height>461</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
       <property name="title">
        <string>日期时间</string>
       </property>
@@ -2114,7 +2119,7 @@ QTableView{
         </rect>
        </property>
        <property name="text">
-        <string>日期</string>
+        <string>日期123</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_14">
@@ -2297,16 +2302,6 @@ QTableView{
        </property>
        <property name="text">
         <string>秒</string>
-       </property>
-      </widget>
-      <widget class="QDateTimeEdit" name="dateTimeEdit">
-       <property name="geometry">
-        <rect>
-         <x>150</x>
-         <y>240</y>
-         <width>194</width>
-         <height>27</height>
-        </rect>
        </property>
       </widget>
      </widget>
