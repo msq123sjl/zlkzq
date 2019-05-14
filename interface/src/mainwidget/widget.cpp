@@ -26,12 +26,15 @@ Description:总量控制器--主界面功能的实现
 #include "valvewidget.h"          //阀门
 #include "statisticwidget.h"        //统计界面
 #include "modelchoosewidget.h"      //模式选择控制界面
+#include "adcalibrationwidget.h"          //AD校准
 
 extern "C"{
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
 }
+extern pstPara pgPara;
+
 int blk_time = 120;
 
 Widget::Widget(QWidget *parent) :
@@ -77,16 +80,20 @@ void Widget::initForm()
     setToolButtonStyle(ui->tbnCOD,"COD",E_BIG,":/images/midwidget/Parlor.png");
     setToolButtonStyle(ui->tbnPH,"PH",E_BIG,":/images/midwidget/kitchen.png");
     setToolButtonStyle(ui->tbnSafety,"NULL",E_BIG,":/images/midwidget/Safety.png");
+
+    setToolButtonStyle(ui->tbnAD,"AD校准",E_BIG,":/images/midwidget/Bedroom.png");
+    setToolButtonStyle(ui->tbnDA,"DA校准",E_BIG,":/images/midwidget/Parlor.png");
+    setToolButtonStyle(ui->tbnValveControl,"阀门",E_BIG,":/images/midwidget/kitchen.png");
     //底部菜单的样式
-    setToolButtonStyle(ui->tbnRtd,"实时数据",E_NORMAL,
+    setToolButtonStyle(ui->tbnRtd,"实时",E_NORMAL,
                        ":/images/bottom/control.png");
     setToolButtonStyle(ui->tbnValve,"阀门",E_NORMAL,
                        ":/images/bottom/video.png");
     setToolButtonStyle(ui->tbnStatistic,"统计",E_NORMAL,
                        ":/images/bottom/statistics.png");    
-    setToolButtonStyle(ui->tbnADDA,"校准",E_NORMAL,
+    setToolButtonStyle(ui->tbnCalibration,"校准",E_NORMAL,
                        ":/images/bottom/night.png");
-    setToolButtonStyle(ui->tbnModel,"模式选择",E_NORMAL,
+    setToolButtonStyle(ui->tbnModel,"模式",E_NORMAL,
                        ":/images/bottom/reset.png");
     setToolButtonStyle(ui->tbnUser,"用户",E_NORMAL,
                        ":/images/login.png");
@@ -108,9 +115,10 @@ void Widget::initWidget()
     m_flowrtdWidget = new FlowRtdwidget;              //流量
     m_codrtdWidget = new CODRtdwidget;              //COD
     m_phrtdWidget = new PHRtdwidget;              //PH
-    m_valveWidget = new ValveWidget;              //厨房
+    m_valveWidget = new ValveWidget;              //阀门
     m_statisticWidget = new StatisticWidget;          //统计
     m_modelWidget = new ModelChooseWidget;            //模式控制界面
+    m_adcalibrationWidget = new AdCalibrationWidget;              //AD校准
 
     //m_menuWidget = new MenuWidget(this);
     //ui->tbnSetting->setMenu(m_menuWidget);
@@ -121,6 +129,7 @@ void Widget::initWidget()
     ui->stackedWidget->addWidget(m_valveWidget);
     ui->stackedWidget->addWidget(m_statisticWidget);
     ui->stackedWidget->addWidget(m_modelWidget);
+    ui->stackedWidget->addWidget(m_adcalibrationWidget);
 }
 void Widget::initConnect()
 {
@@ -137,10 +146,14 @@ void Widget::initToolTip()
     ui->tbnPH->setToolTip(tr("tip_ph"));
     ui->tbnSafety->setToolTip(tr("tip_safety"));
 
+    ui->tbnAD->setToolTip(tr("tip_ad"));
+    ui->tbnDA->setToolTip(tr("tip_da"));
+    ui->tbnValveControl->setToolTip(tr("tip_valvecontrol"));
+
     ui->tbnRtd->setToolTip(tr("tip_rtd"));
     ui->tbnValve->setToolTip(tr("tip_valve"));
     ui->tbnStatistic->setToolTip(tr("tip_statistic"));
-    ui->tbnADDA->setToolTip(tr("tip_adda"));
+    ui->tbnCalibration->setToolTip(tr("tip_calibration"));
     ui->tbnModel->setToolTip(tr("tip_model"));
     ui->tbnUser->setToolTip(tr("tip_user"));
     ui->tbnNull->setToolTip(tr("tip_null"));
@@ -175,6 +188,11 @@ void Widget::deletWidget()
     {
         delete m_modelWidget;
         m_modelWidget = NULL;
+    }
+    
+    if (m_adcalibrationWidget != NULL){
+        delete m_adcalibrationWidget;
+        m_adcalibrationWidget = NULL;
     }
 
 }
@@ -216,7 +234,7 @@ void Widget::setToolButtonStyle(QToolButton *tbn, const QString &text,
     {
         tbn->setFont(QFont("文泉驿雅黑",16,QFont::Bold));
     }else if (textSize == E_NORMAL)
-        tbn->setFont(QFont("文泉驿雅黑",12,QFont::Bold));
+        tbn->setFont(QFont("文泉驿雅黑",9,QFont::Bold));
 
     tbn->setAutoRaise(true);
     //设置按钮图标
@@ -256,9 +274,13 @@ void Widget::on_tbnStatistic_clicked()
     this->setCurrentWidget(E_STATISTIC_WIDGET);
 }
 
-void Widget::on_tbnADDA_clicked()
+void Widget::on_tbnCalibration_clicked()
 {
-    this->setCurrentWidget(E_RTD_WIDGET);
+    if(Myapp::UserType >= SUPER_USER && 1 == pgPara->Mode){  //运维模式
+        this->setCurrentWidget(E_CALIBRATION_WIDGET);
+    }else{
+        myHelper::showMessageBoxInfo("请登陆超级账户\n并切换到运维模式");
+    }
 }
 
 void Widget::on_tbnModel_clicked()
@@ -319,6 +341,21 @@ void Widget::on_tbnHome_clicked()
     ui->stackedWidget->setCurrentIndex(E_HOME_WIDGET);
 }
 
+void Widget::on_tbnDA_clicked()
+{
+    this->setCurrentWidget(E_FLOW_WIDGET);
+}
+
+void Widget::on_tbnAD_clicked()
+{
+    this->setCurrentWidget(E_AD_WIDGET);
+}
+
+void Widget::on_tbnValveControl_clicked()
+{
+    this->setCurrentWidget(E_VALVE_WIDGET);
+}
+
 void Widget::mousePressEvent(QMouseEvent *e)
 {
     //qDebug()<<QString("Widget mousePressEvent:%1").arg(e->button());
@@ -330,6 +367,3 @@ void Widget::mousePressEvent(QMouseEvent *e)
         blk_time = 120;
     }
 }
-
-
-

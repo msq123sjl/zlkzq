@@ -7,8 +7,9 @@ FORMS   +=\
     $$PWD/modelchoosewidget.ui \
     $$PWD/frminput.ui \
     $$PWD/frmlogin.ui \
-    $$PWD/frmconfig.ui
-
+    $$PWD/frmconfig.ui\
+    $$PWD/adcalibrationwidget.ui
+    
 HEADERS +=\
     $$PWD/flowrtdwidget.h \
     $$PWD/codrtdwidget.h \
@@ -18,7 +19,8 @@ HEADERS +=\
     $$PWD/modelchoosewidget.h \
     $$PWD/frmconfig.h \
     $$PWD/frminput.h \
-    $$PWD/frmlogin.h
+    $$PWD/frmlogin.h\
+    $$PWD/adcalibrationwidget.h
 
 SOURCES +=\
     $$PWD/flowrtdwidget.cpp \
@@ -29,4 +31,6 @@ SOURCES +=\
     $$PWD/modelchoosewidget.cpp \
     $$PWD/frmconfig.cpp \
     $$PWD/frminput.cpp \
-    $$PWD/frmlogin.cpp
+    $$PWD/frmlogin.cpp\
+    $$PWD/adcalibrationwidget.cpp
+    

@@ -1,12 +1,11 @@
 ﻿/*************************************************
-Copyright:kevin
-Author:Kevin LiQi
-Date:2015-12-07
-Email:kevinlq0912@163.com
-QQ:936563422
+Copyright:tinz
+Author:tinz msq
+Date:2019-04-01
+Email:718657309@qq.com
+QQ:718657309
 Version:V1.0
-Description:智能家居---厨房安防功能的实现，主要包括可燃性气体检测，灯光控制,
-            发挥部分：添加冰箱的控制
+Description:总量控制器--阀门控制界面功能的实现
 **************************************************/
 #ifndef VALVEWIDGET_H
 #define VALVEWIDGET_H

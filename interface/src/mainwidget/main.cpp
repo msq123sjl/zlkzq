@@ -46,6 +46,7 @@ pstValveControl pgValveControl;
 pstPollutantData pgPollutantData;
 pstPollutantPara pgPollutantPara;
 pstHistoryData pgHistoryData;
+pstData pgData;
 
 int main(int argc, char *argv[])
 {
@@ -77,6 +78,7 @@ int main(int argc, char *argv[])
     pgPollutantData = (pstPollutantData)getPollutantDataShm();
     pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
+    pgData = (pstData)getDataShm();
     /**/
 
     Widget w;

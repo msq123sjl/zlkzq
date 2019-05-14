@@ -12,6 +12,7 @@ class ValveWidget;
 class ModelChooseWidget;
 class StatisticWidget;
 class frmlogin;
+class AdCalibrationWidget;
 
 namespace Ui {
 class Widget;
@@ -24,12 +25,15 @@ class Widget : public QWidget
     enum enum_widget{
         E_RTD_WIDGET = 0,       //实时数据
         E_HOME_WIDGET,              //首页
+        E_CALIBRATION_WIDGET,              //校准
         E_FLOW_WIDGET,           //流量
         E_COD_WIDGET,             //COD
         E_PH_WIDGET,              //PH
         E_VALVE_WIDGET,       //阀门控制
         E_STATISTIC_WIDGET,        //统计
-        E_MODEL_WIDGET        //模式
+        E_MODEL_WIDGET,        //模式
+        E_AD_WIDGET,       //AD校准
+        E_DA_WIDGET       //DA校准
     };
     enum E_TEXTSIZE{
         E_NORMAL = 0,
@@ -48,7 +52,7 @@ private slots:
 
     void on_tbnStatistic_clicked();
 
-    void on_tbnADDA_clicked();
+    void on_tbnCalibration_clicked();
 
     void on_tbnModel_clicked();
 
@@ -68,6 +72,12 @@ private slots:
 
     void on_tbnHome_clicked();
 
+    void on_tbnDA_clicked();
+
+    void on_tbnAD_clicked();
+
+    void on_tbnValveControl_clicked();
+
 private:
     Ui::Widget *ui;
     bool m_isPress;
@@ -75,11 +85,12 @@ private:
     FlowRtdwidget *m_flowrtdWidget;                 //流量界面
     CODRtdwidget *m_codrtdWidget;                 //COD界面
     PHRtdwidget *m_phrtdWidget;                 //PH界面
-    ValveWidget *m_valveWidget;                 //厨房界面
+    ValveWidget *m_valveWidget;                 //阀门界面
     StatisticWidget *m_statisticWidget;             //统计界面
 
     ModelChooseWidget *m_modelWidget;               //模式选择控制界面
     frmlogin *m_frmlogin;
+    AdCalibrationWidget *m_adcalibrationWidget;                 //AD校准界面
 
 
     QTimer *m_timer;
