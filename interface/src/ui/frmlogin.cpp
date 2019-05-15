@@ -21,13 +21,10 @@ frmlogin::frmlogin(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    myHelper::FormInCenter(this,Myapp::DeskWidth,Myapp::DeskHeigth);
-    this->setAttribute(Qt::WA_DeleteOnClose);
-    this->setGeometry(QRect(160, 100, 480,259));//可设置窗口显示的方位与大小
-
     myHelper::FormNotResize(this);
     this->InitStyle();
     this->InitForm();
+    myHelper::FormInCenter(this,Myapp::DeskWidth,Myapp::DeskHeigth);
 }
 
 frmlogin::~frmlogin()
@@ -38,6 +35,7 @@ frmlogin::~frmlogin()
 void frmlogin::InitStyle()
 {
     this->setAttribute(Qt::WA_DeleteOnClose);
+    this->setGeometry(QRect(160, 100, 480,259));//可设置窗口显示的方位与大小
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint);
 }
 

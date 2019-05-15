@@ -33,6 +33,8 @@
 pstValveControl pgValveControl;
 pstData pgData;
 pstPara pgPara;
+pstCalibrationPara pgCalibrationPara;
+
 
 int gPrintLevel = 5;
 int io_fd,spi_fd;
@@ -292,6 +294,7 @@ int main(int argc, char* argv[])
     pgData = (pstData)getDataShm();
     DEBUG_PRINT_INFO(gPrintLevel, "State InPower[%d] ValveState[%d]\n",pgData->state.InPower,pgData->state.ValveState);
     pgPara = (pstPara)getParaShm();
+    pgCalibrationPara = (pstCalibrationPara)getCalibrationParaShm();
     #if 0
     spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
     per_current = AdValueToPer(ad_value);

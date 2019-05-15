@@ -8,7 +8,8 @@ FORMS   +=\
     $$PWD/frminput.ui \
     $$PWD/frmlogin.ui \
     $$PWD/frmconfig.ui\
-    $$PWD/adcalibrationwidget.ui
+    $$PWD/adcalibrationwidget.ui\
+    $$PWD/dacalibrationwidget.ui
     
 HEADERS +=\
     $$PWD/flowrtdwidget.h \
@@ -20,7 +21,8 @@ HEADERS +=\
     $$PWD/frmconfig.h \
     $$PWD/frminput.h \
     $$PWD/frmlogin.h\
-    $$PWD/adcalibrationwidget.h
+    $$PWD/adcalibrationwidget.h\
+    $$PWD/dacalibrationwidget.h
 
 SOURCES +=\
     $$PWD/flowrtdwidget.cpp \
@@ -32,5 +34,6 @@ SOURCES +=\
     $$PWD/frmconfig.cpp \
     $$PWD/frminput.cpp \
     $$PWD/frmlogin.cpp\
-    $$PWD/adcalibrationwidget.cpp
+    $$PWD/adcalibrationwidget.cpp\
+    $$PWD/dacalibrationwidget.cpp
     

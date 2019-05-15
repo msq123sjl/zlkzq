@@ -18,8 +18,7 @@ struct SHM_DESC shm_pollutant_data={-1,0};
 struct SHM_DESC shm_pollutant_para={-1,0};
 struct SHM_DESC shm_data={-1,0};
 struct SHM_DESC shm_history_data={-1,0};
-
-
+struct SHM_DESC shm_calibration_para={-1,0};
 
 //创建参数共享内存段
 //return value =-1 共享内存不成功；＝0共享内存成功，文件读写不成功，＝1内存和文件都成功
@@ -352,4 +351,59 @@ void initHistoryDataShm(){
     memset(shm_history_data.shm_mem,0,sizeof(stHistoryData));
 }
 
+char * getCalibrationParaShm(){
+	if(prepareShm(SHM_PATH_CALIBRATION_PARA,SHM_NAME_CALIBRATION_PARA,SHM_PARA_CALIBRATION_ID,FS_NAME_CALIBRATION_PARA,sizeof(stCalibrationPara),&shm_calibration_para)==0){
+		DEBUG_PRINT_INFO(5, "initCalibrationParaShm[%s]\n",SHM_NAME_CALIBRATION_PARA);
+		initCalibrationParaShm();
+		syncCalibrationParaShm();
+	}
+	return shm_calibration_para.shm_mem;
+}
+
+void rmCalibrationParaShm(){
+	shmctl(shm_calibration_para.shm_id,IPC_RMID,NULL);
+}
+
+void syncCalibrationParaShm(){
+	int ret;
+	FILE*  fd=0;
+	pstCalibrationPara para=(pstCalibrationPara)shm_calibration_para.shm_mem;
+    pstCalibrationPara para_tmp = (pstCalibrationPara)malloc(sizeof(stCalibrationPara));
+    memcpy(para_tmp,para,sizeof(stCalibrationPara));
+    
+	if(para==0)return;	
+	fd=fopen(FS_NAME_CALIBRATION_PARA,"rb+");
+	if(fd<=0){
+		if(access(FS_PATH_CALIBRATION_PARA,0)){
+			mkdir(FS_PATH_CALIBRATION_PARA,S_IRWXU);
+		}
+		fd=fopen(FS_NAME_CALIBRATION_PARA,"wb+");
+		if(fd<=0){
+			DEBUG_PRINT_ERR(5,"open fs_calibration_para.dat file failure.\n");
+			return;
+		}
+	}
+	fseek(fd,0,SEEK_SET);
+	ret=fwrite(para_tmp,sizeof(stCalibrationPara),1,fd);
+	fflush(fd);
+	fclose(fd);
+    free(para_tmp);
+	DEBUG_PRINT_INFO(5,"save calibration para %s.\n",ret==1?"succeed":"failure");
+}
+
+void initCalibrationParaShm(){
+	pstCalibrationPara para=(pstCalibrationPara)shm_calibration_para.shm_mem;
+    int iLoop;
+    for(iLoop=0;iLoop<AD_CNT;iLoop++){
+        para->AdAdjustValue[iLoop][0] = 0;
+        para->AdAdjustValue[iLoop][1] = 1024;
+        para->AdAdjustValue[iLoop][2] = 2048;
+    }
+    for(iLoop=0;iLoop<DA_CNT;iLoop++){
+        para->DaAdjustValue[iLoop][0] = 0;
+        para->DaAdjustValue[iLoop][1] = 1024;
+        para->DaAdjustValue[iLoop][2] = 2048;
+    }
+    
+}
 

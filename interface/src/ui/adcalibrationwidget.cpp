@@ -24,6 +24,7 @@ extern "C"{
 }
 extern pstPara pgPara;
 extern pstData pgData;
+extern pstCalibrationPara pgCalibrationPara;
 
 AdCalibrationWidget::AdCalibrationWidget(QWidget *parent) :
     QWidget(parent),
@@ -43,14 +44,15 @@ AdCalibrationWidget::~AdCalibrationWidget()
 
 void AdCalibrationWidget::initForm()
 {
-    setToolButtonStyle(ui->tbn_value_add,"校准值加",
+    setToolButtonStyle(ui->tbn_value_add,"加",
                        ":/images/module/temp_add.png");
-    setToolButtonStyle(ui->tbn_value_sub,"校准值减",
+    setToolButtonStyle(ui->tbn_value_sub,"减",
                        ":/images/module/temp_sub.png");
     setToolButtonStyle(ui->tbn_value_ok,"确定",
                        ":/images/module/temp_sub.png");
     ui->comboBox->setFont(QFont("文泉驿雅黑",8,QFont::Normal));
-    ui->label_text->setFont(QFont("文泉驿雅黑",8,QFont::Normal));
+    ui->tbn_value_add->setEnabled(false);
+    ui->tbn_value_sub->setEnabled(false);
 }
 
 void AdCalibrationWidget::init()
@@ -70,13 +72,11 @@ void AdCalibrationWidget::InitUpdataTime()
     m_timer->start(1000);
 }
 
-
-
 void AdCalibrationWidget::refreshValue()
 {
     pgData->current_Ia[channel] = 12;
     ui->label_set_value->setText(QString::number(set_value,10) + "mA");
-    ui->label_cur_value->setText(QString::number(pgData->current_Ia[channel],'f',3) + "mA");
+    ui->label_cur_value->setText(QString::number(pgData->current_Ia[channel],'f',4) + "mA");
 }
 
 void AdCalibrationWidget::setToolButtonStyle(QToolButton *tbn,
@@ -122,11 +122,40 @@ void AdCalibrationWidget::on_tbn_value_sub_clicked()
 
 void AdCalibrationWidget::on_tbn_value_ok_clicked()
 {
-
+    if(myHelper::showMessageBoxQusetion(QString("是否校准？"))){
+        switch(set_value){
+            case 0:
+                 pgCalibrationPara->AdAdjustValue[channel][0] = 0;
+                 break;
+            case 4:
+                 pgCalibrationPara->AdAdjustValue[channel][1] = 1024;
+                 break;
+            case 20:
+                pgCalibrationPara->AdAdjustValue[channel][2] = 2048;
+                syncCalibrationParaShm();
+                break;
+        }
+    }
+    //选择下一个测量值或校准值
+    switch(set_value){
+        case 0:
+            set_value = 4;
+            break;
+        case 4:
+            set_value = 20;
+            break;
+        case 20:
+            break;
+        default:
+            set_value = 0;
+            break;
+    }
+    refreshValue();
 }
 
 void AdCalibrationWidget::on_comboBox_currentIndexChanged(int index)
 {
-    channel = index;
+    channel = index%AD_CNT;
     set_value = 0;
+    refreshValue();
 }

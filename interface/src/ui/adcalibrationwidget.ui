@@ -426,7 +426,7 @@ font: 11pt &quot;微软雅黑&quot;;</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">font: 12pt &quot;Abyssinica SIL&quot;;
+          <string notr="true">font: 10pt &quot;Abyssinica SIL&quot;;
 color: rgb(142, 227, 235);</string>
          </property>
          <property name="text">
@@ -437,7 +437,8 @@ color: rgb(142, 227, 235);</string>
     加、减按键调整校准值
 【输入信号】
   仪表输出设定的校准值，
-待测量值稳定，按确认键生效</string>
+待测量值稳定，按确认键
+生效</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>

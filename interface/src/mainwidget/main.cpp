@@ -47,6 +47,7 @@ pstPollutantData pgPollutantData;
 pstPollutantPara pgPollutantPara;
 pstHistoryData pgHistoryData;
 pstData pgData;
+pstCalibrationPara pgCalibrationPara;
 
 int main(int argc, char *argv[])
 {
@@ -79,6 +80,7 @@ int main(int argc, char *argv[])
     pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     pgData = (pstData)getDataShm();
+    pgCalibrationPara = (pstCalibrationPara)getCalibrationParaShm();
     /**/
 
     Widget w;

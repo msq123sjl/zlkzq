@@ -13,6 +13,12 @@
 #define SHM_PATH_VALVE_PARA		"/mnt/nandflash/shm/"
 #define SHM_PARA_VALVE_ID	0x01
 
+#define FS_NAME_CALIBRATION_PARA		"/mnt/nandflash/para/fs_calbration_para.dat"
+#define FS_PATH_CALIBRATION_PARA		"/mnt/nandflash/para/"
+#define SHM_NAME_CALIBRATION_PARA		"/mnt/nandflash/shm/shm_calbration_para"
+#define SHM_PATH_CALIBRATION_PARA		"/mnt/nandflash/shm/"
+#define SHM_PARA_CALIBRATION_ID	0x01
+
 #define SHM_NAME_POLLUTANT_DATA		"/mnt/nandflash/shm/shm_pollutant_data"
 #define SHM_PATH_POLLUTANT_DATA		"/mnt/nandflash/shm/"
 #define SHM_DATA_POLLUTANT_ID	0x01
@@ -45,6 +51,10 @@ char * getValveParaShm();
 void rmValveParaShm();
 void syncValveParaShm();
 void initValveParaShm();
+char * getCalibrationParaShm();
+void rmCalibrationParaShm();
+void syncCalibrationParaShm();
+void initCalibrationParaShm();
 char * getPollutantDataShm();
 void rmPollutantDataShm();
 char * getPollutantParaShm();

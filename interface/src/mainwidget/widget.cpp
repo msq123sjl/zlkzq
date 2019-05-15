@@ -27,7 +27,10 @@ Description:总量控制器--主界面功能的实现
 #include "statisticwidget.h"        //统计界面
 #include "modelchoosewidget.h"      //模式选择控制界面
 #include "adcalibrationwidget.h"          //AD校准
+#include "dacalibrationwidget.h"          //DA校准
 
+QStringList weekcn;
+//char *weekcn[] = {"一","一","二","三","四","五","六","日"};
 extern "C"{
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
@@ -47,6 +50,7 @@ Widget::Widget(QWidget *parent) :
 	this->initWidget();
     this->initToolTip();
     system("echo 0 > /sys/class/backlight/backlight/brightness");
+    weekcn <<"一"<<"二"<<"三"<<"四"<<"五"<<"六"<<"日";
 }
 
 Widget::~Widget()
@@ -119,7 +123,7 @@ void Widget::initWidget()
     m_statisticWidget = new StatisticWidget;          //统计
     m_modelWidget = new ModelChooseWidget;            //模式控制界面
     m_adcalibrationWidget = new AdCalibrationWidget;              //AD校准
-
+    m_dacalibrationWidget = new DaCalibrationWidget;              //DA校准
     //m_menuWidget = new MenuWidget(this);
     //ui->tbnSetting->setMenu(m_menuWidget);
 
@@ -130,6 +134,7 @@ void Widget::initWidget()
     ui->stackedWidget->addWidget(m_statisticWidget);
     ui->stackedWidget->addWidget(m_modelWidget);
     ui->stackedWidget->addWidget(m_adcalibrationWidget);
+    ui->stackedWidget->addWidget(m_dacalibrationWidget);
 }
 void Widget::initConnect()
 {
@@ -194,7 +199,11 @@ void Widget::deletWidget()
         delete m_adcalibrationWidget;
         m_adcalibrationWidget = NULL;
     }
-
+    
+    if (m_dacalibrationWidget != NULL){
+        delete m_dacalibrationWidget;
+        m_dacalibrationWidget = NULL;
+    }
 }
 //显示当前的日期和时间
 void Widget::slotShowCurrentDataTime()
@@ -204,7 +213,7 @@ void Widget::slotShowCurrentDataTime()
     ui->label_sec->setText(QTime::currentTime().toString("ss"));
     ui->label_data->setText(QDate::currentDate().toString("yyyy年MM月dd日"));
     ui->label_week->setText(QDate::currentDate().toString("dddd"));
-
+    ui->label_week->setText("星期" + weekcn.at(QDate::currentDate().dayOfWeek()-1));
     if(blk_time > 0){
         blk_time--;
     }
@@ -234,7 +243,7 @@ void Widget::setToolButtonStyle(QToolButton *tbn, const QString &text,
     {
         tbn->setFont(QFont("文泉驿雅黑",16,QFont::Bold));
     }else if (textSize == E_NORMAL)
-        tbn->setFont(QFont("文泉驿雅黑",9,QFont::Bold));
+        tbn->setFont(QFont("文泉驿雅黑",12,QFont::Bold));
 
     tbn->setAutoRaise(true);
     //设置按钮图标
@@ -271,7 +280,8 @@ void Widget::on_tbnValve_clicked()
 
 void Widget::on_tbnStatistic_clicked()
 {
-    this->setCurrentWidget(E_STATISTIC_WIDGET);
+   //this->setCurrentWidget(E_STATISTIC_WIDGET);
+    ui->stackedWidget->setCurrentIndex(E_STATISTIC_WIDGET);
 }
 
 void Widget::on_tbnCalibration_clicked()
@@ -343,7 +353,7 @@ void Widget::on_tbnHome_clicked()
 
 void Widget::on_tbnDA_clicked()
 {
-    this->setCurrentWidget(E_FLOW_WIDGET);
+    this->setCurrentWidget(E_DA_WIDGET);
 }
 
 void Widget::on_tbnAD_clicked()

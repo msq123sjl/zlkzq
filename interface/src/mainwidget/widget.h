@@ -13,6 +13,7 @@ class ModelChooseWidget;
 class StatisticWidget;
 class frmlogin;
 class AdCalibrationWidget;
+class DaCalibrationWidget;
 
 namespace Ui {
 class Widget;
@@ -91,7 +92,7 @@ private:
     ModelChooseWidget *m_modelWidget;               //模式选择控制界面
     frmlogin *m_frmlogin;
     AdCalibrationWidget *m_adcalibrationWidget;                 //AD校准界面
-
+    DaCalibrationWidget *m_dacalibrationWidget;                 //DA校准界面
 
     QTimer *m_timer;
         

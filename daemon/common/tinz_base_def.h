@@ -198,5 +198,12 @@ typedef struct _ValveControl
     uint16_t    InValueAdjust[3];         //0%、50%、100%
 }stValveControl,*pstValveControl;
 
+typedef struct _CalibrationPara
+{
+    uint16_t AdAdjustValue[AD_CNT][3];             //AD校准值
+    uint16_t DaAdjustValue[DA_CNT][3];             //DA校准值
+
+}stCalibrationPara,*pstCalibrationPara;
+
 #endif
 
