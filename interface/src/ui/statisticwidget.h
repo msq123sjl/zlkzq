@@ -31,6 +31,8 @@ private slots:
 
     void on_comboBox_data_type_currentIndexChanged(int index);
 
+    void on_comboBox_pollutant_type_currentIndexChanged();
+
 private:
     Ui::StatisticWidget *ui;
     void initStyle();                       //初始化样式

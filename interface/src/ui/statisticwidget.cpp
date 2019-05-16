@@ -180,6 +180,7 @@ void StatisticWidget::on_pushButton_clicked()
 {
     QString str;
     int iLoop;
+    model_calibration->removeRows(0,model_calibration->rowCount()); //清空数据表
     pgHistoryData->Pollutant.DataType =  ui->comboBox_data_type->currentIndex() + 1;
     pgHistoryData->Pollutant.PollutantType = ui->comboBox_pollutant_type->currentIndex();
     str = ui->dateTimeStart->dateTime().toString("yyyyMMddhhmmss");
@@ -188,17 +189,12 @@ void StatisticWidget::on_pushButton_clicked()
     myHelper::StringToChar(str,pgHistoryData->Pollutant.StopDataTime,sizeof(pgHistoryData->Pollutant.StopDataTime));
     pgHistoryData->Pollutant.cnt = 0;
     pgHistoryData->Pollutant.flag = 1;
-    qDebug()<<"start:"<< pgHistoryData->Pollutant.StartDataTime;
-    qDebug()<<"stop:"<< pgHistoryData->Pollutant.StopDataTime;
-    qDebug()<<"DataType"<<pgHistoryData->Pollutant.DataType;
-    qDebug()<<"PollutantType"<<pgHistoryData->Pollutant.PollutantType;
     if(TINZ_ERROR != query_term_check()){
         /*等待查询数据*/
         for(iLoop = 0;iLoop<3;iLoop++){
             if(2 == pgHistoryData->Pollutant.flag){break;}
             sleep(1);
         }
-        qDebug()<<QString("flag:%1 cnt:%2").arg(pgHistoryData->Pollutant.flag).arg(pgHistoryData->Pollutant.cnt);
         if(2 == pgHistoryData->Pollutant.flag && pgHistoryData->Pollutant.cnt > 0){
             this->ShowData();
         }else{
@@ -209,7 +205,7 @@ void StatisticWidget::on_pushButton_clicked()
 
 void StatisticWidget::on_comboBox_data_type_currentIndexChanged(int index)
 {
-     qDebug()<<"index:"<<index+1;
+     model_calibration->removeRows(0,model_calibration->rowCount()); //清空数据表
      switch(index+1){
         case 1:
             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addSecs(-6*60*60));
@@ -232,4 +228,9 @@ void StatisticWidget::on_comboBox_data_type_currentIndexChanged(int index)
              ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
              break;
      }
+}
+
+void StatisticWidget::on_comboBox_pollutant_type_currentIndexChanged()
+{
+    model_calibration->removeRows(0,model_calibration->rowCount()); //清空数据表
 }
