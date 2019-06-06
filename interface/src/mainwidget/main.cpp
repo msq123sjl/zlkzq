@@ -40,6 +40,7 @@ extern "C"{
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
+#include "tinz_pub_message.h"
 }
 pstPara pgPara;
 pstValveControl pgValveControl;
@@ -48,6 +49,7 @@ pstPollutantPara pgPollutantPara;
 pstHistoryData pgHistoryData;
 pstData pgData;
 pstCalibrationPara pgCalibrationPara;
+struct _msg *pmsg_interface;
 
 int main(int argc, char *argv[])
 {
@@ -81,8 +83,9 @@ int main(int argc, char *argv[])
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     pgData = (pstData)getDataShm();
     pgCalibrationPara = (pstCalibrationPara)getCalibrationParaShm();
-    /**/
-
+    /*消息队列*/
+    pmsg_interface = InterfaceMessageInit(pmsg_interface);
+    
     Widget w;
     w.show();
     frmInput::Instance()->Init("control", "black", 10, 10);

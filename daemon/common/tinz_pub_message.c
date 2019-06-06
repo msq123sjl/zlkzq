@@ -50,13 +50,15 @@ int prepareMsg(char* ftokpath,char* ftokname,int ftokid,struct _msg* msg){
 	return TINZ_OK;
 }
 
-int MsgSend(struct _msg* msg){
+int MsgSend(struct _msg* msg,long int mtype,char *data,int len){
 	/*
 		IPC_NOWAIT 不阻塞
 		0		   阻塞
 	*/
 	uint8_t	CNT;
 	int state = -1;
+    msg->msgbuf.mtype = mtype;
+    memcpy(msg->msgbuf.data,data,len);
 	for(CNT=0;CNT<MSG_RTYCNT;CNT++){
 		if(msgsnd(msg->msgid,(void *)&msg->msgbuf,sizeof(msg->msgbuf.data),IPC_NOWAIT)==0)
 		{
@@ -80,5 +82,15 @@ void MsgRcv(struct _msg* msg, long int mtype){
 void rmMsg(struct _msg* msg){
 	msgctl(msg->msgid,IPC_RMID,NULL);
 	msg->msgid = -1;
+}
+
+struct _msg* InterfaceMessageInit(struct _msg *msg){
+    //DEBUG_PRINT_INFO(gPrintLevel, "pmsg_interface start\n");
+    msg = (struct _msg*)malloc(sizeof(struct _msg));
+    memset(msg,0,sizeof(struct _msg));
+    if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_INTERFACE_TO_SQLITE, MSG_ID_INTERFACE_TO_SQLITE_ID, msg)){
+        exit(0);
+    }
+    return msg;
 }
 

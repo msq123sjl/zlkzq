@@ -46,6 +46,11 @@ void StatisticWidget::initStyle()
 void StatisticWidget::initForm()
 {
     m_currentIndex = 0;
+    ui->Retransmit->setEnabled(false);
+    //ui->tabWidget->setTabText(0,"1234");
+    //ui->tabWidget->setStyleSheet("QTabBar::tab{ max-height: 0px; max-width:60px;}");
+    //ui->tabWidget->setTabBar()->setStyleSheet("QTabBar::tab{ min-height: 60px; min-width:60px;}");
+    //ui->tabWidget->setTabBar();
     //ui->label_dateTime->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd"));
 }
 
@@ -114,7 +119,7 @@ void StatisticWidget::ShowData()
         model_calibration->item(row,0)->setTextAlignment(Qt::AlignCenter);           //设置字符位置
         model_calibration->setItem(row,1,new QStandardItem(QString::number(pgHistoryData->Pollutant.Row[iLoop].data,'f',2)));
         model_calibration->item(row,1)->setTextAlignment(Qt::AlignCenter);        //设置字符位置
-        model_calibration->setItem(row,2,new QStandardItem(QString("mg/m3")));
+        model_calibration->setItem(row,2,new QStandardItem(QString("mg/m³")));
         model_calibration->item(row,2)->setTextAlignment(Qt::AlignCenter);        //设置字符位置
         //ui->tableView->scrollToBottom();//滚动到底部
         //ui->tableView->scrollTo(model_calibration->index(row,1));

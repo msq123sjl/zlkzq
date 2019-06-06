@@ -23,8 +23,9 @@ pstPara 		pgPara;
 //pstPollutantData pgPollutantData;
 pstData pgData;
 pstHistoryData pgHistoryData;
-struct _msg *pmsg_upproc[SITE_CNT];
-char            code[POLLUTANT_CNT][4]={"BO1","011","001"};
+struct _msg *pmsg_upproc[SITE_SEND_CNT];
+struct _msg *pmsg_interface;
+char         code[POLLUTANT_CNT][4]={"BO1","011","001"};
 
 
 int 			gPrintLevel = 5;
@@ -96,12 +97,12 @@ static void meter_data_init(){
 
 static void MessageInit(){
     int iLoop;
-    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
-        if(pgPara->SitePara[iLoop].ServerOpen){
+    for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
+        if(iLoop == SITE_CNT || pgPara->SitePara[iLoop].ServerOpen){
         	DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d start\n",iLoop);
         	pmsg_upproc[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
         	memset(pmsg_upproc[iLoop],0,sizeof(struct _msg));
-        	if(TINZ_ERROR == prepareMsg(MSG_PATH_UPPROC_TO_SQLITE,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
+        	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
         		exit(0);
         	}
         }
@@ -123,7 +124,7 @@ static void pollutant_data_proc_rtd(pstPollutantRtdData  pRtdData){
                 RtdTableCreate(&scy_data,TableName);
             }
     		
-    		snprintf(sql,SQL_LEN,"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s%-2.2s%-2.2s%-2.2s\',%4.2f,%8.2f);",TableName,\
+    		snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s%-2.2s%-2.2s%-2.2s\',%4.2f,%8.2f);",TableName,\
     									&pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
     									&pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
     									pRtdData->Row[iLoop].rtd,
@@ -149,7 +150,7 @@ static void pollutant_data_proc_day(pstPollutantRtdData  pRtdData){
             if(TINZ_OK != TableIsExist(&scy_data,TableName)){
                 CountDataTableCreate(&scy_data,TableName);
             }
-            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s000000\',%8.2f,%8.2f);",TableName,\
+            snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s000000\',%8.2f,%8.2f);",TableName,\
                                         &pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
                                         pRtdData->Row[iLoop].day,
                                         pRtdData->Row[iLoop].cou);
@@ -174,7 +175,7 @@ static void pollutant_data_proc_month(pstPollutantRtdData  pRtdData){
             if(TINZ_OK != TableIsExist(&scy_data,TableName)){
                 CountDataTableCreate(&scy_data,TableName);
             }
-            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s%-2.2s01000000\',%8.2f,%8.2f);",TableName,\
+            snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%-2.2s01000000\',%8.2f,%8.2f);",TableName,\
                                         &pRtdData->DataTime[0], &pRtdData->DataTime[4],\
                                         pRtdData->Row[iLoop].mon,
                                         pRtdData->Row[iLoop].cou);
@@ -203,7 +204,7 @@ static void pollutant_data_proc_qut(pstPollutantRtdData  pRtdData){
                 if(TINZ_OK != TableIsExist(&scy_data,TableName)){
                     CountDataTableCreate(&scy_data,TableName);
                 }
-                snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s%.2d01000000\',%8.2f,%8.2f);",TableName,\
+                snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%.2d01000000\',%8.2f,%8.2f);",TableName,\
                                             &pRtdData->DataTime[0], month,\
                                             pRtdData->Row[iLoop].qut,
                                             pRtdData->Row[iLoop].cou);
@@ -231,7 +232,7 @@ static void pollutant_data_proc_year(pstPollutantRtdData  pRtdData){
             if(TINZ_OK != TableIsExist(&scy_data,TableName)){
                 CountDataTableCreate(&scy_data,TableName);
             }
-            snprintf(sql,MAX_MSG_DATA_LEN,"insert or replace into %s values (\'%-4.4s0101000000\',%8.2f,%8.2f);",TableName,\
+            snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s0101000000\',%8.2f,%8.2f);",TableName,\
                                         &pRtdData->DataTime[0],\
                                         pRtdData->Row[iLoop].year,
                                         pRtdData->Row[iLoop].cou);
@@ -249,33 +250,87 @@ static void pollutant_data_proc(pstPollutantRtdData  pRtdData){
     pollutant_data_proc_qut(pRtdData);
     pollutant_data_proc_year(pRtdData);
 }
-static void MessageRecv(){
-    int iLoop;
+
+static void UpmainMessageSend(pstMessageData pmsgData){
+    char    TableName[TABLE_NAME_LEN];
+    char 	sql[MAX_MSG_DATA_LEN];
+
+    snprintf(TableName,sizeof(TableName)-1,"MessageSend");
+    if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+        MessageSendTableCreate(&scy_data,TableName);
+    }
+    snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%s\',\'%s\',%d,%d,%d,%d,%d,%d,%d,%d);",TableName,\
+                                pmsgData->qn,\
+                                pmsgData->content,\
+                                pmsgData->SendTimes[0],\
+                                pmsgData->SendTimes[1],\
+                                pmsgData->SendTimes[2],\
+                                pmsgData->SendTimes[3],\
+                                pmsgData->IsRespond[0],\
+                                pmsgData->IsRespond[1],\
+                                pmsgData->IsRespond[2],\
+                                pmsgData->IsRespond[3]);
+    tinz_db_exec(&scy_data,sql);
+    DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+}
+
+static void InsertEventData(pstEvent pEvent){
+    char    TableName[TABLE_NAME_LEN];
+    char 	sql[SQL_LEN];
+
+    snprintf(TableName,sizeof(TableName)-1,"Event");
+    if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+        EventTableCreate(&scy_data,TableName);
+    }
+    snprintf(sql,sizeof(sql),"insert into %s values (\'%s\',\'%s\');",TableName,\
+                                pEvent->DataTime,\
+                                pEvent->Info);
+    tinz_db_exec(&scy_data,sql);
+    DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+}
+
+
+static void MessageRecvProc(struct _msg* msg){
     pstPollutantRtdData  pRtdData;
-    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
-        if(pgPara->SitePara[iLoop].ServerOpen){
-            MsgRcv(pmsg_upproc[iLoop], MSG_SQLITE_TYTE); 
-            if(pmsg_upproc[iLoop]->msgbuf.mtype > 0){
-                DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d recvtype[%ld][%-10.10s]\n",iLoop,pmsg_upproc[iLoop]->msgbuf.mtype,pmsg_upproc[iLoop]->msgbuf.data);
-                switch(pmsg_upproc[iLoop]->msgbuf.mtype){
-                    case MSG_SQLITE_RTD_TYTE:
-                        pRtdData = (pstPollutantRtdData)pmsg_upproc[iLoop]->msgbuf.data;
-                        pollutant_data_proc(pRtdData);
-                        break;
-                    default:
-                        DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d recvtype[%ld] not recognize [%-20.20s]\n",iLoop,pmsg_upproc[iLoop]->msgbuf.mtype,pmsg_upproc[iLoop]->msgbuf.data);
-                }
-            }
-    		/*if(MSG_SQLITE_RTD_TYTE == pmsg_upproc[iLoop]->msgbuf.mtype){
-    			tinz_db_exec(&scy_data, pmsg_upproc[iLoop]->msgbuf.data);
-                DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d recv:%s\n",iLoop,pmsg_upproc[iLoop]->msgbuf.data);
-    		}*/
+    pstMessageData pmsgData;
+    pstEvent pEvent;
+    if(msg->msgbuf.mtype > 0){
+        DEBUG_PRINT_INFO(gPrintLevel, "msg recvtype[%ld]\n",msg->msgbuf.mtype);
+        switch(msg->msgbuf.mtype){
+            case MSG_SQLITE_RTD_TYTE:
+                pRtdData = (pstPollutantRtdData)msg->msgbuf.data;
+                pollutant_data_proc(pRtdData);
+                break;
+            case MSG_SQLITE_SEND_TYTE:
+                pmsgData = (pstMessageData)msg->msgbuf.data;
+                UpmainMessageSend(pmsgData);
+                break;
+            case MSG_SQLITE_EVENT_USER_TYTE:
+                pEvent = (pstEvent)msg->msgbuf.data;
+                InsertEventData(pEvent);
+                break;
+            default:
+                DEBUG_PRINT_INFO(gPrintLevel, "msg recvtype[%ld] not recognize [%-20.20s]\n",msg->msgbuf.mtype,msg->msgbuf.data);
         }
     }
+
+}
+
+static void MessageRecv(){
+    int iLoop;
+    /*接收上行消息队列*/
+    for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
+        if(pgPara->SitePara[iLoop].ServerOpen){
+            MsgRcv(pmsg_upproc[iLoop], 0); 
+            MessageRecvProc(pmsg_upproc[iLoop]);
+        }
+    }
+    /*接收前端消息队列*/
+    MsgRcv(pmsg_interface, 0); 
+    MessageRecvProc(pmsg_interface);
 }
 
 void tinz_select_historydata_db_table_cb(tinz_db_ctx_t* ctx){
-    DEBUG_PRINT_ERR(5, "11\n");
     const unsigned char *gettime;
     pgHistoryData->Pollutant.cnt = 0;
     while(SQLITE_ROW == sqlite3_step(ctx->stat)){
@@ -285,7 +340,6 @@ void tinz_select_historydata_db_table_cb(tinz_db_ctx_t* ctx){
         DEBUG_PRINT_INFO(5, "gettime[%s],data[%f]\n",gettime,pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data);
         pgHistoryData->Pollutant.cnt++;
     }
-    DEBUG_PRINT_ERR(5, "12\n");
 }
 
 //数据表查询
@@ -293,12 +347,9 @@ void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx)
 {
     DEBUG_PRINT_ERR(5, "sql: %s\n",sql);
 	if(SQLITE_OK != sqlite3_prepare(ctx->db, sql, -1, &ctx->stat, 0)){
-        DEBUG_PRINT_ERR(5, "1\n");
         return;
     }
-    DEBUG_PRINT_ERR(5, "2\n");
     cb(ctx);
-    DEBUG_PRINT_ERR(5, "3\n");
     sqlite3_finalize(ctx->stat);
 }
 /*void sqlite3_select(tinz_db_ctx_t* ctx, char *tableName)
@@ -371,6 +422,7 @@ int main(int argc, char* argv[])
     //pgPollutantData = (pstPollutantData)getPollutantDataShm();
 	/*消息队列*/
     MessageInit();
+    pmsg_interface = InterfaceMessageInit(pmsg_interface);
 	/*数据库*/
 	DEBUG_PRINT_INFO(gPrintLevel, "open [%s]\n",SCY_DATA);
 	snprintf(scy_data.name,sizeof(scy_data.name)-1,SCY_DATA);

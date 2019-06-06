@@ -19,7 +19,7 @@
 
 }Tcp_para;*/
 
-typedef void (*packet_send_cb)(int dev_fd, char* pSendBuf);
+typedef void (*packet_send_cb)(void *arg, char* pSendBuf);
 
 typedef struct _TcpClientDev{
 	int 				dev_fd;

@@ -107,6 +107,11 @@ private:
 
 protected:
     void mousePressEvent(QMouseEvent *);
+   /*void keyPressEvent(QKeyEvent *);
+    void mouseMoveEvent(QMouseEvent *);
+    void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent*);
+    void closeEvent(QCloseEvent *);*/
 
 };
 

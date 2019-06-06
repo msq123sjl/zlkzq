@@ -90,4 +90,32 @@ void CountDataTableCreate(tinz_db_ctx_t* ctx, char *tableName)
 	tinz_db_exec(ctx,sql);
 }
 
+//创建发送报文数据表
+void MessageSendTableCreate(tinz_db_ctx_t* ctx, char *tableName)
+{
+	char sql[SQL_LEN];
+	snprintf(sql,sizeof(sql)-1,"create table %s(\
+								QN NVARCHAR(20),\
+								Content NVARCHAR(1024),\
+								Target1_SendTimes NVARCHAR(3),\
+								Target2_SendTimes NVARCHAR(3),\
+								Target3_SendTimes NVARCHAR(3),\
+								Target4_SendTimes NVARCHAR(3),\
+								Target1_IsRespond NVARCHAR(3),\
+                                Target2_IsRespond NVARCHAR(3),\
+                                Target3_IsRespond NVARCHAR(3),\
+                                Target4_IsRespond NVARCHAR(3),\
+								primary key (QN));",tableName);
+	tinz_db_exec(ctx,sql);
+}
+//创建事件数据表
+void EventTableCreate(tinz_db_ctx_t* ctx, char *tableName)
+{
+	char sql[SQL_LEN];
+	snprintf(sql,sizeof(sql)-1,"create table %s(\
+								GetTime DATETIME(20),\
+								INFO NVARCHAR(256));",tableName);
+	tinz_db_exec(ctx,sql);
+}
+
 

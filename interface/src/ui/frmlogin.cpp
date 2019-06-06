@@ -12,8 +12,11 @@ extern "C"{
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
+#include "tinz_pub_message.h"
 }
 extern pstPara pgPara;
+extern struct _msg *pmsg_interface;
+
 
 frmlogin::frmlogin(QWidget *parent) :
     QDialog(parent),
@@ -73,6 +76,7 @@ void frmlogin::on_btnLogin_clicked()
     if(pgPara->UserPara[UserIndex%USER_CNT].UserPwd == UserPwd){
         Myapp::UserType = UserIndex  + 1;
         Myapp::UserName = UserName;
+        myHelper::InterfaceEventMsgSend(pmsg_interface,UserName + "用户登录",MSG_SQLITE_EVENT_USER_TYTE);
     }else{
         Myapp::UserType = 0;
         myHelper::showMessageBoxInfo("密码错误,请重新输入!");

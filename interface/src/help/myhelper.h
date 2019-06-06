@@ -6,6 +6,12 @@
 #include <QDesktopWidget>
 #include "frmmessagebox.h"
 
+extern "C"{
+#include "tinz_base_def.h"
+#include "tinz_base_data.h"
+#include "tinz_pub_message.h"
+}
+
 class myHelper:public QObject
 {
 public:
@@ -292,8 +298,18 @@ public:
     static void StringToChar(const QString &str,char *buf,size_t len)
     {
         QByteArray ba;
-        ba = str.toLatin1();
+        //ba = str.toLatin1();
+        ba = str.toLocal8Bit();
         snprintf(buf,len,"%s",ba.data());
+    }
+    
+    static void InterfaceEventMsgSend(struct _msg *msg,QString str,long int mtype){
+        stEvent Event;
+        QString StrTime;
+        StringToChar(str,Event.Info,sizeof(Event.Info));
+        StrTime = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
+        StringToChar(StrTime,Event.DataTime,sizeof(Event.DataTime));
+        MsgSend(msg,mtype,(char*)&Event,sizeof(stEvent));
     }
 };
 

@@ -5,7 +5,7 @@
 #define SCY_DATA_bak	"/mnt/sdcard/zlkzq.db.bak"
 
 #define TABLE_NAME_LEN	32
-#define SQL_LEN			256
+#define SQL_LEN			512
 typedef struct {
     sqlite3    *db;
 	sqlite3_stmt *stat;
@@ -16,6 +16,8 @@ typedef struct {
 int TableIsExist(tinz_db_ctx_t* ctx, char *tableName);
 void RtdTableCreate(tinz_db_ctx_t* ctx, char *tableName);
 void CountDataTableCreate(tinz_db_ctx_t* ctx, char *tableName);
+void MessageSendTableCreate(tinz_db_ctx_t* ctx, char *tableName);
+void EventTableCreate(tinz_db_ctx_t* ctx, char *tableName);
 void tinz_db_exec(tinz_db_ctx_t* ctx, char *sql);
 int tinz_db_close(tinz_db_ctx_t* ctx);
 int tinz_db_open(tinz_db_ctx_t *ctx);

@@ -29,7 +29,7 @@ extern int gPrintLevel;
 extern pstPollutantData pgPollutantData;
 extern pstPollutantPara pgPollutantPara;
 extern pstData pgData;
-extern struct _msg *pmsg_upproc[SITE_CNT];
+extern struct _msg *pmsg_upproc[SITE_SEND_CNT];
 extern pstMessage pgmsgbuff;
 
 char            code[POLLUTANT_CNT][4]={"BO1","011","001"};
@@ -66,7 +66,7 @@ void RequestRespond(int QnRtn,ngx_ulog_url_t *url_args,pstSerialPara com,TcpClie
         	//com->write(str.toAscii());
         }
     	if(tcp!=NULL){
-        	tcp->packet_send_handle(tcp->dev_fd,buf);
+        	tcp->packet_send_handle(tcp,buf);
 		}
 	}else{
 		DEBUG_PRINT_WARN(gPrintLevel, "RequestRespond send nLen[%d] ignore!!!", nLen);
@@ -93,7 +93,7 @@ void ExecuteRespond(int ExeRtn,ngx_ulog_url_t *url_args,pstSerialPara com,TcpCli
         	//com->write(str.toAscii());
         }
     	if(tcp!=NULL){
-        	tcp->packet_send_handle(tcp->dev_fd,buf);
+        	tcp->packet_send_handle(tcp,buf);
 		}
 	}else{
 		DEBUG_PRINT_WARN(gPrintLevel, "ExecuteRespond send nLen[%d] ignore!!!", nLen);
@@ -126,7 +126,7 @@ static int SendCurrentTime(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
         	//com->write(str.toAscii());
         }
     	if(tcp!=NULL){
-        	tcp->packet_send_handle(tcp->dev_fd,buf);
+        	tcp->packet_send_handle(tcp,buf);
 		}
 	}else{
 		DEBUG_PRINT_WARN(gPrintLevel, "ExecuteRespond send nLen[%d] ignore!!!", nLen);
@@ -259,7 +259,7 @@ static int SendValveStatus(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
         	//com->write(str.toAscii());
         }
     	if(tcp!=NULL){
-        	tcp->packet_send_handle(tcp->dev_fd,buf);
+        	tcp->packet_send_handle(tcp,buf);
 		}
 	}else{
 		DEBUG_PRINT_WARN(gPrintLevel, "ExecuteRespond send nLen[%d] ignore!!!", nLen);
@@ -827,9 +827,9 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 				
 				RequestRespond(REQUEST_READY,&url_args, com, tcp);
             }
-            pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_RTD_TYTE;
-            memcpy(pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data,&url_args.RtdData,sizeof(stPollutantRtdData));
-            MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
+            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_RTD_TYTE;
+            //memcpy(pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data,&url_args.RtdData,sizeof(stPollutantRtdData));
+            MsgSend(pmsg_upproc[tcp->tcplink->SiteNum],MSG_SQLITE_RTD_TYTE,(char*)(&url_args.RtdData),(int)sizeof(stPollutantRtdData));
             /*rtd_data_proc(url_args.RtdData, tcp);
             day_data_proc(url_args.RtdData, tcp);
             month_data_proc(url_args.RtdData, tcp);

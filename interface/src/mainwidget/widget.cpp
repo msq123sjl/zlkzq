@@ -35,8 +35,10 @@ extern "C"{
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
+#include "tinz_pub_message.h"
 }
 extern pstPara pgPara;
+extern struct _msg *pmsg_interface;
 
 int blk_time = 120;
 
@@ -217,8 +219,14 @@ void Widget::slotShowCurrentDataTime()
     if(blk_time > 0){
         blk_time--;
     }
+    //qDebug()<<QString("blk_time:%1").arg(blk_time);
+    if(20 == blk_time){
+        system("echo 7 > /sys/class/backlight/backlight/brightness");
+    }
+
     if(0 == blk_time){
         system("echo 8 > /sys/class/backlight/backlight/brightness");
+        ui->stackedWidget->setCurrentIndex(E_HOME_WIDGET);
     }
 }
 
@@ -302,6 +310,7 @@ void Widget::on_tbnUser_clicked()
 {
     if(Myapp::UserType>0){
         if(myHelper::showMessageBoxQusetion(QString("%1用户已登陆，是否切换\n用户").arg(Myapp::UserName))){
+            myHelper::InterfaceEventMsgSend(pmsg_interface,Myapp::UserName + "用户退出",MSG_SQLITE_EVENT_USER_TYTE);
             Myapp::UserType = 0;
         }
     }
@@ -371,9 +380,29 @@ void Widget::mousePressEvent(QMouseEvent *e)
     //qDebug()<<QString("Widget mousePressEvent:%1").arg(e->button());
     if (e->button() == Qt::LeftButton)
     {
-        if(0 == blk_time){
+        if(blk_time <= 20){
             system("echo 0 > /sys/class/backlight/backlight/brightness");
         }
         blk_time = 120;
     }
 }
+
+/*void Widget::keyPressEvent(QKeyEvent *key)
+{
+    qDebug()<<QString("keyPressEvent");
+}
+
+void Widget::mouseMoveEvent(QMouseEvent *e)
+{
+    qDebug()<<QString("mouseMoveEvent");
+}
+
+void Widget::mouseReleaseEvent(QMouseEvent *)
+{
+    qDebug()<<QString("mouseReleaseEvent");
+}
+
+void Widget::closeEvent(QCloseEvent *event)
+{
+    qDebug()<<QString("closeEvent");
+}*/

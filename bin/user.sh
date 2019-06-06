@@ -16,8 +16,10 @@ export set QT_QWS_FONTDIR=$QTDIR/lib/fonts/
 export set PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/mnt/nandflash/:/mnt/sdcard/ 
 export set LD_LIBRARY_PATH=$QTDIR/lib:$QPEDIR/plugins/imageformats:$LD_LIBRARY_PATH 
 
+echo 0 > /sys/class/backlight/backlight/brightness
+
 cd /mnt/nandflash/bin
 
 httpd -c httpd.conf
-./watchdog
-
+#./watchdog
+#nohup "/mnt/nandflash/bin/watchdog"  >> /mnt/sdcard/mythread.log 2>&1 &

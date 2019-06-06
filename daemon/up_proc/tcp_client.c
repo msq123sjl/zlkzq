@@ -16,12 +16,15 @@
 #include "protocl_gb212.h"
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
+#include "tinz_pub_message.h"
 
 extern int gPrintLevel;
 extern UpMain* pserver;
 extern pstMessage pgmsgbuff;
 extern pstData pgData;
 extern pstPara pgPara;
+extern struct _msg *pmsg_upproc[SITE_SEND_CNT];
+
 
 static int tcplink_connect(TcpClientDev *pdev);
 
@@ -105,17 +108,28 @@ static int recv_message_from_server(TcpClientDev* pdev, char* pRecvBuf){
 	return iRecvLen;
 }
 
-static int send_message_to_server(int dev_fd, char* pSendBuf){
+static int send_message_to_server(void *arg, char* pSendBuf){
+
 	int iSendLen = 0;
-	iSendLen = send(dev_fd, pSendBuf, strlen(pSendBuf), 0);
-	if(iSendLen > 0){
-		DEBUG_PRINT_INFO(gPrintLevel,"write Date Len to server (%d) : %s\n",iSendLen, pSendBuf);
-        return TINZ_OK;
-	}else{
+    int iLoop;
+    TcpClientDev *pdev = (TcpClientDev *)arg;
+    //发送前检测TCP链接，若未连接 等待3s
+    for(iLoop=0;iLoop<3;iLoop++){
+        if(1 == pdev->tcplink->isConnected){
+            break;
+        }
+        sleep(1);
+    }
+    if(1 == pdev->tcplink->isConnected){
+	    iSendLen = send(pdev->dev_fd, pSendBuf, strlen(pSendBuf), 0);
+    }
+	if(iSendLen <= 0){
 		DEBUG_PRINT_INFO(gPrintLevel,"retry\n");
         return TINZ_ERROR;
 	}
-	return iSendLen;
+    DEBUG_PRINT_INFO(gPrintLevel,"write Date Len to server (%d) : %s\n",iSendLen, pSendBuf);
+    return iSendLen;
+
 }
 static void message_buf_clear_func(){
     int iLoop,jLoop,res;
@@ -128,10 +142,9 @@ static void message_buf_clear_func(){
             pmsgData = &pgmsgbuff->Data[iLoop];
             pmsgData->waittime++;
             //DEBUG_PRINT_INFO(gPrintLevel,"clear1 pmsgData->waittime=%d OverTime=%d flag=%d\n",pmsgData->waittime,pgPara->GeneralPara.OverTime,pmsgData->flag);
-            if(pmsgData->waittime > pgPara->GeneralPara.OverTime){//超时未响应，重新发送报文
-                pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_SENDING;
-            }
-            if(1 == pmsgData->flag){//无需应答，直接清空   
+
+            if(1 == pmsgData->flag){//无需应答，直接清空  
+
                 for(jLoop =0;jLoop<SITE_CNT;jLoop++){
                     /*判断服务端是否打开，并且保持连接*/
                     if(1 == pserver->channes[jLoop].tcplink->ServerOpen && 1 == pserver->channes[jLoop].tcplink->isConnected){
@@ -139,6 +152,9 @@ static void message_buf_clear_func(){
                         if(0 == pmsgData->IsRespond[jLoop]){ 
                             /*判断报文是否发送次数超限*/
                             if(pmsgData->SendTimes[jLoop] < pgPara->GeneralPara.ReCount){
+                                if(pmsgData->waittime > pgPara->GeneralPara.OverTime){//超时未响应，重新发送报文
+                                    pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_SENDING;
+                                }
                                 res = 1;
                                 break;
                             }
@@ -147,6 +163,10 @@ static void message_buf_clear_func(){
                 }
             }
             if(0 == res){
+                //pmsg_upproc[SITE_CNT]->msgbuf.mtype = MSG_SQLITE_SEND_TYTE;
+                //memcpy(pmsg_upproc[SITE_CNT]->msgbuf.data,pmsgData,sizeof(stMessageData));
+                //MsgSend(pmsg_upproc[SITE_CNT]);
+                MsgSend(pmsg_upproc[SITE_CNT],MSG_SQLITE_SEND_TYTE,(char*)pmsgData,(int)sizeof(stMessageData));
                 memset(pmsgData,0,sizeof(stMessageData));   
                 //DEBUG_PRINT_INFO(gPrintLevel,"clear2 pmsgData->waittime=%d IsUse=%d flag=%d\n",pmsgData->waittime,pmsgData->IsUse,pmsgData->flag);
             }
@@ -156,6 +176,7 @@ static void message_buf_clear_func(){
 
 /*每次只发送一个报文*/
 static void send_message_to_server_func(){
+    char ServerOpenflag = 0;
     int iLoop,jLoop;
     pstMessageData pmsgData = NULL;
     for(iLoop = 0;iLoop < MESSAGECNT;iLoop++){
@@ -166,20 +187,24 @@ static void send_message_to_server_func(){
             /*往服务端发送报文*/
             for(jLoop =0;jLoop<SITE_CNT;jLoop++){
                 /*判断服务端是否打开，并且保持连接*/
-                if(1 == pserver->channes[jLoop].tcplink->ServerOpen && 1 == pserver->channes[jLoop].tcplink->isConnected){
+                if(1 == pserver->channes[jLoop].tcplink->ServerOpen){
+                    ServerOpenflag = 1;
                     /*判断报文是否已有应答*/
                     if(0 == pmsgData->IsRespond[jLoop]){ 
                         /*判断报文是否需要发送*/
                         if((pmsgData->flag && pmsgData->SendTimes[jLoop] < pgPara->GeneralPara.ReCount)\
                             || (0 == pmsgData->flag && 0 == pmsgData->SendTimes[jLoop])){
                             /*发送报文*/
-                            pserver->channes[jLoop].packet_send_handle(pserver->channes[jLoop].dev_fd,pmsgData->content);
+                            pserver->channes[jLoop].packet_send_handle(&pserver->channes[jLoop],pmsgData->content);
                             pmsgData->SendTimes[jLoop]++;
                             pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_WAITING;
                             pgmsgbuff->Data[iLoop].waittime = 0;
                         }
                     }
-                }                
+                } 
+            }
+            if(0 == ServerOpenflag){
+                pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_WAITING; //配合message_buf_clear_func
             }
             break;
         }
@@ -203,47 +228,67 @@ static void tcpclient_thread_recv(void * arg)
     int tcplink_rtycnt = 0;
     int iRecvLen;
     TcpClientDev *pdev = (TcpClientDev *)arg;
-
 	char* pRecvBuf = (char*)malloc(RECVBUF_LEN);
-	DEBUG_PRINT_ERR(gPrintLevel,"GUI Send msg to TDC server:\n");
-	while(1){
-		
-		memset(pRecvBuf,0,RECVBUF_LEN);
-		iRecvLen = recv_message_from_server(pdev, pRecvBuf);
-		if(iRecvLen > 0 && iRecvLen < RECVBUF_LEN){
-			messageProc(pRecvBuf, iRecvLen, NULL, pdev);
-			DEBUG_PRINT_INFO(gPrintLevel,"receive message from server (%d) :%c:%s:\n", iRecvLen, pRecvBuf[0],pRecvBuf);
-		}else{
-			DEBUG_PRINT_INFO(gPrintLevel,"receive message from server error[%d] pdev->dev_fd[%d]\n",iRecvLen,pdev->dev_fd);
-            /* 客户程序重新发起连接请求 */ 
-            if(-1 == iRecvLen || -1 == pdev->dev_fd){
-                /* 客户程序开始建立 sockfd描述符 */
-                DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] close start:\n",pdev->dev_fd);
-                close(pdev->dev_fd);
-                DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] close end:\n",pdev->dev_fd);
-            	if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
-            	{ 
-            		DEBUG_PRINT_ERR(gPrintLevel,"Socket Error:\n"); 
-            	}else{
-                    DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] success:\n",pdev->dev_fd);
+    
+    pdev->packet_send_handle = (packet_send_cb)send_message_to_server;
+    for(;;){
+        /* 客户程序开始建立 sockfd描述符 */ 
+    	if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
+    	{ 
+    		DEBUG_PRINT_ERR(gPrintLevel,"Socket Error:\n"); 
+            sleep(3);
+    		continue;
+    	} 
+     
+     	if(TINZ_ERROR == tcplink_connect(pdev)){
+            close(pdev->dev_fd);
+            sleep(3);
+            continue;
+        }
+    	/* 连接成功了 */ 
+    	pdev->tcplink->isConnected = 1;
+    	DEBUG_PRINT_INFO(gPrintLevel,"tcp link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
+
+    	while(1){
+    		
+    		memset(pRecvBuf,0,RECVBUF_LEN);
+    		iRecvLen = recv_message_from_server(pdev, pRecvBuf);
+    		if(iRecvLen > 0 && iRecvLen < RECVBUF_LEN){
+    			messageProc(pRecvBuf, iRecvLen, NULL, pdev);
+    			DEBUG_PRINT_INFO(gPrintLevel,"receive message from server (%d) :%c:%s:\n", iRecvLen, pRecvBuf[0],pRecvBuf);
+    		}else{
+    			DEBUG_PRINT_INFO(gPrintLevel,"receive message from server error[%d] pdev->dev_fd[%d]\n",iRecvLen,pdev->dev_fd);
+                /* 客户程序重新发起连接请求 */ 
+                if(-1 == iRecvLen || -1 == pdev->dev_fd){
+                    /* 客户程序开始建立 sockfd描述符 */
+                    DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] close start:\n",pdev->dev_fd);
+                    close(pdev->dev_fd);
+                    DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] close end:\n",pdev->dev_fd);
+                	if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
+                	{ 
+                		DEBUG_PRINT_ERR(gPrintLevel,"Socket Error:\n"); 
+                	}else{
+                        DEBUG_PRINT_ERR(gPrintLevel,"Socket[%d] success:\n",pdev->dev_fd);
+                    }
                 }
-            }
-            if(-1 != pdev->dev_fd){ 
-            	if(TINZ_ERROR == tcplink_connect(pdev)){               
-                    DEBUG_PRINT_INFO(gPrintLevel,"tcp retry[%d] link[port:%d dstip:%s] connect fail\n",tcplink_rtycnt,pdev->tcplink->ServerPort,pdev->tcplink->ServerIp); 
-                }else{
-                    tcplink_rtycnt = 0;
-                    DEBUG_PRINT_INFO(gPrintLevel,"tcp retry link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
-                }        
-            }
-            tcplink_rtycnt++;
-            if(tcplink_rtycnt > 60){
-                exit(0);
-            }
-            sleep(1);
-		}
-	}
-	//close(pdev->dev_fd);
+                if(-1 != pdev->dev_fd){ 
+                	if(TINZ_ERROR == tcplink_connect(pdev)){               
+                        DEBUG_PRINT_INFO(gPrintLevel,"tcp retry[%d] link[port:%d dstip:%s] connect fail\n",tcplink_rtycnt,pdev->tcplink->ServerPort,pdev->tcplink->ServerIp); 
+                    }else{
+                        tcplink_rtycnt = 0;
+                        DEBUG_PRINT_INFO(gPrintLevel,"tcp retry link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
+                    }        
+                }
+                tcplink_rtycnt++;
+                if(tcplink_rtycnt > 60){
+                    exit(0);
+                }
+                sleep(1);
+    		}
+    	}
+        close(pdev->dev_fd);
+        break;
+    }
 	free(pRecvBuf);
 }
 
@@ -271,20 +316,7 @@ int tcpclient_open(TcpClientDev *pdev){
 	if(!pdev->tcplink->ServerOpen){
 		return TINZ_ERROR;
 	}
-	/* 客户程序开始建立 sockfd描述符 */ 
-	if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
-	{ 
-		DEBUG_PRINT_ERR(gPrintLevel,"Socket Error:\n"); 
-		return TINZ_ERROR;
-	} 
- 
- 	if(TINZ_ERROR == tcplink_connect(pdev)){
-        return TINZ_ERROR;
-    }
-	/* 连接成功了 */ 
-	pdev->tcplink->isConnected = 1;
-	DEBUG_PRINT_INFO(gPrintLevel,"tcp link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
-	pdev->packet_send_handle = (packet_send_cb)send_message_to_server;
+
 	if(pthread_create(&pdev->thread_id,NULL,(void *)(&tcpclient_thread_recv),(void *)(pdev)) == -1)
 	{
 		DEBUG_PRINT_INFO(gPrintLevel,"pthread_create error!\n");
@@ -293,9 +325,9 @@ int tcpclient_open(TcpClientDev *pdev){
 }
 
 int tcpclient_thread_send_create(pthread_t *thread_id){
-    int iLoop;
+    //int iLoop;
     DEBUG_PRINT_INFO(gPrintLevel,"tcpclient_thread_send create\n");
-    for(iLoop=0; iLoop < SITE_CNT; iLoop++){
+    /*for(iLoop=0; iLoop < SITE_CNT; iLoop++){
 		
 		if(pserver->channes[iLoop].tcplink->isConnected && pserver->channes[iLoop].packet_send_handle != NULL){
             break;
@@ -304,7 +336,7 @@ int tcpclient_thread_send_create(pthread_t *thread_id){
             DEBUG_PRINT_ERR(gPrintLevel,"tcp link not found\n"); 
             return TINZ_ERROR;
         }
-	}
+	}*/
 	if(pthread_create(thread_id,NULL,(void *)(&tcpclient_thread_send),NULL) == -1)
 	{
 		DEBUG_PRINT_INFO(gPrintLevel,"tcpclient_thread_send create error!\n");

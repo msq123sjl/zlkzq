@@ -247,7 +247,7 @@ void Valve_control_IO_mode(uint8_t per,uint8_t zeroes){
         spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
         per_current = AdValueToPer(ad_value);
         DEBUG_PRINT_INFO(gPrintLevel, "per[%d] per_current[%d]\n",per,per_current);
-        if(abs(per - per_current) <= 2){
+        if(abs(per - per_current) <= 5){
             sleep(6);
             break;
         }

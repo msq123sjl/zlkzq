@@ -18,6 +18,8 @@
 #include <sys/wait.h>
 #include <ctype.h> 
 
+#include <sys/select.h>
+
 #include <stddef.h>   
 #include <errno.h>
 #include <sys/procfs.h>   
@@ -51,6 +53,12 @@ static ProgInfo defaultprogs[]={{0,"dataproc",0},{0,"interface",0},{0,"up_main",
 int gPrintLevel = 5;
 static int watchdog_fd = 0;
 
+static void pabort(const char *s)
+{
+    perror(s);
+    abort();
+}
+
 int main(int argc, char *argv[], char *env[]){
 	pid_t parent_pid;
 	int count=0;	
@@ -79,9 +87,23 @@ int main(int argc, char *argv[], char *env[]){
     alarm(1);
 	
 	KillProgs();
-	
+
+    int event_fd;
+    event_fd = open("/dev/mouse0", O_RDWR);
+    if (event_fd < 0)
+        pabort("can't open /dev/event0");
+	fd_set rd;
+    struct timeval tv;
+    int err;
+    FD_ZERO(&rd);
+    FD_SET(event_fd,&rd);
+    tv.tv_sec = 10;
+    tv.tv_usec = 0;
+
 	while(1){     
         //DEBUG_PRINT_INFO(gPrintLevel,"Watchdog proc cnt[%d]\r\n",count);
+        err = select(event_fd+1,&rd,NULL,NULL,&tv);
+        DEBUG_PRINT_INFO(gPrintLevel,"event0 err[%d][%d]\r\n",err,event_fd);
 	    count++;
 	    if(delayxx<20)
 	   	    delayxx++;

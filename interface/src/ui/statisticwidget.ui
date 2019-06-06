@@ -33,10 +33,15 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QTabWidget" name="tabWidget">
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
        <property name="styleSheet">
         <string notr="true">QTabBar::tab{width:70}
 font: 6pt &quot;Sans Serif&quot;;
-QTabBar::tab{height:15}</string>
+QTabBar::tab{height:10}</string>
        </property>
        <property name="tabPosition">
         <enum>QTabWidget::North</enum>
@@ -55,6 +60,12 @@ QTabBar::tab{height:15}</string>
        </property>
        <property name="elideMode">
         <enum>Qt::ElideNone</enum>
+       </property>
+       <property name="tabsClosable">
+        <bool>false</bool>
+       </property>
+       <property name="movable">
+        <bool>false</bool>
        </property>
        <widget class="QWidget" name="tab_4">
         <attribute name="title">
@@ -340,7 +351,7 @@ QTabBar::tab{height:15}</string>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
-               <widget class="QPushButton" name="pushButton_2">
+               <widget class="QPushButton" name="Retransmit">
                 <property name="minimumSize">
                  <size>
                   <width>80</width>

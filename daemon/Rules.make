@@ -26,6 +26,7 @@ endif
 ifndef CROSS_COMPILE
 	CROSS_COMPILE=arm-none-linux-gnueabi-
 	#CROSS_COMPILE=
+    #CROSS_COMPILE=arm-emtronix-linux-gnueabi-
 endif
 
 # This is useful if cross-compiling. Taken from kernel Makefile (CC changed)

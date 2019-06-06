@@ -23,7 +23,7 @@ pstPollutantData pgPollutantData;
 pstPollutantPara pgPollutantPara;
 pstData pgData;
 
-struct _msg *pmsg_upproc[SITE_CNT];
+struct _msg *pmsg_upproc[SITE_SEND_CNT];
 pstMessage pgmsgbuff = NULL;
 
 int gPrintLevel = 5;
@@ -31,12 +31,12 @@ UpMain* pserver = NULL;
 
 static void MessageInit(){
     int iLoop;
-    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
-        if(pgPara->SitePara[iLoop].ServerOpen){
+    for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
+        if(iLoop == SITE_CNT || pgPara->SitePara[iLoop].ServerOpen){
         	DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d start\n",iLoop);
         	pmsg_upproc[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
         	memset(pmsg_upproc[iLoop],0,sizeof(struct _msg));
-        	if(TINZ_ERROR == prepareMsg(MSG_PATH_UPPROC_TO_SQLITE,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
+        	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
         		exit(0);
         	}
         }
@@ -119,7 +119,6 @@ int main(int argc, char *argv[])
 		pserver->channes[iLoop].tcplink->isConnected = 0;
 		close(pserver->channes[iLoop].dev_fd);
 	}
-	printf("5\n");
 	free(pserver);
 	
 	return 0;

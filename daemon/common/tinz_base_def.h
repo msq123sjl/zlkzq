@@ -31,6 +31,7 @@
 #define METER_CNT   32
 #define SERIAL_CNT  6
 #define SITE_CNT    4
+#define SITE_SEND_CNT    (SITE_CNT + 1)
 #define USER_CNT    3
 
 #define QY_USER  1
@@ -204,6 +205,12 @@ typedef struct _CalibrationPara
     uint16_t DaAdjustValue[DA_CNT][3];             //DA校准值
 
 }stCalibrationPara,*pstCalibrationPara;
+
+typedef struct _Event
+{
+    char  DataTime[DATATIME_LEN];
+    char  Info[MAX_TCPDATA_LEN];
+}stEvent,*pstEvent;
 
 #endif
 
