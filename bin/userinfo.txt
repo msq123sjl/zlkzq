@@ -1,0 +1,11 @@
+[LOCAL_MACHINE]
+DHCP="0"
+DefaultGateway="192.168.137.1"
+IPAddress="192.168.137.113"
+SubnetMask="255.255.255.0"
+[NFS_SERVER]
+IPAddress="192.168.1.178"
+Mountpath="/home/qf/project1"
+[USER_EXE]
+Name="/mnt/nandflash/scy.exe"
+Parameters=""

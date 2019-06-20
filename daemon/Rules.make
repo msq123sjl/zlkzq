@@ -8,25 +8,24 @@ ifndef TOPDIR
 endif
 
 ifndef BINDIR
-	BINDIR = $(TOPDIR)/../bin
+	BINDIR = $(TOPDIR)/../zlkzq/bin
 endif
 
 ifndef LIBDIR
 	LIBDIR = $(TOPDIR)/lib
 endif
 
-# KERNELDIR can be speficied on the command line or environment
-ifndef KERNELDIR
-	KERNELDIR = /usr/src/linux
-endif
-# The headers are taken from the kernel
-	INCLUDEDIR = $(KERNELDIR)/include
+## KERNELDIR can be speficied on the command line or environment
+#ifndef KERNELDIR
+#	KERNELDIR = /usr/src/linux
+#endif
+## The headers are taken from the kernel
+#	INCLUDEDIR = $(KERNELDIR)/include
 
 
 ifndef CROSS_COMPILE
 	CROSS_COMPILE=arm-none-linux-gnueabi-
 	#CROSS_COMPILE=
-    #CROSS_COMPILE=arm-emtronix-linux-gnueabi-
 endif
 
 # This is useful if cross-compiling. Taken from kernel Makefile (CC changed)
@@ -43,4 +42,5 @@ OBJDUMP =$(CROSS_COMPILE)objdump
 # CFLAGS: all assignments to CFLAGS are inclremental, so you can specify
 # the initial flags on the command line or environment, if needed.
 
-	CFLAGS += -g -Wall -I$(TOPDIR)/common 
+	CFLAGS += -g -Wall -I$(TOPDIR)/common
+        CFLAGS+=-fPIC -fgnu89-inline 

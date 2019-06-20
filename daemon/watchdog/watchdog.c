@@ -88,7 +88,7 @@ int main(int argc, char *argv[], char *env[]){
 	
 	KillProgs();
 
-    int event_fd;
+    /*int event_fd;
     event_fd = open("/dev/mouse0", O_RDWR);
     if (event_fd < 0)
         pabort("can't open /dev/event0");
@@ -98,12 +98,12 @@ int main(int argc, char *argv[], char *env[]){
     FD_ZERO(&rd);
     FD_SET(event_fd,&rd);
     tv.tv_sec = 10;
-    tv.tv_usec = 0;
+    tv.tv_usec = 0;*/
 
 	while(1){     
         //DEBUG_PRINT_INFO(gPrintLevel,"Watchdog proc cnt[%d]\r\n",count);
-        err = select(event_fd+1,&rd,NULL,NULL,&tv);
-        DEBUG_PRINT_INFO(gPrintLevel,"event0 err[%d][%d]\r\n",err,event_fd);
+        /*err = select(event_fd+1,&rd,NULL,NULL,&tv);
+        DEBUG_PRINT_INFO(gPrintLevel,"event0 err[%d][%d]\r\n",err,event_fd);*/
 	    count++;
 	    if(delayxx<20)
 	   	    delayxx++;

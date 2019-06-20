@@ -14,6 +14,7 @@ Description:总量控制器--历史数据界面功能的实现
 #include <QDate>
 #include <QDebug>
 #include "myhelper.h"
+#include <unistd.h>
 
 extern "C"{
 #include "tinz_pub_shm.h"
@@ -70,7 +71,11 @@ void StatisticWidget::InitTable()
     ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
     //设置列宽根据内容变化
     for(iLoop=0;iLoop<model_calibration->columnCount();iLoop++){
-        ui->tableView->horizontalHeader()->setResizeMode(iLoop,QHeaderView::Interactive);
+        #if (QT_VERSION < QT_VERSION_CHECK(5,0,0))
+            ui->tableView->horizontalHeader()->setResizeMode(iLoop,QHeaderView::Interactive);
+        #else
+            ui->tableView->horizontalHeader()->setSectionResizeMode(iLoop,QHeaderView::Interactive);
+        #endif
         ui->tableView->setColumnWidth(iLoop,ColumnWidths[iLoop]);
     }
     //点击表头时不对表头光亮

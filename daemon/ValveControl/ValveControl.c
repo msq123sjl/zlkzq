@@ -144,7 +144,7 @@ static int SPI_Init()
 static int SpiInitGPIO()
 {
     int fd,rc;
-    fd=open("/dev/em335x_gpio",O_RDWR);
+    fd=open(DEV_GPIO,O_RDWR);
     DEBUG_PRINT_INFO(gPrintLevel, "open file = %d\n", fd);
     if(fd < 0){
         return TINZ_ERROR;

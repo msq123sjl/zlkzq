@@ -2,8 +2,14 @@
 #define MYHELPER_H
 
 #include <QtCore>
-#include <QtGui>
 #include <QDesktopWidget>
+#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
+    #include <QApplication>
+    #include <QtWidgets>
+#else
+    #include <QtGui/QApplication>
+    #include <QtGui>
+#endif
 #include "frmmessagebox.h"
 
 extern "C"{
@@ -33,7 +39,7 @@ public:
     //设置编码方式
     static void setUTF8Code()
     {
-#if (QT_VERSION <= QT_VERSION_CHECK(5,0,0))
+#if (QT_VERSION < QT_VERSION_CHECK(5,0,0))
         QTextCodec *codec = QTextCodec::codecForName("UTF-8");
         QTextCodec::setCodecForCStrings(codec);
         QTextCodec::setCodecForLocale(codec);
@@ -136,7 +142,7 @@ public:
         char lstr,hstr;
         for(int i=0; i<len; )
         {
-            hstr=str[i].toAscii();
+            hstr=str[i].toLatin1();
             if(hstr == ' ')
             {
                 i++;
@@ -145,7 +151,7 @@ public:
             i++;
             if(i >= len)
                 break;
-            lstr = str[i].toAscii();
+            lstr = str[i].toLatin1();
             hexdata = ConvertHexChar(hstr);
             lowhexdata = ConvertHexChar(lstr);
             if((hexdata == 16) || (lowhexdata == 16))
@@ -290,10 +296,10 @@ public:
     }
 
     //播放声音
-    static void PlaySound(QString soundName)
+    /*static void PlaySound(QString soundName)
     {
         QSound::play(soundName);
-    }
+    }*/
 
     static void StringToChar(const QString &str,char *buf,size_t len)
     {

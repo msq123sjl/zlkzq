@@ -13,6 +13,15 @@
 #define WARN_LEVEL	2
 #define ERR_LEVEL	1 
 
+#define ESM3352
+//#define ESM6800
+#ifdef ESM3352
+    #define DEV_GPIO "/dev/em335x_gpio"
+#endif 
+#ifdef ESM6800
+    #define DEV_GPIO "/dev/esm6800_gpio"
+#endif 
+
 #define SHOW_DEBUG 1
 #if SHOW_DEBUG
     #define DEBUG_PRINT_DEBUG(Level,...) {\

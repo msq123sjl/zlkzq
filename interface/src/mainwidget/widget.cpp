@@ -46,9 +46,9 @@ Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
-    ui->setupUi(this);
-    this->initDataTime();
-    this->initForm();
+    ui->setupUi(this);  
+    this->initDataTime();   
+    this->initForm();    
 	this->initWidget();
     this->initToolTip();
     system("echo 0 > /sys/class/backlight/backlight/brightness");
@@ -73,9 +73,13 @@ void Widget::initDataTime()
 void Widget::initForm()
 {
     //设置窗体标题栏隐藏
+#if (QT_VERSION < QT_VERSION_CHECK(5,0,0))
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint
                          | Qt::WindowMinMaxButtonsHint);
-    this->setWindowTitle(tr("总量控制器"));
+#else
+    this->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+#endif
+    //this->setWindowTitle(tr("总量控制器"));
     //this->setWindowState(Qt::WindowFullScreen);
     //顶部设置和首页的样式
     setToolButtonStyle(ui->tbnSetting,"设置",E_NORMAL,":/images/tool/setting_normal.png");
@@ -86,7 +90,6 @@ void Widget::initForm()
     setToolButtonStyle(ui->tbnCOD,"COD",E_BIG,":/images/midwidget/Parlor.png");
     setToolButtonStyle(ui->tbnPH,"PH",E_BIG,":/images/midwidget/kitchen.png");
     setToolButtonStyle(ui->tbnSafety,"NULL",E_BIG,":/images/midwidget/Safety.png");
-
     setToolButtonStyle(ui->tbnAD,"AD校准",E_BIG,":/images/midwidget/Bedroom.png");
     setToolButtonStyle(ui->tbnDA,"DA校准",E_BIG,":/images/midwidget/Parlor.png");
     setToolButtonStyle(ui->tbnValveControl,"阀门",E_BIG,":/images/midwidget/kitchen.png");
@@ -224,7 +227,7 @@ void Widget::slotShowCurrentDataTime()
         system("echo 7 > /sys/class/backlight/backlight/brightness");
     }
 
-    if(0 == blk_time){
+    if(1 == blk_time){
         system("echo 8 > /sys/class/backlight/backlight/brightness");
         ui->stackedWidget->setCurrentIndex(E_HOME_WIDGET);
     }
@@ -250,9 +253,9 @@ void Widget::setToolButtonStyle(QToolButton *tbn, const QString &text,
     if (textSize == E_BIG)
     {
         tbn->setFont(QFont("文泉驿雅黑",16,QFont::Bold));
-    }else if (textSize == E_NORMAL)
+    }else if (textSize == E_NORMAL){
         tbn->setFont(QFont("文泉驿雅黑",12,QFont::Bold));
-
+    }
     tbn->setAutoRaise(true);
     //设置按钮图标
     tbn->setIcon(QPixmap(QString("%1").arg(iconName)));
@@ -380,6 +383,7 @@ void Widget::mousePressEvent(QMouseEvent *e)
     //qDebug()<<QString("Widget mousePressEvent:%1").arg(e->button());
     if (e->button() == Qt::LeftButton)
     {
+        //qDebug()<<QString("blk_time1:%1").arg(blk_time);
         if(blk_time <= 20){
             system("echo 0 > /sys/class/backlight/backlight/brightness");
         }

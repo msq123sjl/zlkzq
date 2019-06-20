@@ -10,6 +10,7 @@ QT  += sql
 #QT  += phonon
 
 CONFIG  += debug
+CONFIG   += c++11 (Qt5)
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -42,7 +43,7 @@ MOC_DIR = temp/moc
 RCC_DIR = temp/rccr
 OBJECTS_DIR = temp/obj
 UI_HEADERS_DIR = temp/ui
-DESTDIR = $$PWD/../bin
+DESTDIR = $$PWD/../zlkzq/bin
 
 #win32:RC_FILE = SmartHome.rc
 RESOURCES += \

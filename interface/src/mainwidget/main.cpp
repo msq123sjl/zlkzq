@@ -22,6 +22,8 @@ Description:智能家居---主程序，加载配置信息、程序样式，设�
 //#include "systemsettingdialog.h"
 //#include "analysisdata.h"
 #include "frminput.h"
+
+
 #if QT_VERSION >= 0x050000
 #include <QApplication>
 #else
@@ -32,7 +34,7 @@ Description:智能家居---主程序，加载配置信息、程序样式，设�
 #include <QWSServer>
 #endif
 
-#if (QT_VERSION > QT_VERSION_CHECK(5,0,0))
+#if (QT_VERSION >= QT_VERSION_CHECK(5,0,0))
 #include <QtWidgets>
 #endif
 
@@ -54,25 +56,22 @@ struct _msg *pmsg_interface;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-
 #if __ARM__
     QWSServer::setCursorVisible(false);
 #endif
-
+#if (QT_VERSION < QT_VERSION_CHECK(5,0,0))
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+#endif
     Myapp::ReadConfig();                                  //读配置文件
     myHelper::setUTF8Code();                              //设置编码方式
     myHelper::setStyle(":/images/css/style.css");         //加载样式表
     myHelper::setChinese(":/images/translator/zh_CN.qm");
     myHelper::setChinese(":/images/qt_zh_CN.qm");         //加载中文字符
-
     //赋值当前应用程序路径和桌面宽度高度
     Myapp::AppPath=QApplication::applicationDirPath()+"/";
-    qDebug()<<"AppPath1:"<<Myapp::AppPath;
     Myapp::DeskWidth=qApp->desktop()->availableGeometry().width();
     Myapp::DeskHeigth=qApp->desktop()->availableGeometry().height();
     qDebug()<<QString("DeskWidth:%1 DeskHeigth:%2").arg(Myapp::DeskWidth).arg(Myapp::DeskHeigth);
-
     /********共享内存******************/
     pgPara = (pstPara)getParaShm();
     qDebug()<<QString("AlarmTime:%1").arg(pgPara->GeneralPara.AlarmTime);
@@ -85,7 +84,6 @@ int main(int argc, char *argv[])
     pgCalibrationPara = (pstCalibrationPara)getCalibrationParaShm();
     /*消息队列*/
     pmsg_interface = InterfaceMessageInit(pmsg_interface);
-    
     Widget w;
     w.show();
     frmInput::Instance()->Init("control", "black", 10, 10);

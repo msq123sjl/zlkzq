@@ -51,8 +51,8 @@ void ValveWidget::initForm()
                        ":/images/module/temp_sub.png");
     setToolButtonStyle(ui->tbn_valve_ok,"确定",
                        ":/images/module/temp_sub.png");
-    ui->pbn_valve_contrl->styleOff = "border-image: url(:/images/switch/btncheckoff.png); border: 0px;";
-    ui->pbn_valve_contrl->styleOn="border-image: url(:/images/switch/btncheckon.png); border: 0px;";
+    //ui->pbn_valve_contrl->styleOff = "border-image: url(:/images/switch/btncheckoff.png); border: 0px;";
+    //ui->pbn_valve_contrl->styleOn="border-image: url(:/images/switch/btncheckon.png); border: 0px;";
     InitValveControl();
 }
 
