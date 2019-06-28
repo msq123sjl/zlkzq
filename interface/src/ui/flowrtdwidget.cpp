@@ -68,15 +68,15 @@ void FlowRtdwidget::InitShowData()
 void FlowRtdwidget::slotShowCurrentData()
 {
     //允许排放量设置
-    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].rtd));
-    ui->label_cur_day->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].day));
-    ui->label_cou->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].cou));
-    ui->label_cur_mon->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].mon));
-    ui->label_cur_qut->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].qut));
-    ui->label_cur_yea->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].year));
-    ui->label_set_mon->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].MonAll));
-    ui->label_set_qut->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].QutAll));
-    ui->label_set_yea->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].YeaAll));
+    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].rtd,'f',0)+" L/s");
+    ui->label_cur_day->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].day,'f',0)+" L");
+    ui->label_cou->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)+" L");
+    ui->label_cur_mon->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].mon,'f',0)+" L");
+    ui->label_cur_qut->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].qut,'f',0)+" L");
+    ui->label_cur_yea->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].year,'f',0)+" L");
+    ui->label_set_mon->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].MonAll)+" L");
+    ui->label_set_qut->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].QutAll)+" L");
+    ui->label_set_yea->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].YeaAll)+" L");
 }
 
 

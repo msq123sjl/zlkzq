@@ -1,4 +1,5 @@
 FORMS   +=\
+    $$PWD/rtdwidget.ui \
     $$PWD/flowrtdwidget.ui \
     $$PWD/codrtdwidget.ui \
     $$PWD/phrtdwidget.ui \
@@ -12,6 +13,7 @@ FORMS   +=\
     $$PWD/dacalibrationwidget.ui
     
 HEADERS +=\
+    $$PWD/rtdwidget.h \
     $$PWD/flowrtdwidget.h \
     $$PWD/codrtdwidget.h \
     $$PWD/phrtdwidget.h \
@@ -25,6 +27,7 @@ HEADERS +=\
     $$PWD/dacalibrationwidget.h
 
 SOURCES +=\
+    $$PWD/rtdwidget.cpp \
     $$PWD/flowrtdwidget.cpp \
     $$PWD/codrtdwidget.cpp \
     $$PWD/phrtdwidget.cpp \

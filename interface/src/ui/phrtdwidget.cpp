@@ -55,15 +55,6 @@ void PHRtdwidget::init()
     ui->label_set_mon->setText(tr("--"));
     ui->label_set_qut->setText(tr("--"));
     ui->label_set_yea->setText(tr("--"));
-
-    ui->label_unit_2->setText(tr(""));
-    ui->label_unit_3->setText(tr(""));
-    ui->label_unit_4->setText(tr(""));
-    ui->label_unit_5->setText(tr(""));
-    ui->label_unit_6->setText(tr(""));
-    ui->label_unit_7->setText(tr(""));
-    ui->label_unit_8->setText(tr(""));
-    ui->label_unit_9->setText(tr(""));
 }
 
 //初始化信号和槽的连接
@@ -82,7 +73,7 @@ void PHRtdwidget::InitShowData()
 
 void PHRtdwidget::slotShowCurrentData()
 {
-    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_PH_INDEX].rtd));
+    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',2));
 }
 
 

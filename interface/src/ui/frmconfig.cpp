@@ -569,8 +569,8 @@ void frmconfig::on_btn_SaveIo_clicked()
 void frmconfig::mouseReleaseEvent(QMouseEvent *)
 {
     qDebug()<<QString("frmconfig mouseReleaseEvent");
-    if(0 == blk_time){
-        system("echo 0 > /sys/class/backlight/backlight/brightness");
+    if(20 >= blk_time){
+        system("echo 8 > /sys/class/backlight/backlight/brightness");
     }
     blk_time = 120;
 }

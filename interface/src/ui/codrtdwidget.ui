@@ -63,18 +63,30 @@
            </property>
            <item>
             <widget class="QLabel" name="lab_light_main">
+             <property name="minimumSize">
+              <size>
+               <width>75</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <family>微软雅黑</family>
-               <pointsize>14</pointsize>
-               <weight>50</weight>
+               <family>楷体</family>
+               <pointsize>12</pointsize>
+               <weight>9</weight>
                <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="styleSheet">
               <string notr="true">color: rgb(142, 227, 235);
-font: 14pt &quot;微软雅黑&quot;;</string>
+font: 75 12pt &quot;楷体&quot;;</string>
              </property>
              <property name="text">
               <string>瞬时浓度</string>
@@ -91,10 +103,16 @@ font: 14pt &quot;微软雅黑&quot;;</string>
                  <height>0</height>
                 </size>
                </property>
+               <property name="maximumSize">
+                <size>
+                 <width>167</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <family>楷体</family>
-                 <pointsize>26</pointsize>
+                 <pointsize>16</pointsize>
                 </font>
                </property>
                <property name="layoutDirection">
@@ -111,25 +129,6 @@ font: 14pt &quot;微软雅黑&quot;;</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_unit_1">
-               <property name="font">
-                <font>
-                 <family>楷体</family>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgb(255, 158, 0);</string>
-               </property>
-               <property name="text">
-                <string>mg/m3</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -157,22 +156,22 @@ font: 14pt &quot;微软雅黑&quot;;</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>75</width>
+               <width>16777215</width>
                <height>16777215</height>
               </size>
              </property>
              <property name="font">
               <font>
-               <family>微软雅黑</family>
-               <pointsize>14</pointsize>
-               <weight>50</weight>
+               <family>楷体</family>
+               <pointsize>12</pointsize>
+               <weight>9</weight>
                <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="styleSheet">
               <string notr="true">color: rgb(142, 227, 235);
-font: 14pt &quot;微软雅黑&quot;;</string>
+font: 75 12pt &quot;楷体&quot;;</string>
              </property>
              <property name="text">
               <string>当天排量</string>
@@ -183,10 +182,16 @@ font: 14pt &quot;微软雅黑&quot;;</string>
             <layout class="QHBoxLayout" name="horizontalLayout_13">
              <item>
               <widget class="QLabel" name="label_cur_day">
+               <property name="maximumSize">
+                <size>
+                 <width>167</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <family>楷体</family>
-                 <pointsize>26</pointsize>
+                 <pointsize>16</pointsize>
                 </font>
                </property>
                <property name="styleSheet">
@@ -197,25 +202,6 @@ font: 14pt &quot;微软雅黑&quot;;</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_unit_2">
-               <property name="font">
-                <font>
-                 <family>楷体</family>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgb(255, 158, 0);</string>
-               </property>
-               <property name="text">
-                <string>mg</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -243,22 +229,22 @@ font: 14pt &quot;微软雅黑&quot;;</string>
              </property>
              <property name="maximumSize">
               <size>
-               <width>75</width>
+               <width>16777215</width>
                <height>16777215</height>
               </size>
              </property>
              <property name="font">
               <font>
-               <family>微软雅黑</family>
-               <pointsize>14</pointsize>
-               <weight>50</weight>
+               <family>楷体</family>
+               <pointsize>12</pointsize>
+               <weight>9</weight>
                <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="styleSheet">
               <string notr="true">color: rgb(142, 227, 235);
-font: 14pt &quot;微软雅黑&quot;;</string>
+font: 75 12pt &quot;楷体&quot;;</string>
              </property>
              <property name="text">
               <string>总计排量</string>
@@ -269,10 +255,16 @@ font: 14pt &quot;微软雅黑&quot;;</string>
             <layout class="QHBoxLayout" name="horizontalLayout_14">
              <item>
               <widget class="QLabel" name="label_cou">
+               <property name="maximumSize">
+                <size>
+                 <width>167</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <family>楷体</family>
-                 <pointsize>26</pointsize>
+                 <pointsize>16</pointsize>
                 </font>
                </property>
                <property name="styleSheet">
@@ -283,25 +275,6 @@ font: 14pt &quot;微软雅黑&quot;;</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_unit_3">
-               <property name="font">
-                <font>
-                 <family>楷体</family>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgb(255, 158, 0);</string>
-               </property>
-               <property name="text">
-                <string>mg</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -440,14 +413,14 @@ font: 14pt &quot;微软雅黑&quot;;</string>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>104</width>
+                   <width>16777215</width>
                    <height>16777215</height>
                   </size>
                  </property>
                  <property name="font">
                   <font>
                    <family>楷体</family>
-                   <pointsize>26</pointsize>
+                   <pointsize>16</pointsize>
                   </font>
                  </property>
                  <property name="styleSheet">
@@ -458,37 +431,6 @@ font: 14pt &quot;微软雅黑&quot;;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_unit_7">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>22</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>楷体</family>
-                   <pointsize>12</pointsize>
-                  </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 158, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>mg</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -550,10 +492,22 @@ font: 14pt &quot;微软雅黑&quot;;</string>
               <layout class="QHBoxLayout" name="horizontalLayout_10">
                <item>
                 <widget class="QLabel" name="label_set_qut">
+                 <property name="minimumSize">
+                  <size>
+                   <width>104</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <family>楷体</family>
-                   <pointsize>26</pointsize>
+                   <pointsize>16</pointsize>
                   </font>
                  </property>
                  <property name="styleSheet">
@@ -564,37 +518,6 @@ font: 14pt &quot;微软雅黑&quot;;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_unit_8">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>22</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>楷体</family>
-                   <pointsize>12</pointsize>
-                  </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 158, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>mg</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -660,10 +583,16 @@ font: 75 12pt &quot;楷体&quot;;</string>
               <layout class="QHBoxLayout" name="horizontalLayout_11">
                <item>
                 <widget class="QLabel" name="label_set_yea">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <family>楷体</family>
-                   <pointsize>26</pointsize>
+                   <pointsize>16</pointsize>
                   </font>
                  </property>
                  <property name="styleSheet">
@@ -674,37 +603,6 @@ font: 75 12pt &quot;楷体&quot;;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_unit_9">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>22</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>楷体</family>
-                   <pointsize>12</pointsize>
-                  </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 158, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>mg</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -770,10 +668,16 @@ font: 75 12pt &quot;楷体&quot;;</string>
               <layout class="QHBoxLayout" name="horizontalLayout_4">
                <item>
                 <widget class="QLabel" name="label_cur_qut">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <family>楷体</family>
-                   <pointsize>26</pointsize>
+                   <pointsize>16</pointsize>
                   </font>
                  </property>
                  <property name="styleSheet">
@@ -784,37 +688,6 @@ font: 75 12pt &quot;楷体&quot;;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_unit_5">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>22</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>楷体</family>
-                   <pointsize>12</pointsize>
-                  </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 158, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>mg</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -880,10 +753,16 @@ font: 75 12pt &quot;楷体&quot;;</string>
               <layout class="QHBoxLayout" name="horizontalLayout_7">
                <item>
                 <widget class="QLabel" name="label_cur_mon">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <family>楷体</family>
-                   <pointsize>26</pointsize>
+                   <pointsize>16</pointsize>
                   </font>
                  </property>
                  <property name="styleSheet">
@@ -894,37 +773,6 @@ font: 75 12pt &quot;楷体&quot;;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_unit_4">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>22</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>楷体</family>
-                   <pointsize>12</pointsize>
-                  </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 158, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>mg</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -990,22 +838,16 @@ font: 75 12pt &quot;楷体&quot;;</string>
               <layout class="QHBoxLayout" name="horizontalLayout_5">
                <item>
                 <widget class="QLabel" name="label_cur_yea">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>53</height>
-                  </size>
-                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>53</height>
+                   <height>16777215</height>
                   </size>
                  </property>
                  <property name="font">
                   <font>
                    <family>楷体</family>
-                   <pointsize>26</pointsize>
+                   <pointsize>16</pointsize>
                   </font>
                  </property>
                  <property name="styleSheet">
@@ -1016,37 +858,6 @@ font: 75 12pt &quot;楷体&quot;;</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_unit_6">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>22</width>
-                   <height>53</height>
-                  </size>
-                 </property>
-                 <property name="font">
-                  <font>
-                   <family>楷体</family>
-                   <pointsize>12</pointsize>
-                  </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 158, 0);</string>
-                 </property>
-                 <property name="text">
-                  <string>mg</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
