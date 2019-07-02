@@ -74,8 +74,8 @@ int main(int argc, char *argv[])
     DEBUG_PRINT_INFO(gPrintLevel, "up_proc getDataShm end\n");
 
     /*测试临时用*/
-    pgPara->SitePara[0].ServerOpen   = 1;
-    snprintf((char*)pgPara->SitePara[0].ServerIp,sizeof(pgPara->SitePara[0].ServerIp),"%s","192.168.137.1");
+    //pgPara->SitePara[0].ServerOpen   = 1;
+    //snprintf((char*)pgPara->SitePara[0].ServerIp,sizeof(pgPara->SitePara[0].ServerIp),"%s","192.168.137.1");
 
     wait_for_serveropen_set();
     /*消息队列*/

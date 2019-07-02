@@ -2,7 +2,7 @@ TOPDIR  := $(shell cd ..; pwd)
 include $(TOPDIR)/Rules.make
 
 
-OBJS = ValveControl.o TLC2543.o TLC5615.o
+OBJS = ValveControl.o AD7705.o TLC5615.o
 
 
 all: $(OBJS)

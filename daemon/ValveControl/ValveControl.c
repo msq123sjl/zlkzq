@@ -27,7 +27,7 @@
 
 
 #include "ValveControl.h"
-#include "TLC2543.h"
+#include "AD7705.h"
 #include "TLC5615.h"
 
 pstValveControl pgValveControl;
@@ -149,24 +149,21 @@ static int SpiInitGPIO()
     if(fd < 0){
         return TINZ_ERROR;
     }
-    rc = GPIO_OutEnable(fd,SPI_TLC2543_CS|SPI_TLC5615_CS|VALVE_OPEN|VALVE_CLOSE|VALVE_COMMON);//set GPIO as output
+    rc = GPIO_OutEnable(fd,SPI_AD7705_CS|SPI_TLC5615_CS|SWITCH_OUT1|SWITCH_OUT2|SWITCH_OUT3|SWITCH_OUT4);//set GPIO as output
     if(rc < 0)
     {
         DEBUG_PRINT_INFO(gPrintLevel, "GPIO_OutEnable::failed %d\n", rc);
         return TINZ_ERROR;
     }
-    rc = GPIO_OutDisable(fd,IN_POWER);   //set GPIO as input
+    rc = GPIO_OutDisable(fd,AD7705_DRDY|SWITCH_IN1|SWITCH_IN2|SWITCH_IN3|SWITCH_IN4|SWITCH_IN5|SWITCH_IN6);   //set GPIO as input
     if(rc < 0)
     {
         DEBUG_PRINT_INFO(gPrintLevel, "GPIO_OutClear::failed %d\n", rc);
         return TINZ_ERROR;
     }
     usleep(10000);
-    GPIO_OutSet(fd, SPI_TLC2543_CS);
+    GPIO_OutSet(fd, SPI_AD7705_CS);
     GPIO_OutSet(fd, SPI_TLC5615_CS);
-    GPIO_OutClear(fd, VALVE_OPEN);
-    GPIO_OutClear(fd, VALVE_CLOSE);
-    GPIO_OutClear(fd, VALVE_COMMON);
     return fd;
 
 }

@@ -52,6 +52,6 @@ void ModelChooseWidget::on_pbn_operation_clicked()
         }
     }else{
         initForm();
-        myHelper::showMessageBoxInfo("请登陆管理员账户");
+        myHelper::showMessageBoxInfo("请登陆运维人员账户");
     }
 }

@@ -20,6 +20,7 @@ Description:总量控制器--主界面功能的实现
 
 #include "frmlogin.h"
 #include "frmconfig.h"
+#include "rtdwidget.h"          //实时数据
 #include "flowrtdwidget.h"          //流量
 #include "codrtdwidget.h"          //COD
 #include "phrtdwidget.h"          //PH
@@ -96,7 +97,7 @@ void Widget::initForm()
     //底部菜单的样式
     setToolButtonStyle(ui->tbnRtd,"实时",E_NORMAL,
                        ":/images/bottom/control.png");
-    setToolButtonStyle(ui->tbnValve,"阀门",E_NORMAL,
+    setToolButtonStyle(ui->tbnPolluter,"排量",E_NORMAL,
                        ":/images/bottom/video.png");
     setToolButtonStyle(ui->tbnStatistic,"统计",E_NORMAL,
                        ":/images/bottom/statistics.png");    
@@ -121,6 +122,7 @@ void Widget::initForm()
 //界面初始化
 void Widget::initWidget()
 {
+    m_rtdWidget = new Rtdwidget;              //实时数据
     m_flowrtdWidget = new FlowRtdwidget;              //流量
     m_codrtdWidget = new CODRtdwidget;              //COD
     m_phrtdWidget = new PHRtdwidget;              //PH
@@ -132,6 +134,7 @@ void Widget::initWidget()
     //m_menuWidget = new MenuWidget(this);
     //ui->tbnSetting->setMenu(m_menuWidget);
 
+    ui->stackedWidget->addWidget(m_rtdWidget);
     ui->stackedWidget->addWidget(m_flowrtdWidget);
     ui->stackedWidget->addWidget(m_codrtdWidget);
     ui->stackedWidget->addWidget(m_phrtdWidget);
@@ -161,7 +164,7 @@ void Widget::initToolTip()
     ui->tbnValveControl->setToolTip(tr("tip_valvecontrol"));
 
     ui->tbnRtd->setToolTip(tr("tip_rtd"));
-    ui->tbnValve->setToolTip(tr("tip_valve"));
+    ui->tbnPolluter->setToolTip(tr("tip_polluter"));
     ui->tbnStatistic->setToolTip(tr("tip_statistic"));
     ui->tbnCalibration->setToolTip(tr("tip_calibration"));
     ui->tbnModel->setToolTip(tr("tip_model"));
@@ -172,6 +175,10 @@ void Widget::initToolTip()
 
 void Widget::deletWidget()
 {
+    if (m_rtdWidget != NULL){
+        delete m_rtdWidget;
+        m_rtdWidget = NULL;
+    }
     if (m_flowrtdWidget != NULL){
         delete m_flowrtdWidget;
         m_flowrtdWidget = NULL;
@@ -268,11 +275,11 @@ void Widget::setToolButtonStyle(QToolButton *tbn, const QString &text,
 
 void Widget::startAnimation()
 {
-    QPropertyAnimation *animation = new QPropertyAnimation(ui->stackedWidget->currentWidget(), "geometry");
+    /*QPropertyAnimation *animation = new QPropertyAnimation(ui->stackedWidget->currentWidget(), "geometry");
     animation->setDuration(800);
     animation->setStartValue(QRect(0, 0,100, 30));
     animation->setEndValue(QRect(0, 0, 800, 360));
-    animation->start();
+    animation->start();*/
 }
 
 void Widget::setCurrentWidget(enum_widget enum_widget_name)
@@ -286,9 +293,9 @@ void Widget::on_tbnRtd_clicked()
     this->setCurrentWidget(E_RTD_WIDGET);
 }
 
-void Widget::on_tbnValve_clicked()
+void Widget::on_tbnPolluter_clicked()
 {
-    this->setCurrentWidget(E_VALVE_WIDGET);
+    this->setCurrentWidget(E_POLLUTER_WIDGET);
 }
 
 void Widget::on_tbnStatistic_clicked()
@@ -302,7 +309,7 @@ void Widget::on_tbnCalibration_clicked()
     if(Myapp::UserType >= SUPER_USER && 1 == pgPara->Mode){  //运维模式
         this->setCurrentWidget(E_CALIBRATION_WIDGET);
     }else{
-        myHelper::showMessageBoxInfo("请登陆超级账户\n并切换到运维模式");
+        myHelper::showMessageBoxInfo("请登陆管理账户\n并切换到运维模式");
     }
 }
 
@@ -317,6 +324,7 @@ void Widget::on_tbnUser_clicked()
         if(myHelper::showMessageBoxQusetion(QString("%1用户已登陆，是否切换\n用户").arg(Myapp::UserName))){
             myHelper::InterfaceEventMsgSend(pmsg_interface,Myapp::UserName + "用户退出",MSG_SQLITE_EVENT_USER_TYTE);
             Myapp::UserType = 0;
+            //pgPara->Mode=0;  //用户退出或切换，自动将模式切换为远程模
         }
     }
     if(0 == Myapp::UserType){
@@ -356,7 +364,7 @@ void Widget::on_tbnSetting_clicked()
         m_frmconfig = new frmconfig;
         m_frmconfig->show();
     }else{
-        myHelper::showMessageBoxInfo("请登陆管理员账户");
+        myHelper::showMessageBoxInfo("请登陆运维人员账户");
     }
 }
 

@@ -174,7 +174,7 @@ typedef struct _SitePara
 
 typedef struct _UserPara
 {
-    uint8_t   UserType;       //用户类型       1:企业用户      2：管理员 3：超级用户 
+    uint8_t   UserType;       //用户类型       1:企业用户      2：运维员 3：管理用户 
     int  UserPwd;
 }stUserPara,*pstUserPara;
 
@@ -194,7 +194,7 @@ typedef struct _ValveControl
     uint8_t     per;
     uint8_t     per_measure;
     uint8_t     per_last;
-    uint8_t     channel;                   //模拟通道
+    uint8_t     channel;                   //AD模拟通道
     uint8_t     OutMode;                   //0:模拟量 1:开关量
     uint16_t    OutValueAdjust[3];        //0%、50%、100%  
 

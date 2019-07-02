@@ -404,6 +404,5 @@ void initCalibrationParaShm(){
         para->DaAdjustValue[iLoop][1] = 1024;
         para->DaAdjustValue[iLoop][2] = 2048;
     }
-    
 }
 

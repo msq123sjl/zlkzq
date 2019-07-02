@@ -5,6 +5,7 @@
 class QToolButton;
 
 class frmconfig;
+class Rtdwidget;
 class FlowRtdwidget;
 class CODRtdwidget;
 class PHRtdwidget;
@@ -24,9 +25,10 @@ class Widget : public QWidget
     Q_OBJECT
     //场景名称枚举
     enum enum_widget{
-        E_RTD_WIDGET = 0,       //实时数据
+        E_POLLUTER_WIDGET = 0,       //排放量
         E_HOME_WIDGET,              //首页
         E_CALIBRATION_WIDGET,              //校准
+        E_RTD_WIDGET,       //实时数据
         E_FLOW_WIDGET,           //流量
         E_COD_WIDGET,             //COD
         E_PH_WIDGET,              //PH
@@ -49,7 +51,7 @@ private slots:
     void slotShowCurrentDataTime();//显示当前的日期和时间
     void on_tbnRtd_clicked();
 
-    void on_tbnValve_clicked();
+    void on_tbnPolluter_clicked();
 
     void on_tbnStatistic_clicked();
 
@@ -83,6 +85,7 @@ private:
     Ui::Widget *ui;
     bool m_isPress;
     frmconfig *m_frmconfig;           //设置界面
+    Rtdwidget *m_rtdWidget;                 //流量界面
     FlowRtdwidget *m_flowrtdWidget;                 //流量界面
     CODRtdwidget *m_codrtdWidget;                 //COD界面
     PHRtdwidget *m_phrtdWidget;                 //PH界面

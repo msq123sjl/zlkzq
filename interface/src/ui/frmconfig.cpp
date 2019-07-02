@@ -175,23 +175,16 @@ void frmconfig::on_btn_io_clicked()
     int p_index=0;
     //输出
     p_index=pgPara->IOPara.Out_drain_open-6;
-    if(p_index>3)p_index-=6;
-    if(p_index>5)p_index-=6;
     ui->comboOut_drain_open->setCurrentIndex(p_index);
 
     p_index=pgPara->IOPara.Out_drain_close-6;
-    if(p_index>3)p_index-=6;
-    if(p_index>5)p_index-=6;
     ui->comboOut_drain_close->setCurrentIndex(p_index);
 
     p_index=pgPara->IOPara.Out_drain_common-6;
-    if(p_index>3)p_index-=6;
-    if(p_index>5)p_index-=6;
     ui->comboOut_drain_common->setCurrentIndex(p_index);
 
     //输入
     p_index=pgPara->IOPara.In_power-10;
-    if(p_index>5)p_index-=2;
     ui->comboIn_power->setCurrentIndex(p_index);
 
     ui->stackedWidget_config->setCurrentIndex(8);
@@ -484,14 +477,6 @@ void frmconfig::on_btn_SaveIo_clicked()
     break;
     case 3: pgPara->IOPara.Out_drain_open=9;
     break;
-    case 4: pgPara->IOPara.Out_drain_open=16;
-    break;
-    case 5: pgPara->IOPara.Out_drain_open=17;
-    break;
-    case 6: pgPara->IOPara.Out_drain_open=24;
-    break;
-    case 7: pgPara->IOPara.Out_drain_open=25;
-    break;
     default:break;
     }
     //关排水口
@@ -504,14 +489,6 @@ void frmconfig::on_btn_SaveIo_clicked()
     break;
     case 3: pgPara->IOPara.Out_drain_close=9;
     break;
-    case 4: pgPara->IOPara.Out_drain_close=16;
-    break;
-    case 5: pgPara->IOPara.Out_drain_close=17;
-    break;
-    case 6: pgPara->IOPara.Out_drain_close=24;
-    break;
-    case 7: pgPara->IOPara.Out_drain_close=25;
-    break;
     default:break;
     }
     //排水口总开关
@@ -523,14 +500,6 @@ void frmconfig::on_btn_SaveIo_clicked()
     case 2: pgPara->IOPara.Out_drain_common=8;
     break;
     case 3: pgPara->IOPara.Out_drain_common=9;
-    break;
-    case 4: pgPara->IOPara.Out_drain_common=16;
-    break;
-    case 5: pgPara->IOPara.Out_drain_common=17;
-    break;
-    case 6: pgPara->IOPara.Out_drain_common=24;
-    break;
-    case 7: pgPara->IOPara.Out_drain_common=25;
     break;
     default:break;
     }
@@ -547,18 +516,6 @@ void frmconfig::on_btn_SaveIo_clicked()
     case 4: pgPara->IOPara.In_power=14;
     break;
     case 5: pgPara->IOPara.In_power=15;
-    break;
-    case 6: pgPara->IOPara.In_power=18;
-    break;
-    case 7: pgPara->IOPara.In_power=19;
-    break;
-    case 8: pgPara->IOPara.In_power=20;
-    break;
-    case 9: pgPara->IOPara.In_power=21;
-    break;
-    case 10: pgPara->IOPara.In_power=22;
-    break;
-    case 11: pgPara->IOPara.In_power=23;
     break;
     default:break;
     }

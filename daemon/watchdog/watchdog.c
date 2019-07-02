@@ -53,11 +53,11 @@ static ProgInfo defaultprogs[]={{0,"dataproc",0},{0,"interface",0},{0,"up_main",
 int gPrintLevel = 5;
 static int watchdog_fd = 0;
 
-static void pabort(const char *s)
+/*static void pabort(const char *s)
 {
     perror(s);
     abort();
-}
+}*/
 
 int main(int argc, char *argv[], char *env[]){
 	pid_t parent_pid;
@@ -89,7 +89,7 @@ int main(int argc, char *argv[], char *env[]){
 	KillProgs();
 
     /*int event_fd;
-    event_fd = open("/dev/mouse0", O_RDWR);
+    event_fd = open("/dev/event0", O_RDWR);
     if (event_fd < 0)
         pabort("can't open /dev/event0");
 	fd_set rd;

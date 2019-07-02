@@ -9,7 +9,7 @@ public:
     static int DeskWidth;               //桌面宽度
     static int DeskHeigth;              //桌面高度
 
-    static int UserType;                //用户类型       1:企业用户      2：管理员 3：超级用户
+    static int UserType;                //用户类型       1:企业用户      2：运维员 3：管理用户
     static QString UserName;                //用户名
 
     static QString SoftTitle ;          //软件标题

@@ -102,7 +102,7 @@ QTableView{
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="currentIndex">
-     <number>6</number>
+     <number>8</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="gbox_general">
@@ -2539,36 +2539,6 @@ QTableView{
           <string>S_IN6</string>
          </property>
         </item>
-        <item>
-         <property name="text">
-          <string>S_IN7</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_IN8</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_IN9</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_IN10</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_IN11</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_IN12</string>
-         </property>
-        </item>
        </widget>
       </widget>
       <widget class="QGroupBox" name="group_out">
@@ -2644,26 +2614,6 @@ QTableView{
           <string>S_OUT4</string>
          </property>
         </item>
-        <item>
-         <property name="text">
-          <string>S_OUT5</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT6</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT7</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT8</string>
-         </property>
-        </item>
        </widget>
        <widget class="QLabel" name="label_66">
         <property name="geometry">
@@ -2691,7 +2641,7 @@ QTableView{
          </rect>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <item>
          <property name="text">
@@ -2711,26 +2661,6 @@ QTableView{
         <item>
          <property name="text">
           <string>S_OUT4</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT5</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT6</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT7</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT8</string>
          </property>
         </item>
        </widget>
@@ -2744,7 +2674,7 @@ QTableView{
          </rect>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <item>
          <property name="text">
@@ -2764,26 +2694,6 @@ QTableView{
         <item>
          <property name="text">
           <string>S_OUT4</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT5</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT6</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT7</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>S_OUT8</string>
          </property>
         </item>
        </widget>
