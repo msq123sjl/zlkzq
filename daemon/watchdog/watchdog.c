@@ -195,7 +195,7 @@ void CheckProgs(){
 		if(progs[i].pid>0)continue;
         sprintf(cmd,"%s/%s",FS_NAME_PROGDIR,progs[i].Name);
 		progs[i].runTimes++;
-		DEBUG_PRINT_ERR(gPrintLevel,"[Watchdog] now %ldth start %s.\r\n",progs[i].runTimes,progs[i].Name);
+		DEBUG_PRINT_ERR(gPrintLevel,"Watchdog now %ldth start %s.\r\n",progs[i].runTimes,progs[i].Name);
 		if(!(progs[i].pid=fork())){
             if(0 != strncmp(progs[i].Name,"interface",strlen("interface"))){
                 execvp(cmd,0);
@@ -299,13 +299,13 @@ void ReliableSleep(unsigned long howlong){
 
 		if(timereliable){
 			if((count>=howlong)&&((newtime-oldtime)>=howlong)){
-				DEBUG_PRINT_INFO(gPrintLevel,"[Watchdog] Reliable Sleep back from 1: count=%ld,howlong=%ld,delt=%ld\r\n",count,howlong,(unsigned long)(newtime-oldtime));
+				DEBUG_PRINT_INFO(gPrintLevel,"Reliable Sleep back from 1: count=%ld,howlong=%ld,delt=%ld\r\n",count,howlong,(unsigned long)(newtime-oldtime));
 				break;
 			}
 		}
 		else{
 			if(count>=howlong){
-				DEBUG_PRINT_INFO(gPrintLevel,"[Watchdog] Reliable Sleep back from 2: count=%ld,howlong=%ld\r\n",count,howlong);		
+				DEBUG_PRINT_INFO(gPrintLevel,"Reliable Sleep back from 2: count=%ld,howlong=%ld\r\n",count,howlong);		
 				break;
 			}
 		}
@@ -403,10 +403,10 @@ void CheckZombieProc(){
 		//system("ps \n");
 		
 	if(zombieCount>=2||pppdcount>=9){
-		DEBUG_PRINT_ERR(gPrintLevel,"[Watchdog] zombiecount=%d, pppdcount=%d\n",zombieCount,pppdcount);
+		DEBUG_PRINT_ERR(gPrintLevel,"zombiecount=%d, pppdcount=%d\n",zombieCount,pppdcount);
 		reb_count++;
 		if(reb_count>20){
-			DEBUG_PRINT_ERR(gPrintLevel,"[Watchdog] Found too more zombie or stopped,Now system reboot!!!.\r\n");
+			DEBUG_PRINT_ERR(gPrintLevel,"Found too more zombie or stopped,Now system reboot!!!.\r\n");
 			rebootflag=1;
 			system("reboot -n -d -i\n");
 			}
@@ -431,7 +431,7 @@ void ReadWatchProgs(){
 		if(getconfigstring("WatchProgs",nodename,strValue,32,filename)==CFG_FILE_NOERROR&&strlen(strValue)>0){
 			memcpy(progs[nCount].Name,strValue,32);
 			progs[nCount].Name[32]=0;
-			DEBUG_PRINT_INFO(gPrintLevel,"[Watchdog] will watch program%d %s.\r\n",nCount,progs[nCount].Name);
+			DEBUG_PRINT_INFO(gPrintLevel,"Watchdog will watch program%d %s.\r\n",nCount,progs[nCount].Name);
 			nCount++;
 		}
 	}

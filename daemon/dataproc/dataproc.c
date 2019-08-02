@@ -18,13 +18,14 @@
 
 #include "dataproc.h"
 
+//stPollutantRtdData  RtdData;
 pstPara 		pgPara;
+//pstPollutantData pgPollutantData;
 pstData pgData;
 pstHistoryData pgHistoryData;
 struct _msg *pmsg_upproc[SITE_SEND_CNT];
 struct _msg *pmsg_interface;
-struct _msg *pmsg_dataproc_to_upproc;
-char         code[POLLUTANT_CNT][7]={"a01001","a01002","a01006","a01007","a01008","a34001","a50001"};
+char         code[POLLUTANT_CNT][4]={"BO1","011","001"};
 
 
 int 			gPrintLevel = 5;
@@ -34,18 +35,71 @@ void _proj_init(void)__attribute__((constructor));
 void _proj_uninit(void)__attribute__((destructor));
 
 void _proj_init(void){
-	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] start!!!\n");
+	DEBUG_PRINT_INFO(gPrintLevel, "start!!!\n");
 }
 void _proj_uninit(void)
 {
-	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] stop!!!\n");
+	DEBUG_PRINT_INFO(gPrintLevel, "stop!!!\n");
 }
+
+/*static void rtd_data_init(){
+	int iLoop;
+	for(iLoop = 0; iLoop < METER_CNT; iLoop++){
+		Meter[iLoop].RtdData.flag 	= 0;
+		Meter[iLoop].RtdData.Rtd 	= 0;
+		Meter[iLoop].RtdData.total 	= 0;
+	}
+}
+
+static void min_data_init(){
+	int iLoop;
+	for(iLoop = 0; iLoop < METER_CNT; iLoop++){
+		Meter[iLoop].MinData.CNT	= 0;
+		Meter[iLoop].MinData.RtdMax	= 0;
+		Meter[iLoop].MinData.RtdMin = -1;
+		Meter[iLoop].MinData.RtdSum = 0;
+		Meter[iLoop].MinData.totalStart = Meter[iLoop].MinData.totalEnd;
+	}
+}
+
+static void hour_data_init(){
+	int iLoop;
+	for(iLoop = 0; iLoop < METER_CNT; iLoop++){
+		Meter[iLoop].HourData.CNT		= 0;
+		Meter[iLoop].HourData.RtdMax	= 0;
+		Meter[iLoop].HourData.RtdMin 	= -1;
+		Meter[iLoop].HourData.RtdSum 	= 0;
+		Meter[iLoop].HourData.totalStart = Meter[iLoop].HourData.totalEnd;
+	}
+}
+
+static void day_data_init(){
+	int iLoop;
+	for(iLoop = 0; iLoop < METER_CNT; iLoop++){
+		Meter[iLoop].DayData.CNT	= 0;
+		Meter[iLoop].DayData.RtdMax	= 0;
+		Meter[iLoop].DayData.RtdMin = -1;
+		Meter[iLoop].DayData.RtdSum = 0;
+		Meter[iLoop].DayData.totalStart = Meter[iLoop].DayData.totalEnd;
+	}
+}
+
+static void meter_data_init(){
+	int iLoop;
+	for(iLoop = 0; iLoop < METER_CNT; iLoop++){
+		Meter[iLoop].para = (pstMeterPara)&pgPara->MeterPara[iLoop];
+	}
+	rtd_data_init();
+	min_data_init();
+	hour_data_init();
+	day_data_init();
+}*/
 
 static void MessageInit(){
     int iLoop;
     for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
         if(iLoop == SITE_CNT || pgPara->SitePara[iLoop].ServerOpen){
-        	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] pmsg_upproc_%d start\n",iLoop);
+        	DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d start\n",iLoop);
         	pmsg_upproc[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
         	memset(pmsg_upproc[iLoop],0,sizeof(struct _msg));
         	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
@@ -53,78 +107,148 @@ static void MessageInit(){
         	}
         }
     }
+}
+
+static void pollutant_data_proc_rtd(pstPollutantRtdData  pRtdData){
+	char 	TableName[TABLE_NAME_LEN];
+	char 	sql[SQL_LEN];
+	int		iLoop;
+    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
+    for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
+        
+    	if(pRtdData->Row[iLoop].rtd >= 0){
+
+    		snprintf(TableName,sizeof(TableName)-1,"Rtd_%s_%-4.4s%-2.2s",code[iLoop],\
+    											&pRtdData->DataTime[0], &pRtdData->DataTime[4]);
+    		if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+                RtdTableCreate(&scy_data,TableName);
+            }
+    		
+    		snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s%-2.2s%-2.2s%-2.2s\',%4.2f,%8.2f);",TableName,\
+    									&pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
+    									&pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
+    									pRtdData->Row[iLoop].rtd,
+    									pRtdData->Row[iLoop].cou);
+            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
+            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
+    		tinz_db_exec(&scy_data,sql);
+    		DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+    	} 
+    }
+}
+
+static void pollutant_data_proc_day(pstPollutantRtdData  pRtdData){
+    char    TableName[TABLE_NAME_LEN];
+    char 	sql[SQL_LEN];
+    int     iLoop;
+    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
+    for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
+        
+        if(pRtdData->Row[iLoop].day >= 0){
     
-    DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] pmsg_dataproc_to_upproc start\n");
-    pmsg_dataproc_to_upproc = (struct _msg*)malloc(sizeof(struct _msg));
-    memset(pmsg_dataproc_to_upproc,0,sizeof(struct _msg));
-    if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_DATAPROC_TO_UPPROC, MSG_ID_DATAPROC_TO_UPPROC, pmsg_dataproc_to_upproc)){
-    	exit(0);
+            snprintf(TableName,sizeof(TableName)-1,"Day_%s",code[iLoop]);
+            if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+                CountDataTableCreate(&scy_data,TableName);
+            }
+            snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%-2.2s%-2.2s000000\',%8.2f,%8.2f);",TableName,\
+                                        &pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
+                                        pRtdData->Row[iLoop].day,
+                                        pRtdData->Row[iLoop].cou);
+            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
+            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
+            tinz_db_exec(&scy_data,sql);
+            DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+        } 
     }
+}
+
+static void pollutant_data_proc_month(pstPollutantRtdData  pRtdData){
+    char    TableName[TABLE_NAME_LEN];
+    char 	sql[SQL_LEN];
+    int     iLoop;
+    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
+    for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
+        
+        if(pRtdData->Row[iLoop].mon >= 0){
     
-}
-
-static void pollutant_mins_data_insert(pstPollutantData pData){
-	char 	TableName[TABLE_NAME_LEN];
-	char 	sql[SQL_LEN];
-	int		iLoop;
-    struct tm *info;
-    info = localtime(&pData->seconds);
-    for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
-
-        snprintf(TableName,sizeof(TableName)-1,"Mins_%s_%04d%02d",code[iLoop],\
-        									info->tm_year + 1900, info->tm_mon + 1);
-        if(TINZ_OK != TableIsExist(&scy_data,TableName)){
-            DustDataTableCreate(&scy_data,TableName);
-        }
-        
-        snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%04d%02d%02d%02d%02d\',%4.2f);",TableName,\
-        							info->tm_year+1900, info->tm_mon+1,info->tm_mday,info->tm_hour,info->tm_min,\
-        							(float)double_div_uint(pData->Row[iLoop].Sum,pData->Row[iLoop].CNT));
-        tinz_db_exec(&scy_data,sql);
-        DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] sql:%s\n",sql);
+            snprintf(TableName,sizeof(TableName)-1,"Mon_%s",code[iLoop]);
+            if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+                CountDataTableCreate(&scy_data,TableName);
+            }
+            snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%-2.2s01000000\',%8.2f,%8.2f);",TableName,\
+                                        &pRtdData->DataTime[0], &pRtdData->DataTime[4],\
+                                        pRtdData->Row[iLoop].mon,
+                                        pRtdData->Row[iLoop].cou);
+            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
+            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
+            tinz_db_exec(&scy_data,sql);
+            DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+        } 
     }
 }
 
-static void pollutant_hour_data_insert(pstPollutantData pData){
-	char 	TableName[TABLE_NAME_LEN];
-	char 	sql[SQL_LEN];
-	int		iLoop;
-    struct tm *info;
-    info = localtime(&pData->seconds);
+static void pollutant_data_proc_qut(pstPollutantRtdData  pRtdData){
+    char    TableName[TABLE_NAME_LEN];
+    char 	sql[SQL_LEN];
+    int     iLoop;
+    uint8_t res = 0;
+    uint8_t month = 0;
+    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
     for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
-
-        snprintf(TableName,sizeof(TableName)-1,"Hour_%s",code[iLoop]);
-        if(TINZ_OK != TableIsExist(&scy_data,TableName)){
-            DustDataTableCreate(&scy_data,TableName);
-        }
         
-        snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%04d%02d%02d%02d\',%4.2f);",TableName,\
-        							info->tm_year+1900, info->tm_mon+1,info->tm_mday,info->tm_hour,\
-        							(float)double_div_uint(pData->Row[iLoop].Sum,pData->Row[iLoop].CNT));
-        tinz_db_exec(&scy_data,sql);
-        DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] sql:%s\n",sql);
+        if(pRtdData->Row[iLoop].qut >= 0){
+            res = (uint8_t)ngx_atoi((u_char*)&pRtdData->DataTime[4], 2);
+            if(TINZ_ERROR != (month = month_to_qut(res))){
+               
+                snprintf(TableName,sizeof(TableName)-1,"Qut_%s",code[iLoop]);
+                if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+                    CountDataTableCreate(&scy_data,TableName);
+                }
+                snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s%.2d01000000\',%8.2f,%8.2f);",TableName,\
+                                            &pRtdData->DataTime[0], month,\
+                                            pRtdData->Row[iLoop].qut,
+                                            pRtdData->Row[iLoop].cou);
+                //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
+                //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
+                tinz_db_exec(&scy_data,sql);
+                DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+            }else{
+                DEBUG_PRINT_INFO(gPrintLevel, "month_to_qut[%s] err\n",pRtdData->DataTime);
+            }
+        } 
     }
 }
 
-static void pollutant_day_data_insert(pstPollutantData  pData){
-	char 	TableName[TABLE_NAME_LEN];
-	char 	sql[SQL_LEN];
-	int		iLoop;
-    struct tm *info;
-    info = localtime(&pData->seconds);
+static void pollutant_data_proc_year(pstPollutantRtdData  pRtdData){
+    char    TableName[TABLE_NAME_LEN];
+    char 	sql[SQL_LEN];
+    int     iLoop;
+    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
     for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
-
-        snprintf(TableName,sizeof(TableName)-1,"Day_%s",code[iLoop]);
-        if(TINZ_OK != TableIsExist(&scy_data,TableName)){
-            DustDataTableCreate(&scy_data,TableName);
-        }
         
-        snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%04d%02d%02d\',%4.2f);",TableName,\
-        							info->tm_year+1900, info->tm_mon+1,info->tm_mday,\
-        							(float)double_div_uint(pData->Row[iLoop].Sum,pData->Row[iLoop].CNT));
-        tinz_db_exec(&scy_data,sql);
-        DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] sql:%s\n",sql);
+        if(pRtdData->Row[iLoop].year >= 0){
+    
+            snprintf(TableName,sizeof(TableName)-1,"Year_%s",code[iLoop]);
+            if(TINZ_OK != TableIsExist(&scy_data,TableName)){
+                CountDataTableCreate(&scy_data,TableName);
+            }
+            snprintf(sql,sizeof(sql),"insert or replace into %s values (\'%-4.4s0101000000\',%8.2f,%8.2f);",TableName,\
+                                        &pRtdData->DataTime[0],\
+                                        pRtdData->Row[iLoop].year,
+                                        pRtdData->Row[iLoop].cou);
+            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
+            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
+            tinz_db_exec(&scy_data,sql);
+            DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+        } 
     }
+}
+static void pollutant_data_proc(pstPollutantRtdData  pRtdData){
+    pollutant_data_proc_rtd(pRtdData);
+    pollutant_data_proc_day(pRtdData);
+    pollutant_data_proc_month(pRtdData);
+    pollutant_data_proc_qut(pRtdData);
+    pollutant_data_proc_year(pRtdData);
 }
 
 static void UpmainMessageSend(pstMessageData pmsgData){
@@ -147,7 +271,7 @@ static void UpmainMessageSend(pstMessageData pmsgData){
                                 pmsgData->IsRespond[2],\
                                 pmsgData->IsRespond[3]);
     tinz_db_exec(&scy_data,sql);
-    DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] sql:%s\n",sql);
+    DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
 }
 
 static void InsertEventData(pstEvent pEvent){
@@ -162,17 +286,21 @@ static void InsertEventData(pstEvent pEvent){
                                 pEvent->DataTime,\
                                 pEvent->Info);
     tinz_db_exec(&scy_data,sql);
-    DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] sql:%s\n",sql);
+    DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
 }
 
 
 static void MessageRecvProc(struct _msg* msg){
-    //pstPollutantRtdData  pRtdData;
+    pstPollutantRtdData  pRtdData;
     pstMessageData pmsgData;
     pstEvent pEvent;
     if(msg->msgbuf.mtype > 0){
-        DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] msg recvtype[%ld]\n",msg->msgbuf.mtype);
+        DEBUG_PRINT_INFO(gPrintLevel, "msg recvtype[%ld]\n",msg->msgbuf.mtype);
         switch(msg->msgbuf.mtype){
+            case MSG_SQLITE_RTD_TYTE:
+                pRtdData = (pstPollutantRtdData)msg->msgbuf.data;
+                pollutant_data_proc(pRtdData);
+                break;
             case MSG_SQLITE_SEND_TYTE:
                 pmsgData = (pstMessageData)msg->msgbuf.data;
                 UpmainMessageSend(pmsgData);
@@ -182,7 +310,7 @@ static void MessageRecvProc(struct _msg* msg){
                 InsertEventData(pEvent);
                 break;
             default:
-                DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] msg recvtype[%ld] not recognize [%-20.20s]\n",msg->msgbuf.mtype,msg->msgbuf.data);
+                DEBUG_PRINT_INFO(gPrintLevel, "msg recvtype[%ld] not recognize [%-20.20s]\n",msg->msgbuf.mtype,msg->msgbuf.data);
         }
     }
 
@@ -209,7 +337,7 @@ void tinz_select_historydata_db_table_cb(tinz_db_ctx_t* ctx){
         gettime = sqlite3_column_text(ctx->stat, 0);
         pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data = sqlite3_column_double(ctx->stat, 1);
         snprintf(pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].DataTime,DATATIME_LEN,"%s",gettime);
-        DEBUG_PRINT_INFO(5, "[dataproc] gettime[%s],data[%f]\n",gettime,pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data);
+        DEBUG_PRINT_INFO(5, "gettime[%s],data[%f]\n",gettime,pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data);
         pgHistoryData->Pollutant.cnt++;
     }
 }
@@ -217,7 +345,7 @@ void tinz_select_historydata_db_table_cb(tinz_db_ctx_t* ctx){
 //数据表查询
 void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx))
 {
-    DEBUG_PRINT_ERR(5, "[dataproc] sql: %s\n",sql);
+    DEBUG_PRINT_ERR(5, "sql: %s\n",sql);
 	if(SQLITE_OK != sqlite3_prepare(ctx->db, sql, -1, &ctx->stat, 0)){
         return;
     }
@@ -230,7 +358,7 @@ void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx)
     float max,min,avg,cou;
 	char sql[SQL_LEN];
 	snprintf(sql,sizeof(sql)-1,"select * from %s;",tableName);
-    DEBUG_PRINT_ERR(5, "[dataproc] sql: %s\n",sql);
+    DEBUG_PRINT_ERR(5, "sql: %s\n",sql);
 	if(SQLITE_OK != sqlite3_prepare(ctx->db, sql, -1, &ctx->stat, 0)){
         return;
     }
@@ -240,7 +368,7 @@ void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx)
         min = sqlite3_column_double(ctx->stat, 2);
         avg = sqlite3_column_double(ctx->stat, 3);
         cou = sqlite3_column_double(ctx->stat, 4);
-        DEBUG_PRINT_ERR(5, "[dataproc] gettime: %s,max:%f,min:%f,avg:%f,cou:%f\n",gettime,max,min,avg,cou);
+        DEBUG_PRINT_ERR(5, "gettime: %s,max:%f,min:%f,avg:%f,cou:%f\n",gettime,max,min,avg,cou);
     }
     sqlite3_finalize(ctx->stat);
 }*/
@@ -251,15 +379,21 @@ void history_data_query(){
         uint8_t PollutantType = pgHistoryData->Pollutant.PollutantType%POLLUTANT_CNT;
         switch (pgHistoryData->Pollutant.DataType)
         {
-            case 3: //5分钟
-                snprintf(TableName,sizeof(TableName),"Mins_%s_%-4.4s%-2.2s",code[PollutantType],\
+            case 1: //实时
+                snprintf(TableName,sizeof(TableName),"Rtd_%-3.3s_%-4.4s%-2.2s",code[PollutantType],\
                              &pgHistoryData->Pollutant.StartDataTime[0],&pgHistoryData->Pollutant.StartDataTime[4]);
                 break;
-            case 4: //小时
-                snprintf(TableName,sizeof(TableName),"Hour_%s",code[PollutantType]);
+            case 2: //天
+                snprintf(TableName,sizeof(TableName),"Day_%-3.3s",code[PollutantType]);
                 break;
-            case 5: //天 
-                snprintf(TableName,sizeof(TableName),"Day_%s",code[PollutantType]);
+            case 3: //月 
+                snprintf(TableName,sizeof(TableName),"Mon_%-3.3s",code[PollutantType]);
+                break;
+            case 4: //季度
+                snprintf(TableName,sizeof(TableName),"Qut_%-3.3s",code[PollutantType]);
+                break;
+            case 5: //年
+                snprintf(TableName,sizeof(TableName),"Year_%-3.3s",code[PollutantType]);
                 break;
             default:   
                 DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] PollutantType wrong\n");
@@ -275,116 +409,30 @@ void history_data_query(){
     }
 }
 
-static void pollutant_data_handle(pstPollutantData data,pstPollutantRtdData rtddata){
-    int iLoop;
-    for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
-        if(1 == rtddata->Row[iLoop].flag){
-            data->Row[iLoop].Max = (data->Row[iLoop].Max > rtddata->Row[iLoop].rtd) ? data->Row[iLoop].Max : rtddata->Row[iLoop].rtd;
-            data->Row[iLoop].Min = (data->Row[iLoop].Min < rtddata->Row[iLoop].rtd) ? data->Row[iLoop].Min : rtddata->Row[iLoop].rtd;
-            data->Row[iLoop].Sum += rtddata->Row[iLoop].rtd;
-            data->Row[iLoop].CNT++;
-        }
-    }
-}
-static void pollutant_rtd_calc_proc(time_t second,pstPollutantRtdData rtddata,long int mtype){
-    rtddata->seconds = second;
-    pollutant_data_handle(&pgData->PollutantsData.PerMinData,rtddata);
-    pollutant_data_handle(&pgData->PollutantsData.MinsData,rtddata);
-    pollutant_data_handle(&pgData->PollutantsData.HourData,rtddata);
-    pollutant_data_handle(&pgData->PollutantsData.DayData,rtddata); 
-    MsgSend(pmsg_dataproc_to_upproc,mtype,(char*)&pgData->PollutantsData.RtdData,(int)sizeof(stPollutantRtdData));
-    memset(&pgData->PollutantsData.RtdData,0,sizeof(stPollutantRtdData));
-}
-
-static void pollutant_data_calc_proc(time_t second,pstPollutantData data,long int mtype){
-    data->seconds = second;
-    MsgSend(pmsg_dataproc_to_upproc,mtype,(char*)data,(int)sizeof(stPollutantData));
-    //5分钟 小时 天数据入库
-    switch(mtype){
-        case MSG_POLLUTANT_MINS_TYTE:
-            pollutant_mins_data_insert(data);
-            break;
-        case MSG_POLLUTANT_HOUR_TYTE:
-            pollutant_hour_data_insert(data);
-            break;
-        case MSG_POLLUTANT_DAY_TYTE:
-            pollutant_day_data_insert(data);
-            break;
-        default:
-            break;
-    }
-    memset(data,0,sizeof(stPollutantData));   
-}
-
-
-static void dataproc_thread(){
-    time_t seconds,rtd_second,permin_second,mins_second,hour_second,day_second;
-    do{
-        seconds = time(NULL);
-        usleep(100000);
-    }while(seconds%60);   //整分钟开始
-
-    rtd_second      = seconds;
-    permin_second   = seconds - seconds%60;
-    mins_second     = seconds - seconds%300;
-    hour_second     = seconds - seconds%3600;
-    day_second      = seconds - seconds%86400;
-
-    while(1){
-        if(rtd_second/30 < seconds/30){
-            rtd_second = seconds - seconds%30;
-            pollutant_rtd_calc_proc(rtd_second,&pgData->PollutantsData.RtdData,MSG_POLLUTANT_RTD_TYTE);
-        }
-        if(permin_second/60 < seconds/60){
-            pollutant_data_calc_proc(permin_second,&pgData->PollutantsData.PerMinData,MSG_POLLUTANT_PERMIN_TYTE);
-            permin_second = seconds - seconds%60;
-        }
-        if(mins_second/300 < seconds/300){
-            pollutant_data_calc_proc(mins_second,&pgData->PollutantsData.MinsData,MSG_POLLUTANT_MINS_TYTE);
-            mins_second = seconds - seconds%300;
-        }
-        if(hour_second/3600 < seconds/3600){
-            pollutant_data_calc_proc(hour_second,&pgData->PollutantsData.HourData,MSG_POLLUTANT_HOUR_TYTE);
-            hour_second = seconds - seconds%3600;
-        }
-        if(day_second/86400 < seconds/86400){
-            pollutant_data_calc_proc(day_second,&pgData->PollutantsData.DayData,MSG_POLLUTANT_DAY_TYTE);
-            day_second = seconds - seconds%86400;
-        }
-        sleep(1);
-        seconds = time(NULL);
-    }
-    
-}
-
 int main(int argc, char* argv[])
 {	
-    pthread_t   thread_id;
-    /*共享内存*/
-	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] getParaShm start\n");
+	/*共享内存*/
+	DEBUG_PRINT_INFO(gPrintLevel, "getParaShm start\n");
 	pgPara = (pstPara)getParaShm();
+    pgPara->GeneralPara.AlarmTime = 60;
     pgData = (pstData)getDataShm();
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     initHistoryDataShm();
-
+    //DEBUG_PRINT_INFO(gPrintLevel, "getPollutantDataShm start\n");
+    //pgPollutantData = (pstPollutantData)getPollutantDataShm();
 	/*消息队列*/
     MessageInit();
     pmsg_interface = InterfaceMessageInit(pmsg_interface);
 	/*数据库*/
-	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] open [%s]\n",SCY_DATA);
+	DEBUG_PRINT_INFO(gPrintLevel, "open [%s]\n",SCY_DATA);
 	snprintf(scy_data.name,sizeof(scy_data.name)-1,SCY_DATA);
 	if(TINZ_ERROR == tinz_db_open(&scy_data)){
 		exit(0);	
 	}
+    //sqlite3_select(&scy_data, "Mins_w09008");
 	/*数据初始化*/
-	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] data init\n");
+	DEBUG_PRINT_INFO(gPrintLevel, "data init\n");
 	//meter_data_init();
-	
-	/*创建数据处理线程*/
-    if(pthread_create(&thread_id,NULL,(void *)(&dataproc_thread),NULL) == -1)
-	{
-		DEBUG_PRINT_INFO(gPrintLevel,"[dataproc] dataproc_thread create error!\n");
-	}
    	while(1){
         
 		/**/

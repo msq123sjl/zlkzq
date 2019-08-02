@@ -11,6 +11,7 @@
 //#define 	MAX_QT_HOST_COUNT	1
 typedef struct _UpMain{
 	
+	QtTcpClientDev 	Qtchannes;
 	TcpClientDev 	channes[SITE_CNT];
 	/*unsigned char*  tmpsendbuf1;
 	unsigned char*  tmpsendbuf2;

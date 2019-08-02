@@ -2,7 +2,7 @@
 #define FRMCONFIG_H
 
 #include <QWidget>
-#include <QStandardItemModel>
+//#include <QStandardItemModel>
 
 namespace Ui {
 class frmconfig;
@@ -75,18 +75,15 @@ private:
     void InitStyle();
     void InitForm();
 
-    //QStringList TempUserName;   //用户姓名链表
-    //QStringList TempUserInfo;      //用户信息链表
-    QStandardItemModel  *paraInfoModel;
+    QStringList TempUserName;   //用户姓名链表
+    QStringList TempUserInfo;      //用户信息链表
+    //QStandardItemModel  *paraInfoModel;
 
     void ReadUserInfo();
     bool AddUserIsLegal();
     bool AddParaIsLegal();
     void InitParaInfoModel();
     void ReadParaInfo();
-    void ReadProtolInfo();
-    void ReadUnitInfo();
-    void ReadPollutantNameInfo();
 protected:
     void mouseReleaseEvent(QMouseEvent*);
 };

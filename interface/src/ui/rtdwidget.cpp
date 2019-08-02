@@ -24,6 +24,8 @@ extern "C"{
 }
 extern pstPara pgPara;
 extern pstData pgData;
+extern pstValveControl pgValveControl;
+extern pstPollutantData pgPollutantData;
 extern pstPollutantPara pgPollutantPara;
 
 QStandardItemModel  *model_rtd;
@@ -57,10 +59,10 @@ void Rtdwidget::InitRtdTable()
     model_rtd->setColumnCount(3);
     model_rtd->setHeaderData( 0,Qt::Horizontal,QString::fromLocal8Bit("因子"));
     model_rtd->setHeaderData( 1,Qt::Horizontal,QString::fromLocal8Bit("实时值"));
-    model_rtd->setHeaderData( 2,Qt::Horizontal,QString::fromLocal8Bit("标记"));
-    columnWidths[0]=140;
-    columnWidths[1]=200;
-    columnWidths[2]=100;
+    model_rtd->setHeaderData( 2,Qt::Horizontal,QString::fromLocal8Bit("累计值"));
+    columnWidths[0]=100;
+    columnWidths[1]=160;
+    columnWidths[2]=180;
     ui->tableView->setModel(model_rtd);
     //表头信息显示居中
     ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
@@ -87,13 +89,16 @@ void Rtdwidget::InitRtdTable()
     ui->tableView->verticalHeader()->setStyleSheet("QHeaderView::section{background:skyblue}");
 
     //ui->tableView->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);//垂直滚动条按项移动
-    for(iLoop = 0; iLoop<METER_CNT; iLoop++){
-        if(pgPara->MeterPara[iLoop].isValid){
-            model_rtd->setItem(iLoop,0,new QStandardItem(QString((char*)pgPara->MeterPara[iLoop].Name)));
-            model_rtd->setItem(iLoop,1,new QStandardItem(QString("--")));
-            model_rtd->setItem(iLoop,2,new QStandardItem(QString("--")));
-        }
-    }
+    
+    model_rtd->setItem(0,0,new QStandardItem(QString("污水")));
+    model_rtd->setItem(0,1,new QStandardItem(QString("--")));
+    model_rtd->setItem(0,2,new QStandardItem(QString("--")));
+    model_rtd->setItem(1,0,new QStandardItem(QString("COD")));
+    model_rtd->setItem(1,1,new QStandardItem(QString("--")));
+    model_rtd->setItem(1,2,new QStandardItem(QString("--")));
+    model_rtd->setItem(2,0,new QStandardItem(QString("PH")));
+    model_rtd->setItem(2,1,new QStandardItem(QString("--")));
+    model_rtd->setItem(2,2,new QStandardItem(QString("--")));
     for(iLoop=0;iLoop<model_rtd->rowCount();iLoop++){
         for(jLoop=0;jLoop<model_rtd->columnCount();jLoop++){
             model_rtd->item(iLoop,jLoop)->setTextAlignment(Qt::AlignCenter);
@@ -127,23 +132,18 @@ void Rtdwidget::slotShowCurrentData()
 {
     static int lab_index =0;
     static int site_number = -1;
-    int iLoop;
-    uint8_t sep;
-    pstMeterPara pMPara = NULL;
-    pstPollutantRtdData pRtdData = &pgData->PollutantsData.RtdData;
-    for(iLoop = 0; iLoop<METER_CNT; iLoop++){
-        pMPara = &pgPara->MeterPara[iLoop];
-        sep = pMPara->PollutantSeq%POLLUTANT_CNT;
-        if(pMPara->isValid){
-            model_rtd->setData(model_rtd->index(iLoop, 1), QString("%1 %2").arg(QString::number(pRtdData->Row[sep].rtd,'f',pMPara->Decimals)).arg(QString((char*)pMPara->Unit)));
-            model_rtd->setData(model_rtd->index(iLoop, 2), (1 == pRtdData->Row[sep].flag) ? "N" : "D");    
-        }
-    }
+    model_rtd->setData(model_rtd->index(0, 1), QString("%1 L/s").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].rtd,'f',1)));
+    model_rtd->setData(model_rtd->index(0, 2), QString("%1 L").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)));
     
-    qDebug()<<QString("pRtdData->seconds:%1").arg(pRtdData->seconds);
+    model_rtd->setData(model_rtd->index(1, 1), QString("%1 mg/m³").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].rtd,'f',0)));
+    model_rtd->setData(model_rtd->index(1, 2), QString("%1 mg").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].cou,'f',0)));
+    
+    model_rtd->setData(model_rtd->index(2, 1), QString("%1").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',0)));
+    //qDebug()<<QString("DataTime:%1").arg(pgPollutantData->RtdData.DataTime);
+    snprintf(pgPollutantData->RtdData.DataTime,sizeof(pgPollutantData->RtdData.DataTime),"20190701111233");
     switch(lab_index){
         case 0:
-            //pgData->state.ValveState == 0 ? ui->lab_top->setText(QString("阀门开度：%1").arg(pgValveControl->per)):ui->lab_top->setText("阀门故障");
+            pgData->state.ValveState == 0 ? ui->lab_top->setText(QString("阀门开度：%1").arg(pgValveControl->per)):ui->lab_top->setText("阀门故障");
             if(QY_USER ==  Myapp::UserType){
                 ui->lab_bottom->setText("企业人员登陆");
             }else if(GLY_USER ==  Myapp::UserType){
@@ -159,7 +159,7 @@ void Rtdwidget::slotShowCurrentData()
             pgPara->Mode == 0 ? ui->lab_bottom->setText("远程模式"):ui->lab_bottom->setText("运维模式");
             break;
         default:
-            ui->lab_top->setText("数据更新时间：\n" + QDateTime::fromTime_t(pRtdData->seconds).toString("yyyy-MM-dd hh:mm"));
+            ui->lab_top->setText("数据更新时间：\n" + QDateTime::fromString (QString(pgPollutantData->RtdData.DataTime),"yyyyMMddhhmmss").toString("yyyy-MM-dd hh:mm"));
             ui->lab_bottom->setText("当前时间：\n" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"));
     }
     for(int iLoop = 0;iLoop < SITE_CNT ; iLoop++){

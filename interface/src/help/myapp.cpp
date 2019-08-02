@@ -177,4 +177,3 @@ void Myapp::WriteLocalNet()
  }
  writeFile.close();
 }
-

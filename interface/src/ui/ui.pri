@@ -1,5 +1,9 @@
 FORMS   +=\
     $$PWD/rtdwidget.ui \
+    $$PWD/flowrtdwidget.ui \
+    $$PWD/codrtdwidget.ui \
+    $$PWD/phrtdwidget.ui \
+    $$PWD/valvewidget.ui \
     $$PWD/statisticwidget.ui \
     $$PWD/modelchoosewidget.ui \
     $$PWD/frminput.ui \
@@ -10,6 +14,10 @@ FORMS   +=\
     
 HEADERS +=\
     $$PWD/rtdwidget.h \
+    $$PWD/flowrtdwidget.h \
+    $$PWD/codrtdwidget.h \
+    $$PWD/phrtdwidget.h \
+    $$PWD/valvewidget.h   \
     $$PWD/statisticwidget.h \
     $$PWD/modelchoosewidget.h \
     $$PWD/frmconfig.h \
@@ -20,6 +28,10 @@ HEADERS +=\
 
 SOURCES +=\
     $$PWD/rtdwidget.cpp \
+    $$PWD/flowrtdwidget.cpp \
+    $$PWD/codrtdwidget.cpp \
+    $$PWD/phrtdwidget.cpp \
+    $$PWD/valvewidget.cpp \
     $$PWD/statisticwidget.cpp \
     $$PWD/modelchoosewidget.cpp \
     $$PWD/frmconfig.cpp \

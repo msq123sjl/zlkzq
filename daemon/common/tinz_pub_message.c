@@ -70,15 +70,13 @@ int MsgSend(struct _msg* msg,long int mtype,char *data,int len){
 	return state;
 }
 
-int MsgRcv(struct _msg* msg, long int mtype){
+void MsgRcv(struct _msg* msg, long int mtype){
 	/*读取消息*/
 	memset(&msg->msgbuf,0,sizeof(struct _msgbuf));
 	if(msgrcv(msg->msgid,(void *)&msg->msgbuf,sizeof(msg->msgbuf.data),mtype,MSG_NOERROR|IPC_NOWAIT)==0)
 	{
 		DEBUG_PRINT_ERR(5,"msgrcv[%d] failed\n",msg->msgid);
-        return TINZ_ERROR;
 	}
-    return TINZ_OK;
 }
 
 void rmMsg(struct _msg* msg){

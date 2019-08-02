@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file>images/title.png</file>
         <file>images/css/style.css</file>
         <file>images/tool/setting_normal.png</file>
         <file>images/tool/home_normal.png</file>
@@ -8,6 +9,19 @@
         <file>images/midwidget/Parlor.png</file>
         <file>images/midwidget/Safety.png</file>
         <file>images/close.png</file>
+        <file>images/add-line_horizontal.png</file>
+        <file>images/add-line_vertical.png</file>
+        <file>images/array_down.png</file>
+        <file>images/sub-line_horizontal.png</file>
+        <file>images/sub-line_vertical.png</file>
+        <file>images/fontawesome-webfont.ttf</file>
+        <file>images/message/cancel.png</file>
+        <file>images/message/cancel_hover.png</file>
+        <file>images/message/cancel_pressed.png</file>
+        <file>images/message/close.png</file>
+        <file>images/message/close_hover.png</file>
+        <file>images/message/close_pressed.png</file>
+        <file>images/message/error.png</file>
         <file>images/message/info.png</file>
         <file>images/message/ok.png</file>
         <file>images/message/question.png</file>
@@ -38,9 +52,7 @@
         <file>images/main.png</file>
         <file>images/取消.png</file>
         <file>images/登录.png</file>
-        <file>images/login.png</file>
-        <file>images/title.png</file>
         <file>images/登录背景.bmp</file>
-        <file>images/fontawesome-webfont.ttf</file>
+        <file>images/login.png</file>
     </qresource>
 </RCC>

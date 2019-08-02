@@ -9,28 +9,20 @@
 #include "tinz_base_def.h"
 
 typedef struct _PollutantRtdDataRow{
-
-    uint8_t flag;  // 1 有效
-    float   rtd;
+    
+    float rtd;
+    float day;
+    float mon;
+    float qut;
+    float year;
+    float cou;
 }stPollutantRtdDataRow,*pstPollutantRtdDataRow;
 
 typedef struct _PollutantRtdData{
-    time_t                  seconds;
+    
     stPollutantRtdDataRow   Row[POLLUTANT_CNT];
+    char                    DataTime[DATATIME_LEN];
 }stPollutantRtdData,*pstPollutantRtdData;
-
-typedef struct _PollutantDataRow{
-
-	uint16_t	CNT;
-	float		Max;
-	float		Min;
-	double		Sum;
-}stPollutantDataRow,*pstPollutantDataRow;
-
-typedef struct _PollutantData{
-    time_t              seconds;
-    stPollutantDataRow  Row[POLLUTANT_CNT];
-}stPollutantData,*pstPollutantData;
 
 typedef struct _PollutantHistoryDataRow{
     
@@ -40,7 +32,7 @@ typedef struct _PollutantHistoryDataRow{
 
 typedef struct _PollutantHistoryData{
     uint8_t flag;       //0:无动作 1：请求数据 2：数据已写入
-    uint8_t DataType;  //0：无数据 1：实时数据 2：1分钟 3：5分钟 4：小时 5：天数据 
+    uint8_t DataType;  //0：无数据 1：实时数据 2：天数据 3：月数据 4：季度数据 5 年数据 
     uint8_t PollutantType; //0:流量 1:COD 2:PH
     uint8_t cnt;       //查询到的数据条数
     char  StartDataTime[DATATIME_LEN];
@@ -78,14 +70,11 @@ typedef struct _Meter
 	stMeterData 	DayData;
 }stMeter,*pstMeter;
 
-typedef struct _PollutantSData{
+typedef struct _PollutantData{
     
     stPollutantRtdData  RtdData;
-    stPollutantData     PerMinData;
-    stPollutantData     MinsData;
-    stPollutantData     HourData;
-    stPollutantData     DayData;
-}stPollutantsData,*pstPollutantsData;
+    
+}stPollutantData,*pstPollutantData;
 
 typedef struct _State
 {
@@ -102,7 +91,6 @@ typedef struct _Data
     stState state;
     stIOState IOState;
     float current_Ia[AD_CNT]; //模拟通道采样电流值 单位mA
-    stPollutantsData PollutantsData;
 }stData,*pstData;
 
 typedef struct _MessageData

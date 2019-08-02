@@ -2,7 +2,7 @@ TOPDIR  := $(shell cd ..; pwd)
 include $(TOPDIR)/Rules.make
 
 
-OBJS = up_main.o tcp_client.o protocl_private_dust.o
+OBJS = up_main.o tcp_client.o protocl_gb212.o
 
 
 all: $(OBJS)

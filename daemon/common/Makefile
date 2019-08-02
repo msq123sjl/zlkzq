@@ -4,7 +4,7 @@ OBJS = tinz_pub_serial.o tinz_common_helper.o tinz_pub_shm.o tinz_pub_message.o 
  
 all: $(OBJS)
 	$(CC) -o $(LIBDIR)/libcommon.so $(OBJS) -L$(LIBDIR) -fPIC -shared -lsqlite3 -lm 
-	cp -rf  $(LIBDIR)/libcommon.so $(BINDIR)/
+	cp -rf  $(LIBDIR)/libcommon.so $(BINDIR)
 
 clean:
 	rm -f *.o $(LIBDIR)/libcommon.so  *~ core

@@ -124,17 +124,27 @@ QTabBar::tab{height:10}</string>
                <widget class="QComboBox" name="comboBox_data_type">
                 <item>
                  <property name="text">
-                  <string>分钟数据</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>小时数据</string>
+                  <string>实时数据</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
                   <string>天数据</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>月数据</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>季度数据</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>年数据</string>
                  </property>
                 </item>
                </widget>
@@ -154,37 +164,17 @@ QTabBar::tab{height:10}</string>
                <widget class="QComboBox" name="comboBox_pollutant_type">
                 <item>
                  <property name="text">
-                  <string>温度</string>
+                  <string>流量</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
-                  <string>湿度</string>
+                  <string>COD</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
-                  <string>气压</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>风速</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>风向</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>颗粒物</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>噪声</string>
+                  <string>PH</string>
                  </property>
                 </item>
                </widget>

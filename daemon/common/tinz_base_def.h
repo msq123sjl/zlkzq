@@ -16,18 +16,14 @@
 
 #define TINZ_ERROR -1
 #define TINZ_OK		1
-#define TINZ_BUSY   2
-
 
 #define MN_LEN 15
 #define PW_LEN 7
 
 
 #define METER_NAME_LEN  20
-#define CODE_LEN        7
+#define CODE_LEN        6
 #define UNIT_LEN        6
-#define SIGNAL_LEN      7
-
 
 //#define USER_NAME_LEN   10
 #define USER_PWD_LEN    20
@@ -35,7 +31,7 @@
 #define UART_DEVNAME_LEN 12
 
 #define METER_CNT   32
-#define SERIAL_CNT  5
+#define SERIAL_CNT  6
 #define SITE_CNT    4
 #define SITE_SEND_CNT    (SITE_CNT + 1)
 #define USER_CNT    3
@@ -47,7 +43,7 @@
 #define SYSTEMTIME_LEN     15
 #define DATATIME_LEN     15
 
-#define POLLUTANT_CNT     7
+#define POLLUTANT_CNT     3
 #define POLLUTANT_FLOW_INDEX     0
 #define POLLUTANT_COD_INDEX     1
 #define POLLUTANT_PH_INDEX     2
@@ -81,12 +77,9 @@
 #define BCD2BIN(val) (((val)&15) + ((val)>>4)*10)
 
 typedef struct _PollutantParaRow{
-    uint8_t     DataFlag[2];   // 数据是否有效 1 有效
-    uint8_t     DataType;   //时间类型 1：白天 2 夜间
-    //uint8_t     SiteType;   //工地类型 1：第一类工地 2：第二类工地
-    uint16_t    BeginTime;  //白天起始时间  
-    uint16_t    EndTime;    //白天结束时间
-    float       Thd[2];    //报警阀值
+    uint32_t MonAll;
+    uint32_t QutAll;
+    uint32_t YeaAll;
 }stPollutantParaRow,*pstPollutantParaRow;
 
 typedef struct _PollutantPara{
@@ -111,25 +104,27 @@ typedef struct _GeneralPara
 
 typedef struct _MeterPara
 {
-    uint8_t		isValid;   //0 未占有 1 占用
-    char		Name[METER_NAME_LEN];       //因子名称  , 如电导率
-    char  	Code[CODE_LEN];             //上报代码      w01014
-    char  	Unit[UNIT_LEN];             //单位，如m3/h
-    uint8_t   	UseChannel;                 //通道号
-    uint8_t   	UseChannelType; //通道类型  1:串口 2:模拟
+    uint8_t		isValid;
+    u_char		Name[METER_NAME_LEN];       //因子名称  , 如电导率
+    u_char  	Code[CODE_LEN];             //上报代码      w01014
+    u_char  	Unit[UNIT_LEN];             //单位，如m3/h
+    uint8_t   	UseChannel:6;                 //通道号
+    uint8_t   	UseChannelType:2; //通道类型  1:串口 2:模拟
     uint8_t   	Address;            //设备地址
     uint8_t   	Protocol;           //协议号
-    char   	Signal[SIGNAL_LEN]; //接入信号，AD 模拟电压转实际值所用
+    uint8_t   	Signal;             //接入信号，AD 模拟电压转实际值所用
     float   	RangeUp;            //量程上限
     float   	RangeLow;           //量程下限
     float   	AlarmUp;            //报警上限
     float   	AlarmLow;           //报警下限
-    uint8_t   	MaxFlag;          //最大值标志
-    uint8_t   	MinFlag;          //最小值标志
-    uint8_t   	AvgFlag;          //平均值标志
-    uint8_t   	CouFlag;          //累积值标志
-    uint8_t   	Decimals;         //小数位数 
-    uint8_t     PollutantSeq;
+    uint8_t   	MaxFlag:1;          //最大值标志
+    uint8_t   	MinFlag:1;          //最小值标志
+    uint8_t   	AvgFlag:1;          //平均值标志
+    uint8_t   	CouFlag:1;          //累积值标志
+    uint8_t   	Decimals:4;         //小数位数 
+    char		flag;
+    float		Rtd;
+	double		total;
 }stMeterPara,*pstMeterPara;
 
 typedef struct _SerialPara
@@ -187,7 +182,7 @@ typedef struct _Para
 {
     uint8_t               Mode;             //0:远程模式   1:运维模式
     stGeneralPara   GeneralPara; 
-    stMeterPara     MeterPara[METER_CNT];
+    //stMeterPara     MeterPara[METER_CNT];
     stSerialPara    SerialPara[SERIAL_CNT];
     stIOPara        IOPara;
     stSitePara      SitePara[SITE_CNT]; 

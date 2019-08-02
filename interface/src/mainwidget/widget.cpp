@@ -20,7 +20,11 @@ Description:总量控制器--主界面功能的实现
 
 #include "frmlogin.h"
 #include "frmconfig.h"
-#include "rtdwidget.h"              //实时数据
+#include "rtdwidget.h"          //实时数据
+#include "flowrtdwidget.h"          //流量
+#include "codrtdwidget.h"          //COD
+#include "phrtdwidget.h"          //PH
+#include "valvewidget.h"          //阀门
 #include "statisticwidget.h"        //统计界面
 #include "modelchoosewidget.h"      //模式选择控制界面
 #include "adcalibrationwidget.h"          //AD校准
@@ -83,12 +87,18 @@ void Widget::initForm()
     setToolButtonStyle(ui->tbnHome,"首页",E_NORMAL,":/images/tool/home_normal.png");
     setStyleSheet(QLatin1String("QToolButton{border:0px;}"));
     //中间部分的样式
+    setToolButtonStyle(ui->tbnFlow,"流量",E_BIG,":/images/midwidget/Bedroom.png");
+    setToolButtonStyle(ui->tbnCOD,"COD",E_BIG,":/images/midwidget/Parlor.png");
+    setToolButtonStyle(ui->tbnPH,"PH",E_BIG,":/images/midwidget/kitchen.png");
+    setToolButtonStyle(ui->tbnSafety,"NULL",E_BIG,":/images/midwidget/Safety.png");
     setToolButtonStyle(ui->tbnAD,"AD校准",E_BIG,":/images/midwidget/Bedroom.png");
     setToolButtonStyle(ui->tbnDA,"DA校准",E_BIG,":/images/midwidget/Parlor.png");
     setToolButtonStyle(ui->tbnValveControl,"阀门",E_BIG,":/images/midwidget/kitchen.png");
     //底部菜单的样式
     setToolButtonStyle(ui->tbnRtd,"实时",E_NORMAL,
                        ":/images/bottom/control.png");
+    setToolButtonStyle(ui->tbnPolluter,"排量",E_NORMAL,
+                       ":/images/bottom/video.png");
     setToolButtonStyle(ui->tbnStatistic,"统计",E_NORMAL,
                        ":/images/bottom/statistics.png");    
     setToolButtonStyle(ui->tbnCalibration,"校准",E_NORMAL,
@@ -106,8 +116,6 @@ void Widget::initForm()
     ui->tbnMusic->setVisible(false);
     ui->tbnCurtain->setVisible(false);
     ui->tbnNight->setVisible(false); */
-    ui->tbnValveControl->setVisible(false);
-    ui->tbnPolluter->setVisible(false);
     ui->tbnNull->setVisible(false);
     ui->tbnSafety->setVisible(false);
 }
@@ -115,6 +123,10 @@ void Widget::initForm()
 void Widget::initWidget()
 {
     m_rtdWidget = new Rtdwidget;              //实时数据
+    m_flowrtdWidget = new FlowRtdwidget;              //流量
+    m_codrtdWidget = new CODRtdwidget;              //COD
+    m_phrtdWidget = new PHRtdwidget;              //PH
+    m_valveWidget = new ValveWidget;              //阀门
     m_statisticWidget = new StatisticWidget;          //统计
     m_modelWidget = new ModelChooseWidget;            //模式控制界面
     m_adcalibrationWidget = new AdCalibrationWidget;              //AD校准
@@ -123,6 +135,10 @@ void Widget::initWidget()
     //ui->tbnSetting->setMenu(m_menuWidget);
 
     ui->stackedWidget->addWidget(m_rtdWidget);
+    ui->stackedWidget->addWidget(m_flowrtdWidget);
+    ui->stackedWidget->addWidget(m_codrtdWidget);
+    ui->stackedWidget->addWidget(m_phrtdWidget);
+    ui->stackedWidget->addWidget(m_valveWidget);
     ui->stackedWidget->addWidget(m_statisticWidget);
     ui->stackedWidget->addWidget(m_modelWidget);
     ui->stackedWidget->addWidget(m_adcalibrationWidget);
@@ -163,7 +179,23 @@ void Widget::deletWidget()
         delete m_rtdWidget;
         m_rtdWidget = NULL;
     }
+    if (m_flowrtdWidget != NULL){
+        delete m_flowrtdWidget;
+        m_flowrtdWidget = NULL;
+    }
+    if (m_codrtdWidget != NULL){
+        delete m_codrtdWidget;
+        m_codrtdWidget = NULL;
+    }
+    if (m_phrtdWidget != NULL){
+        delete m_phrtdWidget;
+        m_phrtdWidget = NULL;
+    }
 
+    if (m_valveWidget != NULL){
+        delete m_valveWidget;
+        m_valveWidget = NULL;
+    }
     if (m_statisticWidget != NULL){
         delete m_statisticWidget;
         m_statisticWidget = NULL;
@@ -306,6 +338,21 @@ void Widget::on_tbnNull_clicked()
     this->setCurrentWidget(E_RTD_WIDGET);
 }
 
+void Widget::on_tbnFlow_clicked()
+{
+    this->setCurrentWidget(E_FLOW_WIDGET);
+}
+
+void Widget::on_tbnCOD_clicked()
+{
+    this->setCurrentWidget(E_COD_WIDGET);
+}
+
+void Widget::on_tbnPH_clicked()
+{
+    this->setCurrentWidget(E_PH_WIDGET);
+}
+
 void Widget::on_tbnSafety_clicked()
 {
     this->setCurrentWidget(E_RTD_WIDGET);
@@ -334,6 +381,11 @@ void Widget::on_tbnDA_clicked()
 void Widget::on_tbnAD_clicked()
 {
     this->setCurrentWidget(E_AD_WIDGET);
+}
+
+void Widget::on_tbnValveControl_clicked()
+{
+    this->setCurrentWidget(E_VALVE_WIDGET);
 }
 
 void Widget::mousePressEvent(QMouseEvent *e)
