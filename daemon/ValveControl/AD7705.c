@@ -54,7 +54,7 @@ int spi_read_ad(int io_fd, int spi_fd,uint8_t channel, uint16_t *pad_value){
             break;
         }
         if(30 == iLoop){
-            DEBUG_PRINT_INFO(gPrintLevel, "AD read timeout\n");
+            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] AD read timeout\n");
             return TINZ_ERROR;
         }
         usleep(10000);

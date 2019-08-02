@@ -6,10 +6,6 @@ class QToolButton;
 
 class frmconfig;
 class Rtdwidget;
-class FlowRtdwidget;
-class CODRtdwidget;
-class PHRtdwidget;
-class ValveWidget;
 class ModelChooseWidget;
 class StatisticWidget;
 class frmlogin;
@@ -29,10 +25,6 @@ class Widget : public QWidget
         E_HOME_WIDGET,              //首页
         E_CALIBRATION_WIDGET,              //校准
         E_RTD_WIDGET,       //实时数据
-        E_FLOW_WIDGET,           //流量
-        E_COD_WIDGET,             //COD
-        E_PH_WIDGET,              //PH
-        E_VALVE_WIDGET,       //阀门控制
         E_STATISTIC_WIDGET,        //统计
         E_MODEL_WIDGET,        //模式
         E_AD_WIDGET,       //AD校准
@@ -51,8 +43,6 @@ private slots:
     void slotShowCurrentDataTime();//显示当前的日期和时间
     void on_tbnRtd_clicked();
 
-    void on_tbnPolluter_clicked();
-
     void on_tbnStatistic_clicked();
 
     void on_tbnCalibration_clicked();
@@ -63,11 +53,6 @@ private slots:
 
     void on_tbnNull_clicked();
 
-    void on_tbnFlow_clicked();
-
-    void on_tbnCOD_clicked();
-
-    void on_tbnPH_clicked();
 
     void on_tbnSafety_clicked();
 
@@ -79,17 +64,12 @@ private slots:
 
     void on_tbnAD_clicked();
 
-    void on_tbnValveControl_clicked();
-
+    void on_tbnPolluter_clicked();
 private:
     Ui::Widget *ui;
     bool m_isPress;
     frmconfig *m_frmconfig;           //设置界面
     Rtdwidget *m_rtdWidget;                 //流量界面
-    FlowRtdwidget *m_flowrtdWidget;                 //流量界面
-    CODRtdwidget *m_codrtdWidget;                 //COD界面
-    PHRtdwidget *m_phrtdWidget;                 //PH界面
-    ValveWidget *m_valveWidget;                 //阀门界面
     StatisticWidget *m_statisticWidget;             //统计界面
 
     ModelChooseWidget *m_modelWidget;               //模式选择控制界面

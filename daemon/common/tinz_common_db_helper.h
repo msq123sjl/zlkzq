@@ -15,6 +15,7 @@ typedef struct {
 
 int TableIsExist(tinz_db_ctx_t* ctx, char *tableName);
 void RtdTableCreate(tinz_db_ctx_t* ctx, char *tableName);
+void DustDataTableCreate(tinz_db_ctx_t* ctx, char *tableName); //创建扬尘污染物数据表
 void CountDataTableCreate(tinz_db_ctx_t* ctx, char *tableName);
 void MessageSendTableCreate(tinz_db_ctx_t* ctx, char *tableName);
 void EventTableCreate(tinz_db_ctx_t* ctx, char *tableName);

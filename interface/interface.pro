@@ -43,7 +43,7 @@ MOC_DIR = temp/moc
 RCC_DIR = temp/rccr
 OBJECTS_DIR = temp/obj
 UI_HEADERS_DIR = temp/ui
-DESTDIR = $$PWD/../zlkzq/bin
+DESTDIR = $$PWD/../dust/bin
 
 #win32:RC_FILE = SmartHome.rc
 RESOURCES += \

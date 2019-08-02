@@ -102,7 +102,7 @@ QTableView{
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="currentIndex">
-     <number>8</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="gbox_general">
@@ -418,19 +418,6 @@ QTableView{
        <property name="text">
         <string>因子名称：</string>
        </property>
-       <property name="buddy">
-        <cstring>txtparaName</cstring>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="txtparaName">
-       <property name="geometry">
-        <rect>
-         <x>90</x>
-         <y>189</y>
-         <width>121</width>
-         <height>30</height>
-        </rect>
-       </property>
       </widget>
       <widget class="QLabel" name="label_22">
        <property name="geometry">
@@ -600,7 +587,7 @@ QTableView{
         </rect>
        </property>
        <property name="currentIndex">
-        <number>8</number>
+        <number>0</number>
        </property>
        <item>
         <property name="text">
@@ -610,36 +597,6 @@ QTableView{
        <item>
         <property name="text">
          <string>AN1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>AN2</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>AN3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>AN4</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>AN5</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>AN6</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>AN7</string>
         </property>
        </item>
        <item>
@@ -665,11 +622,6 @@ QTableView{
        <item>
         <property name="text">
          <string>COM6</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>COM7</string>
         </property>
        </item>
       </widget>
@@ -714,21 +666,6 @@ QTableView{
        <item>
         <property name="text">
          <string>4-20mA</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>0-20mA</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1-5V</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>0-5V</string>
         </property>
        </item>
       </widget>
@@ -1042,6 +979,16 @@ QTableView{
          <x>310</x>
          <y>270</y>
          <width>141</width>
+         <height>30</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox_paraName">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>190</y>
+         <width>121</width>
          <height>30</height>
         </rect>
        </property>

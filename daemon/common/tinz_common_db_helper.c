@@ -78,6 +78,17 @@ void RtdTableCreate(tinz_db_ctx_t* ctx, char *tableName)
 	tinz_db_exec(ctx,sql);
 }
 
+//创建扬尘污染物数据表
+void DustDataTableCreate(tinz_db_ctx_t* ctx, char *tableName)
+{
+    char sql[SQL_LEN];	
+	snprintf(sql,sizeof(sql)-1,"create table %s(\
+								GetTime DATETIME(20),\
+								Avg NUMERIC(4,2),\
+								primary key (GetTime));",tableName);
+	tinz_db_exec(ctx,sql);
+}
+
 //创建统计数据表
 void CountDataTableCreate(tinz_db_ctx_t* ctx, char *tableName)
 {

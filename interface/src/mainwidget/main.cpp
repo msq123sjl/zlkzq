@@ -45,8 +45,6 @@ extern "C"{
 #include "tinz_pub_message.h"
 }
 pstPara pgPara;
-pstValveControl pgValveControl;
-pstPollutantData pgPollutantData;
 pstPollutantPara pgPollutantPara;
 pstHistoryData pgHistoryData;
 pstData pgData;
@@ -74,10 +72,6 @@ int main(int argc, char *argv[])
     qDebug()<<QString("DeskWidth:%1 DeskHeigth:%2").arg(Myapp::DeskWidth).arg(Myapp::DeskHeigth);
     /********共享内存******************/
     pgPara = (pstPara)getParaShm();
-    qDebug()<<QString("AlarmTime:%1").arg(pgPara->GeneralPara.AlarmTime);
-    pgValveControl = (pstValveControl)getValveParaShm();
-    qDebug()<<QString("per:%1 per_last:%2").arg(pgValveControl->per).arg(pgValveControl->per_last);
-    pgPollutantData = (pstPollutantData)getPollutantDataShm();
     pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     pgData = (pstData)getDataShm();

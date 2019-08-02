@@ -11,6 +11,8 @@
 #include"tinz_base_def.h"
 #include"tinz_base_data.h"
 #include"tinz_common_helper.h"
+//#include "modbus_Master.h"
+
 
 struct SHM_DESC shm_para={-1,0};
 struct SHM_DESC shm_valve_para={-1,0};
@@ -161,10 +163,113 @@ void initParaShm(){
 	para->GeneralPara.StType				= 32;
 	para->GeneralPara.RespondOpen			= 0;
 	/*因子设置*/
-		//默认值是0或空
+    snprintf((char*)para->MeterPara[0].Name,METER_NAME_LEN,"%s","温度");
+    snprintf((char*)para->MeterPara[0].Code,CODE_LEN,"%s","a01001");
+    para->MeterPara[0].RangeUp = 100;
+    para->MeterPara[0].RangeLow= -20;
+    para->MeterPara[0].AlarmUp = 60;
+    para->MeterPara[0].AlarmLow=-10;
+    para->MeterPara[0].UseChannel = 0;
+    para->MeterPara[0].UseChannelType = 3;
+    snprintf((char*)para->MeterPara[0].Signal,SIGNAL_LEN,"%s","");
+    para->MeterPara[0].Protocol = 0;
+    snprintf((char*)para->MeterPara[0].Unit,UNIT_LEN,"%s","℃");
+    para->MeterPara[0].Address = 1;
+    para->MeterPara[0].Decimals = 2;
+	para->MeterPara[0].isValid = 1;
+
+    snprintf((char*)para->MeterPara[1].Name,METER_NAME_LEN,"%s","湿度");
+    snprintf((char*)para->MeterPara[1].Code,CODE_LEN,"%s","a01002");
+    para->MeterPara[1].RangeUp = 100;
+    para->MeterPara[1].RangeLow= 0;
+    para->MeterPara[1].AlarmUp = 100;
+    para->MeterPara[1].AlarmLow= 0;
+    para->MeterPara[1].UseChannel = 0;
+    para->MeterPara[1].UseChannelType = 3;
+    snprintf((char*)para->MeterPara[1].Signal,SIGNAL_LEN,"%s","");
+    para->MeterPara[1].Protocol = 0;
+    snprintf((char*)para->MeterPara[1].Unit,UNIT_LEN,"%s","%");
+    para->MeterPara[1].Address = 1;
+    para->MeterPara[1].Decimals = 2;
+	para->MeterPara[1].isValid = 1;
+
+    snprintf((char*)para->MeterPara[2].Name,METER_NAME_LEN,"%s","气压");
+    snprintf((char*)para->MeterPara[2].Code,CODE_LEN,"%s","a01006");
+    para->MeterPara[2].RangeUp = 2000;
+    para->MeterPara[2].RangeLow= 0;
+    para->MeterPara[2].AlarmUp = 2000;
+    para->MeterPara[2].AlarmLow= 0;
+    para->MeterPara[2].UseChannel = 0;
+    para->MeterPara[2].UseChannelType = 3;
+    snprintf((char*)para->MeterPara[2].Signal,SIGNAL_LEN,"%s","");
+    para->MeterPara[2].Protocol = 0;
+    snprintf((char*)para->MeterPara[2].Unit,UNIT_LEN,"%s","hPa");
+    para->MeterPara[2].Address = 1;
+    para->MeterPara[2].Decimals = 2;
+	para->MeterPara[2].isValid = 1;
+
+    snprintf((char*)para->MeterPara[3].Name,METER_NAME_LEN,"%s","风速");
+    snprintf((char*)para->MeterPara[3].Code,CODE_LEN,"%s","a01007");
+    para->MeterPara[3].RangeUp = 2000;
+    para->MeterPara[3].RangeLow= 0;
+    para->MeterPara[3].AlarmUp = 2000;
+    para->MeterPara[3].AlarmLow= 0;
+    para->MeterPara[3].UseChannel = 2;
+    para->MeterPara[3].UseChannelType = 1;
+    snprintf((char*)para->MeterPara[3].Signal,SIGNAL_LEN,"%s","");
+    para->MeterPara[3].Protocol = 3;
+    snprintf((char*)para->MeterPara[3].Unit,UNIT_LEN,"%s","m/s");
+    para->MeterPara[3].Address = 1;
+    para->MeterPara[3].Decimals = 2;
+	para->MeterPara[3].isValid = 1;
+
+    snprintf((char*)para->MeterPara[4].Name,METER_NAME_LEN,"%s","风向");
+    snprintf((char*)para->MeterPara[4].Code,CODE_LEN,"%s","a01008");
+    para->MeterPara[4].RangeUp = 360;
+    para->MeterPara[4].RangeLow= 0;
+    para->MeterPara[4].AlarmUp = 360;
+    para->MeterPara[4].AlarmLow= 0;
+    para->MeterPara[4].UseChannel = 2;
+    para->MeterPara[4].UseChannelType = 1;
+    snprintf((char*)para->MeterPara[4].Signal,SIGNAL_LEN,"%s","");
+    para->MeterPara[4].Protocol = 2;
+    snprintf((char*)para->MeterPara[4].Unit,UNIT_LEN,"%s","°");
+    para->MeterPara[4].Address = 1;
+    para->MeterPara[4].Decimals = 2;
+	para->MeterPara[4].isValid = 1;
+
+    snprintf((char*)para->MeterPara[5].Name,METER_NAME_LEN,"%s","颗粒物");
+    snprintf((char*)para->MeterPara[5].Code,CODE_LEN,"%s","a34001");
+    para->MeterPara[5].RangeUp = 2000;
+    para->MeterPara[5].RangeLow= 0;
+    para->MeterPara[5].AlarmUp = 2000;
+    para->MeterPara[5].AlarmLow= 0;
+    para->MeterPara[5].UseChannel = 2;
+    para->MeterPara[5].UseChannelType = 1;
+    snprintf((char*)para->MeterPara[5].Signal,SIGNAL_LEN,"%s","");
+    para->MeterPara[5].Protocol = 2;
+    snprintf((char*)para->MeterPara[5].Unit,UNIT_LEN,"%s","ug/m3");
+    para->MeterPara[5].Address = 1;
+    para->MeterPara[5].Decimals = 2;
+	para->MeterPara[5].isValid = 1;
+
+     snprintf((char*)para->MeterPara[6].Name,METER_NAME_LEN,"%s","噪声");
+    snprintf((char*)para->MeterPara[6].Code,CODE_LEN,"%s","a50001");
+    para->MeterPara[6].RangeUp = 2000;
+    para->MeterPara[6].RangeLow= 0;
+    para->MeterPara[6].AlarmUp = 2000;
+    para->MeterPara[6].AlarmLow= 0;
+    para->MeterPara[6].UseChannel = 2;
+    para->MeterPara[6].UseChannelType = 1;
+    snprintf((char*)para->MeterPara[6].Signal,SIGNAL_LEN,"%s","");
+    para->MeterPara[6].Protocol = 2;
+    snprintf((char*)para->MeterPara[6].Unit,UNIT_LEN,"%s","dB");
+    para->MeterPara[6].Address = 1;
+    para->MeterPara[6].Decimals = 2;
+	para->MeterPara[6].isValid = 1;
 	/*串口设置*/
 	for(iLoop=0; iLoop < SERIAL_CNT; iLoop++){
-		snprintf((char*)para->SerialPara[iLoop].DevName, UART_DEVNAME_LEN, "/dev/ttyS%d",iLoop+1);
+		snprintf((char*)para->SerialPara[iLoop].DevName, UART_DEVNAME_LEN, "ttyS%d",iLoop+1);
 		para->SerialPara[iLoop].isServerOpen    = 0;
 		para->SerialPara[iLoop].isRS485			= 0;
 		para->SerialPara[iLoop].BaudRate		= 9600;
@@ -321,9 +426,13 @@ void initPollutantParaShm(){
     int iLoop;
 	pstPollutantPara para=(pstPollutantPara)shm_pollutant_para.shm_mem;
     for(iLoop = 0;iLoop < POLLUTANT_CNT; iLoop++){
-        para->Row[iLoop].MonAll = 1000;
-        para->Row[iLoop].QutAll = 3000;
-        para->Row[iLoop].YeaAll = 12000;
+        para->Row[iLoop].DataFlag[0]    = 0;
+        para->Row[iLoop].DataFlag[1]    = 0;
+        para->Row[iLoop].DataType       = 1;
+        para->Row[iLoop].BeginTime      = 0600;
+        para->Row[iLoop].EndTime        = 2200;
+        para->Row[iLoop].Thd[0]         = 100;
+        para->Row[iLoop].Thd[1]         = 100;
     }
 }
 

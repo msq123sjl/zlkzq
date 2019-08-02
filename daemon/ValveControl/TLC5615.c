@@ -33,7 +33,7 @@ int spi_write_da(int io_fd, int spi_fd, uint16_t da_value)
     da_value = (da_value)<<2;
     GPIO_OutClear(io_fd, SPI_TLC5615_CS);
     if( write(spi_fd, &da_value, 1) != 1){
-        DEBUG_PRINT_INFO(gPrintLevel, "DA Write Error\n");
+        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] DA Write Error\n");
         return TINZ_ERROR;
     }
     GPIO_OutSet(io_fd, SPI_TLC5615_CS);

@@ -109,17 +109,18 @@ void StatisticWidget::ShowData()
         //column = 0;
         QDateTime datatime = QDateTime::fromString(QString(pgHistoryData->Pollutant.Row[iLoop].DataTime),"yyyyMMddhhmmss");
         switch(pgHistoryData->Pollutant.DataType){
-            case 1:
+            case 3:
                 model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM-dd hh:mm")));
                 break;
-            case 2:
-                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM-dd")));
+            case 4:
+                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM-dd hh")));
                 break;
             case 5:
-                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy")));
+                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM-dd")));
                 break;
-        default:
-                model_calibration->setItem(row,0,new QStandardItem(datatime.toString("yyyy-MM")));
+            default:
+                return;
+                
         }
         model_calibration->item(row,0)->setTextAlignment(Qt::AlignCenter);           //设置字符位置
         model_calibration->setItem(row,1,new QStandardItem(QString::number(pgHistoryData->Pollutant.Row[iLoop].data,'f',2)));
@@ -162,24 +163,25 @@ int StatisticWidget::query_term_check()
     switch(index+1){
        case 1:
            res = ui->dateTimeStart->dateTime().secsTo(ui->dateTimeStop->dateTime());
-           if(res > 6 * 60 * 60){
-                myHelper::showMessageBoxInfo(QString("实时数据查询时间范围不能超过6小时"));
+           if(res > 12 * 60 * 60){
+                myHelper::showMessageBoxInfo(QString("分钟数据查询时间范围不能超过12小时"));
                 return TINZ_ERROR;
            }
            break;
        case 2:
+           res = ui->dateTimeStart->dateTime().daysTo(ui->dateTimeStop->dateTime());
+           if(res > 7){
+                myHelper::showMessageBoxInfo(QString("小时数据查询时间范围不能超过7天"));
+                return TINZ_ERROR;
+           }
+           break;
+        case 3:
            res = ui->dateTimeStart->dateTime().daysTo(ui->dateTimeStop->dateTime());
            if(res > 180){
                 myHelper::showMessageBoxInfo(QString("天数据查询时间范围不能超过180天"));
                 return TINZ_ERROR;
            }
            break;
-        case 3:
-            break;
-        case 4:
-            break;
-        case 5:
-            break;
         default:
             return TINZ_ERROR;
     }
@@ -191,7 +193,7 @@ void StatisticWidget::on_pushButton_clicked()
     QString str;
     int iLoop;
     model_calibration->removeRows(0,model_calibration->rowCount()); //清空数据表
-    pgHistoryData->Pollutant.DataType =  ui->comboBox_data_type->currentIndex() + 1;
+    pgHistoryData->Pollutant.DataType =  ui->comboBox_data_type->currentIndex() + 3;
     pgHistoryData->Pollutant.PollutantType = ui->comboBox_pollutant_type->currentIndex();
     str = ui->dateTimeStart->dateTime().toString("yyyyMMddhhmmss");
     myHelper::StringToChar(str,pgHistoryData->Pollutant.StartDataTime,sizeof(pgHistoryData->Pollutant.StartDataTime));
@@ -201,7 +203,7 @@ void StatisticWidget::on_pushButton_clicked()
     pgHistoryData->Pollutant.flag = 1;
     if(TINZ_ERROR != query_term_check()){
         /*等待查询数据*/
-        for(iLoop = 0;iLoop<3;iLoop++){
+        for(iLoop = 0;iLoop<30;iLoop++){
             if(2 == pgHistoryData->Pollutant.flag){break;}
             sleep(1);
         }
@@ -222,21 +224,15 @@ void StatisticWidget::on_comboBox_data_type_currentIndexChanged(int index)
             ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
             break;
         case 2:
-            ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addMonths(-1));
+            ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addDays(-1));
             ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
             break;
          case 3:
-             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addYears(-1));
+             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addMonths(-1));
              ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
              break;
-         case 4:
-             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addYears(-1));
-             ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
-             break;
-         case 5:
-             ui->dateTimeStart->setDateTime(QDateTime::currentDateTime().addYears(-5));
-             ui->dateTimeStop->setDateTime(QDateTime::currentDateTime());
-             break;
+         default:
+            break;
      }
 }
 

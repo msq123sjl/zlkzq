@@ -18,13 +18,13 @@
 
 
 pstPara pgPara;
-pstValveControl pgValveControl;
-pstPollutantData pgPollutantData;
 pstPollutantPara pgPollutantPara;
 pstData pgData;
 
 struct _msg *pmsg_upproc[SITE_SEND_CNT];
 pstMessage pgmsgbuff = NULL;
+struct _msg *pmsg_dataproc_to_upproc;
+
 
 int gPrintLevel = 5;
 UpMain* pserver = NULL;
@@ -33,13 +33,20 @@ static void MessageInit(){
     int iLoop;
     for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
         if(iLoop == SITE_CNT || pgPara->SitePara[iLoop].ServerOpen){
-        	DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d start\n",iLoop);
+        	DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] pmsg_upproc_%d start\n",iLoop);
         	pmsg_upproc[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
         	memset(pmsg_upproc[iLoop],0,sizeof(struct _msg));
         	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
         		exit(0);
         	}
         }
+    }
+
+    DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] pmsg_dataproc_to_upproc start\n");
+    pmsg_dataproc_to_upproc = (struct _msg*)malloc(sizeof(struct _msg));
+    memset(pmsg_dataproc_to_upproc,0,sizeof(struct _msg));
+    if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_DATAPROC_TO_UPPROC, MSG_ID_DATAPROC_TO_UPPROC, pmsg_dataproc_to_upproc)){
+    	exit(0);
     }
 }
 static void wait_for_serveropen_set(){
@@ -60,18 +67,10 @@ int main(int argc, char *argv[])
     pthread_t thread_id_send = 0;
 	//DEBUG_PRINT_INFO(gPrintLevel,"== port = %d\n", atoi(argv[1]));
     pgPara = (pstPara)getParaShm();
-	DEBUG_PRINT_INFO(gPrintLevel,"== AlarmTime = %d\n", pgPara->GeneralPara.AlarmTime);
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getValveParaShm start\n");
-    pgValveControl = (pstValveControl)getValveParaShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantDataShm start\n");
-    pgPollutantData = (pstPollutantData)getPollutantDataShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantDataShm end\n");
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantParaShm start\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] getPollutantParaShm\n");
     pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantParaShm end\n");
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getDataShm start\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] getDataShm\n");
     pgData = (pstData)getDataShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getDataShm end\n");
 
     /*测试临时用*/
     //pgPara->SitePara[0].ServerOpen   = 1;
@@ -80,11 +79,11 @@ int main(int argc, char *argv[])
     wait_for_serveropen_set();
     /*消息队列*/
     MessageInit();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc MessageInit end\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] MessageInit end\n");
 
 	pserver = (UpMain*)malloc(sizeof(UpMain));
 	if(NULL == pgPara || NULL == pserver){
-		DEBUG_PRINT_ERR(gPrintLevel, "[up_main:] getParaShm or malloc fail!!!\n")
+		DEBUG_PRINT_ERR(gPrintLevel, "[up_proc] getParaShm or malloc fail!!!\n")
 		free(pserver);
 		return 0;
 	}
@@ -93,18 +92,7 @@ int main(int argc, char *argv[])
     pgmsgbuff = (pstMessage)malloc(sizeof(stMessage));
     memset(pgmsgbuff,0,sizeof(stMessage));    
 	signal(SIGPIPE, SIG_IGN);
-    //pgPara->SitePara[0].ServerOpen   = 1;
-    //pgPara->SitePara[0].isConnected  = 0;
-    //pgPara->SitePara[0].ServerPort   = atoi(argv[1]);
-    //snprintf((char*)pgPara->SitePara[0].ServerIp,sizeof(pgPara->SitePara[0].ServerIp)-1,"%s","192.168.1.131");
 
-    #if 0
-	qt_tcpclient_open(&pserver->Qtchannes);
-	
-	/*等待socket QT通道接收线程退出*/
-	pthread_join(pserver->Qtchannes.thread_id, NULL);
-	close(pserver->Qtchannes.dev_fd);
-	#endif
     for(iLoop=0; iLoop < SITE_CNT; iLoop++){
 		
 		pserver->channes[iLoop].tcplink = &pgPara->SitePara[iLoop];

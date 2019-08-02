@@ -42,7 +42,7 @@ void frmconfig::InitForm()
     ui->label_43->hide();
     ui->btn_com3ToServerOpen->hide();
 
-    ui->btn_parameter->setEnabled(false);
+    //ui->btn_parameter->setEnabled(false);
     ui->btn_user->setEnabled(false);
     on_btn_general_clicked();
 }
@@ -64,6 +64,11 @@ void frmconfig::on_btn_general_clicked()
 //切换到通道设置界面
 void frmconfig::on_btn_parameter_clicked()
 {
+    this->InitParaInfoModel();
+    this->ReadParaInfo();
+    this->ReadPollutantNameInfo();
+    this->ReadProtolInfo();
+    this->ReadUnitInfo();
     ui->stackedWidget_config->setCurrentIndex(1);
 }
 //切换到串口设置界面
@@ -265,22 +270,86 @@ bool frmconfig::AddUserIsLegal()
  *********************************************/
 void frmconfig::on_btn_addPara_clicked()
 {
+    int iLoop;
+    pstMeterPara pmpara = NULL;
+    if (!AddParaIsLegal())return;
 
+    for(iLoop = 0;iLoop<METER_CNT;iLoop++){
+        pmpara =  &pgPara->MeterPara[iLoop];
+        if(pmpara->isValid){
+            if(iLoop == METER_CNT - 1){
+                myHelper::showMessageBoxError("已达到最大因子数量，无法添加!！!");
+            }
+            continue;
+        }
+        myHelper::StringToChar(ui->comboBox_paraName->currentText(),pmpara->Name,sizeof(pmpara->Name));
+        pmpara->UseChannel = ui->comboBox_channel->currentIndex();
+        if(pmpara->UseChannel < 2){
+            pmpara->UseChannelType = 2;
+        }else{
+            pmpara->UseChannelType = 1;
+        }
+        pmpara->Protocol = ui->comboBox_protocol->currentIndex();
+        pmpara->Address = ui->txtAddress->text().toInt();
+        myHelper::StringToChar(ui->comboBox_signal->isEnabled()?ui->comboBox_signal->currentText():"",pmpara->Signal,sizeof(pmpara->Signal));
+        pmpara->RangeUp = ui->txtrangeup->text().toInt();
+        pmpara->RangeLow=ui->txtrangelow->text().toInt();
+        pmpara->AlarmUp = ui->txtAlarmUp->text().toInt();
+        pmpara->AlarmLow= ui->txtAlarmLow->text().toInt();
+        pmpara->MaxFlag = ui->btn_maxOpen->GetCheck()?1:0;
+        pmpara->MinFlag = ui->btn_minOpen->GetCheck()?1:0;
+        pmpara->AvgFlag = ui->btn_avgOpen->GetCheck()?1:0;
+        pmpara->CouFlag = ui->btn_couOpen->GetCheck()?1:0;
+        pmpara->Decimals = ui->comboBox_decimals->currentText().toInt();
+        myHelper::StringToChar(ui->txtparaCode->text(),pmpara->Code,sizeof(pmpara->Code));
+        myHelper::StringToChar(ui->comboBox_unit->currentText(),pmpara->Unit,sizeof(pmpara->Unit));
+        pmpara->isValid = 1;
+        initParaShm();
+        this->ReadParaInfo();//重新加载列表
+    }  
 }
+
 
 /*********************************************
  *删除因子
  *********************************************/
 void frmconfig::on_btn_deletePara_clicked()
 {
-
+    int row=ui->tableView_ParaInfo->currentIndex().row();
+    QModelIndex index=ui->tableView_ParaInfo->currentIndex();
+    QString TempName=index.sibling(row,0).data().toString();
+    if (myHelper::showMessageBoxQusetion("确定删除吗?")==0){
+        int iLoop;
+        for(iLoop = 0;iLoop<METER_CNT;iLoop++){
+            if(TempName == QString(pgPara->MeterPara[iLoop].Name)){
+                pgPara->MeterPara[iLoop].isValid =0;
+            }
+        }
+        initParaShm();
+        this->ReadParaInfo();//重新加载列表
+    }
 }
+
 
 /*********************************************
  *添加因子检查合法性
  *********************************************/
 bool frmconfig::AddParaIsLegal()
 {
+    if(ui->txtparaCode->text().isEmpty()){
+        myHelper::showMessageBoxError("因子代码不能为空,请重新设置!");
+        return false;
+    }
+
+    if(ui->txtrangeup->text().isEmpty()){
+        myHelper::showMessageBoxError("量程上限不能为空,请重新设置!");
+        return false;
+    }
+
+    if(ui->txtrangelow->text().isEmpty()){
+        myHelper::showMessageBoxError("量程下限不能为空,请重新设置!");
+        return false;
+    }
     return true;
 }
 
@@ -289,16 +358,142 @@ bool frmconfig::AddParaIsLegal()
  *********************************************/
 void frmconfig::InitParaInfoModel()
 {
-
+    paraInfoModel = new QStandardItemModel();
+    paraInfoModel->setColumnCount(16);
+    paraInfoModel->setHeaderData(0,Qt::Horizontal,QString::fromLocal8Bit("监测因子"));
+    paraInfoModel->setHeaderData(1,Qt::Horizontal,QString::fromLocal8Bit("代码"));
+    paraInfoModel->setHeaderData(2,Qt::Horizontal,QString::fromLocal8Bit("单位"));
+    paraInfoModel->setHeaderData(3,Qt::Horizontal,QString::fromLocal8Bit("占用通道"));   
+    paraInfoModel->setHeaderData(4,Qt::Horizontal,QString::fromLocal8Bit("通讯地址"));
+    paraInfoModel->setHeaderData(5,Qt::Horizontal,QString::fromLocal8Bit("通道协议"));
+    paraInfoModel->setHeaderData(6,Qt::Horizontal,QString::fromLocal8Bit("信号范围"));
+    paraInfoModel->setHeaderData(7,Qt::Horizontal,QString::fromLocal8Bit("量程上限"));
+    paraInfoModel->setHeaderData(8,Qt::Horizontal,QString::fromLocal8Bit("量程下限"));
+    paraInfoModel->setHeaderData(9,Qt::Horizontal,QString::fromLocal8Bit("报警上限"));
+    paraInfoModel->setHeaderData(10,Qt::Horizontal,QString::fromLocal8Bit("报警下限"));
+    paraInfoModel->setHeaderData(11,Qt::Horizontal,QString::fromLocal8Bit("最大值"));
+    paraInfoModel->setHeaderData(12,Qt::Horizontal,QString::fromLocal8Bit("最小值"));
+    paraInfoModel->setHeaderData(13,Qt::Horizontal,QString::fromLocal8Bit("平均值"));
+    paraInfoModel->setHeaderData(14,Qt::Horizontal,QString::fromLocal8Bit("累积值"));
+    paraInfoModel->setHeaderData(15,Qt::Horizontal,QString::fromLocal8Bit("小数位"));
+    ui->tableView_ParaInfo->setModel(paraInfoModel);
+    //表头信息显示居中
+    ui->tableView_ParaInfo->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
+    //设置列宽根据内容变化
+    for(int i=0;i<paraInfoModel->columnCount();i++){
+        ui->tableView_ParaInfo->horizontalHeader()->setResizeMode(i,QHeaderView::Interactive);
+        //ui->tableView_ParaInfo->setColumnWidth(i,100);
+    }
+    //点击表头时不对表头光亮
+    ui->tableView_ParaInfo->horizontalHeader()->setHighlightSections(false);
+    //选中模式为单行选中
+    ui->tableView_ParaInfo->setSelectionMode(QAbstractItemView::SingleSelection);
+    //选中整行
+    ui->tableView_ParaInfo->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tableView_ParaInfo->setStyleSheet( "QTableView::item:hover{background-color:rgb(0,200,255,255)}"
+                                                                     "QTableView::item:selected{background-color:#0000FF}");
+    //设置表头背景色
+    ui->tableView_ParaInfo->horizontalHeader()->setStyleSheet("QHeaderView::section{background:skyblue}");
+    ui->tableView_ParaInfo->verticalHeader()->setStyleSheet("QHeaderView::section{background:skyblue}");
 }
+
 
 /*********************************************
  *读取监测污染物信息
  *********************************************/
 void frmconfig::ReadParaInfo()
 {
+    int iLoop,jLoop;
+    int rows = 0;
+    pstMeterPara pMPara = NULL;
+    paraInfoModel->removeRows(0,paraInfoModel->rowCount());
+    for(iLoop=0; iLoop<METER_CNT;iLoop++){
+        pMPara = &pgPara->MeterPara[iLoop];
+        if(pMPara->isValid){
+            paraInfoModel->setItem(rows,0,new QStandardItem(QString(pMPara->Name)));
+            paraInfoModel->setItem(rows,1,new QStandardItem(QString(pMPara->Code)));
+            paraInfoModel->setItem(rows,2,new QStandardItem(QString(pMPara->Unit)));
+            paraInfoModel->setItem(rows,3,new QStandardItem(QString(pMPara->UseChannel)));
+            paraInfoModel->setItem(rows,4,new QStandardItem(QString(pMPara->Address)));
+            paraInfoModel->setItem(rows,5,new QStandardItem(QString(pMPara->Protocol)));
+            paraInfoModel->setItem(rows,6,new QStandardItem(QString(pMPara->Signal)));
+            paraInfoModel->setItem(rows,7,new QStandardItem(QString::number(pMPara->RangeUp,'f',2)));
+            paraInfoModel->setItem(rows,8,new QStandardItem(QString::number(pMPara->RangeLow,'f',2)));
+            paraInfoModel->setItem(rows,9,new QStandardItem(QString::number(pMPara->AlarmUp,'f',2)));
+            paraInfoModel->setItem(rows,10,new QStandardItem(QString::number(pMPara->AlarmLow,'f',2)));
+            paraInfoModel->setItem(rows,11,new QStandardItem(QString(pMPara->MaxFlag)));
+            paraInfoModel->setItem(rows,12,new QStandardItem(QString(pMPara->MinFlag)));
+            paraInfoModel->setItem(rows,13,new QStandardItem(QString(pMPara->AvgFlag)));
+            paraInfoModel->setItem(rows,14,new QStandardItem(QString(pMPara->CouFlag)));
+            paraInfoModel->setItem(rows,15,new QStandardItem(QString(pMPara->Decimals)));
+            
+            for(jLoop=0; jLoop<paraInfoModel->columnCount();jLoop++){
+                paraInfoModel->item(rows,jLoop)->setTextAlignment(Qt::AlignCenter);           //设置字符位置
+                if(rows%2){
+                    paraInfoModel->item(rows,jLoop)->setBackground(QBrush(QColor(0,255,0,80)));
+                }
+            }
+            rows++;
+        }
+    }
+}
+/*********************************************
+ *读取在线仪表协议
+ *********************************************/
+void frmconfig::ReadProtolInfo(){
+    QString strAll;
+    QFile readfile(Myapp::AppPath+"../para/Protol.conf");
+    if(!readfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return;
+    }
+    QTextStream stream(&readfile);
+    strAll=stream.readAll();
+    readfile.close();
+    QStringList strList;
+    strList=strAll.split("\n");
+    for(int iLoop=0;iLoop<strList.count();iLoop++)
+    {
+        ui->comboBox_protocol->addItem(strList.at(iLoop));
+    }
+}
+/*********************************************
+ *读取因子单位
+ *********************************************/
+void frmconfig::ReadUnitInfo(){
+    QString strAll;
+    QFile readfile(Myapp::AppPath+"../para/Unit.conf");
+    if(!readfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return;
+    }
+    QTextStream stream(&readfile);
+    strAll=stream.readAll();
+    readfile.close();
+    QStringList strList;
+    strList=strAll.split("\n");
+    for(int iLoop=0;iLoop<strList.count();iLoop++)
+    {
+        ui->comboBox_unit->addItem(strList.at(iLoop));
+    }
+}
 
-
+/*********************************************
+ *读取因子名称
+ *********************************************/
+void frmconfig::ReadPollutantNameInfo(){
+    QString strAll;
+    QFile readfile(Myapp::AppPath+"../para/PollutantName.conf");
+    if(!readfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return;
+    }
+    QTextStream stream(&readfile);
+    strAll=stream.readAll();
+    readfile.close();
+    QStringList strList;
+    strList=strAll.split("\n");
+    for(int iLoop=0;iLoop<strList.count();iLoop++)
+    {
+        ui->comboBox_paraName->addItem(strList.at(iLoop));
+    }
 }
 
 void frmconfig::on_comboBox_channel_currentIndexChanged(int index)
