@@ -231,3 +231,4 @@ int delete_file(unsigned char *infile)
 	}
 	return -1;
 }
+

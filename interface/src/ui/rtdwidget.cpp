@@ -68,7 +68,7 @@ void Rtdwidget::InitRtdTable()
     ui->tableView->horizontalHeader()->setDefaultAlignment(Qt::AlignHCenter);
     //设置列宽根据内容变化
     for(iLoop=0;iLoop<model_rtd->columnCount();iLoop++){
-        ui->tableView->horizontalHeader()->setResizeMode(iLoop,QHeaderView::Interactive);
+        //ui->tableView->horizontalHeader()->setResizeMode(iLoop,QHeaderView::Interactive);
         ui->tableView->setColumnWidth(iLoop,columnWidths[iLoop]);
     }
     

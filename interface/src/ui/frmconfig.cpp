@@ -527,7 +527,7 @@ void frmconfig::mouseReleaseEvent(QMouseEvent *)
 {
     qDebug()<<QString("frmconfig mouseReleaseEvent");
     if(20 >= blk_time){
-        system("echo 8 > /sys/class/backlight/backlight/brightness");
+        system("echo 7 > /sys/class/backlight/backlight/brightness");
     }
     blk_time = 120;
 }

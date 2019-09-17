@@ -64,13 +64,59 @@ public:
         qApp->installTranslator(translator);
     }
 
+//显示信息框,仅确定按钮
+    /*static void showMessageBoxInfo(QString info)
+    {
+        qDebug()<<QString("AlarmTime:1");
+        QMessageBox msg;
+        //msg.setStyleSheet("font: 12pt '宋体';");
+        msg.setWindowTitle("提示");
+        msg.setText(info);
+        msg.setIcon(QMessageBox::Information);
+        msg.setCursor(QCursor(Qt::PointingHandCursor));
+        msg.addButton("确定",QMessageBox::ActionRole);
+        //msg.setWindowFlags(Qt::FramelessWindowHint);//去掉标题栏
+        msg.exec();
+    }    */
+
+    //显示错误框,仅确定按钮
+    /*static void showMessageBoxError(QString info)
+    {
+        QMessageBox msg;
+        //msg.setStyleSheet("font: 12pt '宋体';");
+        msg.setWindowTitle("错误");
+        msg.setText(info);
+        msg.setIcon(QMessageBox::Critical);
+        msg.setCursor(QCursor(Qt::PointingHandCursor));
+        msg.addButton("确定",QMessageBox::ActionRole);
+        //msg.setWindowFlags(Qt::FramelessWindowHint);//去掉标题栏
+
+        msg.exec();
+    }  */  
+
+    //显示询问框,确定和取消按钮
+   /* static int showMessageBoxQusetion(QString info)
+    {
+        QMessageBox msg;
+        //msg.setStyleSheet("font: 12pt '宋体';");
+        msg.setWindowTitle("询问");
+        msg.setText(info);
+        msg.setIcon(QMessageBox::Question);
+        msg.setCursor(QCursor(Qt::PointingHandCursor));
+        msg.addButton("确定",QMessageBox::ActionRole);
+        msg.addButton("取消",QMessageBox::RejectRole);
+        //msg.setWindowFlags(Qt::FramelessWindowHint);//去掉标题栏
+
+        return msg.exec();
+    }*/
+
     //显示信息框，仅确认按钮
     static void showMessageBoxInfo(const QString &info)
     {
         frmMessageBox *msg = new frmMessageBox;
         msg->SetMessage(info,0);
         msg->exec();
-    }
+    } 
 
     //显示询问框，确认和取消按钮
     static int showMessageBoxQusetion(const QString &info)

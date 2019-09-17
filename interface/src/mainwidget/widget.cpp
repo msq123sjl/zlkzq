@@ -52,7 +52,7 @@ Widget::Widget(QWidget *parent) :
     this->initForm();    
 	this->initWidget();
     this->initToolTip();
-    system("echo 8 > /sys/class/backlight/backlight/brightness");
+    //system("echo 7 > /sys/class/backlight/backlight/brightness");
     weekcn <<"一"<<"二"<<"三"<<"四"<<"五"<<"六"<<"日";
 }
 
@@ -309,6 +309,8 @@ void Widget::on_tbnCalibration_clicked()
     if(Myapp::UserType >= SUPER_USER && 1 == pgPara->Mode){  //运维模式
         this->setCurrentWidget(E_CALIBRATION_WIDGET);
     }else{
+    
+        qDebug()<<QString("AlarmTime:0");
         myHelper::showMessageBoxInfo("请登陆管理账户\n并切换到运维模式");
     }
 }

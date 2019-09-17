@@ -2,6 +2,9 @@
 #define EM335X_GPIO_H
 #include "em335x_drivers.h"
 
+#define    BEEP_CONTROL  GPIO0
+#define    PCIE_ON_OFF   GPIO1
+
 #define    SWITCH_OUT1   GPIO6
 #define    SWITCH_OUT2   GPIO7
 #define    SWITCH_OUT3   GPIO8
@@ -18,8 +21,8 @@
 #define    SWITCH_IN5      GPIO14
 #define    SWITCH_IN6      GPIO15
 //#define    SWITCH_IN7      GPIO18
-//#define    SWITCH_IN8      GPIO19
-//#define    SWITCH_IN9      GPIO20
+#define    RS485_K5      GPIO19
+#define    RS485_K6      GPIO20
 //#define    SWITCH_IN10      GPIO21
 //#define    SWITCH_IN11      GPIO22
 //#define    SWITCH_IN12      GPIO23
@@ -44,6 +47,11 @@ int  GPIO_OutSet(int fd, unsigned int dwSetBits);
 int  GPIO_OutClear(int fd, unsigned int dwClearBits);
 int  GPIO_PinState(int fd, unsigned int* pPinState);
 int GetSwitchStatus(int fd,int ch);
+void EC20_Reset();
+void beep_control(int state);
+
+//int OpenGPIO();
+//void CloseGPIO(int fd);
 
 //int  InitGPIO();
 

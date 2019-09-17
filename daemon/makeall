@@ -1,5 +1,5 @@
 #!/bin/sh
-#source /home/msq/gcc/environment-setup-cortexa7hf-neon-emtronix-linux-gnueabi
+source /home/msq/gcc/environment-setup-cortexa7hf-neon-emtronix-linux-gnueabi
 LIST=" \
 	common dataproc up_proc ValveControl watchdog\
 "

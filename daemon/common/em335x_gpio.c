@@ -76,10 +76,46 @@ int GetSwitchStatus(int fd,int ch)
 {
     unsigned int dwPinState=0xFFFFFFFF;
     GPIO_PinState(fd, &dwPinState); //read states of all bits
-
+    
     return ((dwPinState>>ch)&0x1);
 }
 
+void EC20_Reset(){
+    int fd;
+    fd=open(DEV_GPIO,O_RDWR);
+    GPIO_OutEnable(fd,PCIE_ON_OFF);
+    GPIO_OutClear(fd, PCIE_ON_OFF);
+    sleep(5);
+    GPIO_OutSet(fd, PCIE_ON_OFF);
+    sleep(5);
+    close(fd);
+}
+
+void beep_control(int state){
+    int fd;
+    fd=open(DEV_GPIO,O_RDWR);
+    GPIO_OutEnable(fd,BEEP_CONTROL);
+    if(state){
+        GPIO_OutSet(fd, BEEP_CONTROL);
+    }else{
+        GPIO_OutClear(fd, BEEP_CONTROL);
+    }
+    close(fd);
+}
+
+/*int OpenGPIO(){
+    int fd;
+    fd=open(DEV_GPIO,O_RDWR);
+    DEBUG_PRINT_INFO(gPrintLevel, "[%s] open fd = %d\n", fd);
+    if(fd < 0){
+        return TINZ_ERROR;
+    }
+    return fd;
+}
+
+void CloseGPIO(int fd){
+    close(fd);
+}*/
 
 /*int InitGPIO()
 {
