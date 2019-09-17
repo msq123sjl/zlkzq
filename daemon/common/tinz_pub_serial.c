@@ -213,7 +213,7 @@ int uart_init(pstSerialPara p_para)
 int uart_open(pstSerialPara p_para){
 	
 	DEBUG_PRINT_INFO(5,"UART[%s|%d|%d|%d|%d|%d]",p_para->DevName,p_para->BaudRate,p_para->DataBits,p_para->Parity,p_para->StopBits,p_para->FlowCtrl);
-	if(p_para->DevName[0] != 0){
+	if(p_para->DevName[0] == 0){
 		DEBUG_PRINT_ERR(5,"DevName is NULL");
 		return -1;
 	}
@@ -236,11 +236,11 @@ void uart_write(pstSerialPara p_para, char *sendbuf, size_t len){
    		TCIOFLUSH 清除输入、输出队列
 	*/
     if(!p_para->isRS485){
-        nwrite = write(p_para->Devfd,sendbuf,sizeof(sendbuf));
+        nwrite = write(p_para->Devfd,sendbuf,len);
 		tcdrain(p_para->Devfd);
         //flush(p_para->Devfd);
     }else{
-        nwrite = write(p_para->Devfd,sendbuf,sizeof(sendbuf));
+        nwrite = write(p_para->Devfd,sendbuf,len);
 		tcdrain(p_para->Devfd);
         //flush(p_para->Devfd);
     }

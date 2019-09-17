@@ -79,6 +79,8 @@ typedef struct _PollutantData{
 typedef struct _State
 {
     volatile uint8_t InPower;     //0 市电 1 无市电
+    volatile uint8_t LTE;     //0 链接 1 链接断开 2 SIM卡无 3 模块无响应
+	volatile uint8_t VPN;     //0 链接 1 链接断开
     volatile uint8_t ValveState;  //0 阀门正常 1阀门异常
 }stState,*pstState;
 typedef struct _IOState

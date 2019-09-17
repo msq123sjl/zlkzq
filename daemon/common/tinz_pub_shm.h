@@ -1,6 +1,7 @@
 #ifndef __TINZ_PUB_SHM__
 #define __TINZ_PUB_SHM__
 
+#define FS_NAME_PARA_CONF	"/mnt/nandflash/para/fs_para.conf"
 #define FS_NAME_PARA		"/mnt/nandflash/para/fs_para.dat"
 #define FS_PATH_PARA		"/mnt/nandflash/para/"
 #define SHM_NAME_PARA		"/mnt/nandflash/shm/shm_para"

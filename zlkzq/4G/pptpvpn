@@ -1,0 +1,7 @@
+#nodetach
+pty "pptp 112.25.172.100 --nolaunchpppd"
+name TEST3
+remotename TEST3 
+require-mppe-128
+file /etc/ppp/options.pptp
+ipparam pptpvpn

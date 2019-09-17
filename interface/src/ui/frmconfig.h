@@ -2,7 +2,7 @@
 #define FRMCONFIG_H
 
 #include <QWidget>
-//#include <QStandardItemModel>
+#include <QStandardItemModel>
 
 namespace Ui {
 class frmconfig;
@@ -69,14 +69,16 @@ private slots:
 
     void on_btn_SaveIo_clicked();
 
+    void on_btn_VPN_clicked();
+
 private:
     Ui::frmconfig *ui;
 
     void InitStyle();
     void InitForm();
 
-    QStringList TempUserName;   //用户姓名链表
-    QStringList TempUserInfo;      //用户信息链表
+    //QStringList TempUserName;   //用户姓名链表
+    //QStringList TempUserInfo;      //用户信息链表
     //QStandardItemModel  *paraInfoModel;
 
     void ReadUserInfo();

@@ -8,8 +8,8 @@ QString Myapp::AppPath = "";
 int Myapp::UserType = 0;
 QString Myapp::UserName = "";
 
-int Myapp::DeskWidth = 1024;
-int Myapp::DeskHeigth = 768;
+int Myapp::DeskWidth = 800;
+int Myapp::DeskHeigth = 480;
 //QString Myapp::winPortName = "COM5";                   //Win默认串口号
 //QString Myapp::linuxPortName = "ttyUSB0";               //linux默认串口号
 //int Myapp::baudRate = 9600;
@@ -177,3 +177,4 @@ void Myapp::WriteLocalNet()
  }
  writeFile.close();
 }
+

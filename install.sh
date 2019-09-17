@@ -2,8 +2,8 @@
 MYPATH=$(cd `dirname $0`; pwd)
 cd ${MYPATH}
 
-test -f ./bin.tar.gz && rm ./bin.tar.gz
-tar -zcvf bin.tar.gz ../bin/
+#test -f ./nandflash.tar.gz && rm ./nandflash.tar.gz
+#tar cvzf nandflash.tar.gz /mnt/nandflash/
 
 NAME=zlkzq
 
@@ -30,9 +30,21 @@ for target in $LIST
 	do
 		kill_target ${target}
 	done
-    
-test -f ./${NAME}/bin/libcommon.so && /bin/mv ./${NAME}/bin/libcommon.so /lib/
+
+test -d ./bin || mkdir -p ./bin 
+test -d ./4G || mkdir -p ./4G
+test -d ./para || mkdir -p ./para
+test -d ./msg || mkdir -p ./msg
+test -d ./shm || mkdir -p ./shm
+
+test -f ./${NAME}/*.sh && /bin/mv ./${NAME}/*.sh /mnt/nandflash/
+test -f ./${NAME}/userinfo.txt && /bin/mv ./${NAME}/userinfo.txt /mnt/nandflash/
+/bin/mv ./${NAME}/bin/*.so /lib/
 /bin/mv ./${NAME}/bin/* /mnt/nandflash/bin/
 /bin/mv ./${NAME}/para/* /mnt/nandflash/para/
+/bin/mv ./${NAME}/4G/* /mnt/nandflash/4G/
+
+chmod -R +x /mnt/nandflash/
+/mnt/nandflash/4G/4G_install.sh
 rm -rf ./${NAME}
 reboot

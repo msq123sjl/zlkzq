@@ -144,30 +144,42 @@ void Rtdwidget::slotShowCurrentData()
     switch(lab_index){
         case 0:
             pgData->state.ValveState == 0 ? ui->lab_top->setText(QString("阀门开度：%1").arg(pgValveControl->per)):ui->lab_top->setText("阀门故障");
+            pgData->state.InPower == 0 ? ui->lab_top->setText("市电上电"):ui->lab_top->setText("市电掉电");
             if(QY_USER ==  Myapp::UserType){
-                ui->lab_bottom->setText("企业人员登陆");
+                pgPara->Mode == 0 ? ui->lab_bottom->setText("企业人员登陆 远程模式"):ui->lab_bottom->setText("企业人员登陆 运维模式");
             }else if(GLY_USER ==  Myapp::UserType){
-                ui->lab_bottom->setText("运维人员登陆");
-            }else if(SUPER_USER ==  Myapp::UserType){
-                ui->lab_bottom->setText("管理人员登陆");
-            }else{
-                ui->lab_bottom->setText("未登陆");
+                pgPara->Mode == 0 ? ui->lab_bottom->setText("运维人员登陆 远程模式"):ui->lab_bottom->setText("运维人员登陆 运维模式");
+            }else if(SUPER_USER ==  Myapp::UserType){  
+                pgPara->Mode == 0 ? ui->lab_bottom->setText("管理人员登陆 远程模式"):ui->lab_bottom->setText("管理人员登陆 运维模式");
+            }else{   
+                pgPara->Mode == 0 ? ui->lab_bottom->setText("未登陆 远程模式"):ui->lab_bottom->setText("未登陆 运维模式");
             }
             break;
         case 1:
             pgData->state.InPower == 0 ? ui->lab_top->setText("市电上电"):ui->lab_top->setText("市电掉电");
             pgPara->Mode == 0 ? ui->lab_bottom->setText("远程模式"):ui->lab_bottom->setText("运维模式");
-            break;
-        default:
+            if(0 == pgData->state.LTE){
+                ui->lab_top->setText("4G网络已链接");
+            }else if(1 == pgData->state.LTE){
+                ui->lab_top->setText("4G网络未链接");
+            }else if(2 == pgData->state.LTE){
+                ui->lab_top->setText("未检测到SIM卡");
+            }else{
+                ui->lab_top->setText("4G模块无响应");
+            }
+            pgPara->NetPara.VPNOpen != 0 ? (pgData->state.VPN != 0 ? ui->lab_bottom->setText("VPN未链接"):ui->lab_bottom->setText(QString("VPN已登录\n%1 %2 ").arg(pgPara->NetPara.VPNUserName).arg(pgPara->NetPara.VPNIPIP))):ui->lab_bottom->setText("VPN未开启");
             ui->lab_top->setText("数据更新时间：\n" + QDateTime::fromString (QString(pgPollutantData->RtdData.DataTime),"yyyyMMddhhmmss").toString("yyyy-MM-dd hh:mm"));
             ui->lab_bottom->setText("当前时间：\n" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"));
-    }
+            break;
+        default:
+            ui->lab_bottom->setText(QString("版本：V%1").arg(VERSION));            
+	}
     for(int iLoop = 0;iLoop < SITE_CNT ; iLoop++){
         site_number++;
         site_number %= SITE_CNT;
         if(pgPara->SitePara[site_number].ServerOpen){
-            pgPara->SitePara[site_number].isConnected == 0 ? ui->lab_mid->setText(QString("服务器已断开：\n%1:%2").arg(pgPara->SitePara[site_number].ServerIp).arg(pgPara->SitePara[site_number].ServerPort))\
-                                                                                                 :ui->lab_mid->setText(QString("服务器已链接：\n%1:%2").arg(pgPara->SitePara[site_number].ServerIp).arg(pgPara->SitePara[site_number].ServerPort));
+            pgPara->SitePara[site_number].isConnected == 0 ? ui->lab_mid->setText(QString("中心站点%1已断开：\n%2:%3").arg(site_number).arg(pgPara->SitePara[site_number].ServerIp).arg(pgPara->SitePara[site_number].ServerPort))\
+                                                                                                 :ui->lab_mid->setText(QString("中心站点%1已链接：\n%2:%3").arg(site_number).arg(pgPara->SitePara[site_number].ServerIp).arg(pgPara->SitePara[site_number].ServerPort));
 
             break;
         }
@@ -176,7 +188,7 @@ void Rtdwidget::slotShowCurrentData()
         }
     }
     lab_index++;
-    lab_index %=3;
+    lab_index %=4;
 }
 
 

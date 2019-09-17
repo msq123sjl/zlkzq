@@ -25,6 +25,7 @@ pstData pgData;
 pstHistoryData pgHistoryData;
 struct _msg *pmsg_upproc[SITE_SEND_CNT];
 struct _msg *pmsg_interface;
+struct _msg *pmsg_dataproc_to_upproc;
 char         code[POLLUTANT_CNT][4]={"BO1","011","001"};
 
 
@@ -35,11 +36,11 @@ void _proj_init(void)__attribute__((constructor));
 void _proj_uninit(void)__attribute__((destructor));
 
 void _proj_init(void){
-	DEBUG_PRINT_INFO(gPrintLevel, "start!!!\n");
+	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] start!!!\n");
 }
 void _proj_uninit(void)
 {
-	DEBUG_PRINT_INFO(gPrintLevel, "stop!!!\n");
+	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] stop!!!\n");
 }
 
 /*static void rtd_data_init(){
@@ -99,7 +100,7 @@ static void MessageInit(){
     int iLoop;
     for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
         if(iLoop == SITE_CNT || pgPara->SitePara[iLoop].ServerOpen){
-        	DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d start\n",iLoop);
+        	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] pmsg_upproc_%d start\n",iLoop);
         	pmsg_upproc[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
         	memset(pmsg_upproc[iLoop],0,sizeof(struct _msg));
         	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
@@ -107,6 +108,14 @@ static void MessageInit(){
         	}
         }
     }
+    
+    DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] pmsg_dataproc_to_upproc start\n");
+    pmsg_dataproc_to_upproc = (struct _msg*)malloc(sizeof(struct _msg));
+    memset(pmsg_dataproc_to_upproc,0,sizeof(struct _msg));
+    if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_DATAPROC_TO_UPPROC, MSG_ID_DATAPROC_TO_UPPROC, pmsg_dataproc_to_upproc)){
+    	exit(0);
+    }
+    
 }
 
 static void pollutant_data_proc_rtd(pstPollutantRtdData  pRtdData){
@@ -271,7 +280,7 @@ static void UpmainMessageSend(pstMessageData pmsgData){
                                 pmsgData->IsRespond[2],\
                                 pmsgData->IsRespond[3]);
     tinz_db_exec(&scy_data,sql);
-    DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+    DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] sql:%s\n",sql);
 }
 
 static void InsertEventData(pstEvent pEvent){
@@ -286,7 +295,7 @@ static void InsertEventData(pstEvent pEvent){
                                 pEvent->DataTime,\
                                 pEvent->Info);
     tinz_db_exec(&scy_data,sql);
-    DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
+    DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] sql:%s\n",sql);
 }
 
 
@@ -310,7 +319,7 @@ static void MessageRecvProc(struct _msg* msg){
                 InsertEventData(pEvent);
                 break;
             default:
-                DEBUG_PRINT_INFO(gPrintLevel, "msg recvtype[%ld] not recognize [%-20.20s]\n",msg->msgbuf.mtype,msg->msgbuf.data);
+                DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] msg recvtype[%ld] not recognize [%-20.20s]\n",msg->msgbuf.mtype,msg->msgbuf.data);
         }
     }
 
@@ -337,7 +346,7 @@ void tinz_select_historydata_db_table_cb(tinz_db_ctx_t* ctx){
         gettime = sqlite3_column_text(ctx->stat, 0);
         pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data = sqlite3_column_double(ctx->stat, 1);
         snprintf(pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].DataTime,DATATIME_LEN,"%s",gettime);
-        DEBUG_PRINT_INFO(5, "gettime[%s],data[%f]\n",gettime,pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data);
+        DEBUG_PRINT_INFO(5, "[dataproc] gettime[%s],data[%f]\n",gettime,pgHistoryData->Pollutant.Row[pgHistoryData->Pollutant.cnt].data);
         pgHistoryData->Pollutant.cnt++;
     }
 }
@@ -345,7 +354,7 @@ void tinz_select_historydata_db_table_cb(tinz_db_ctx_t* ctx){
 //数据表查询
 void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx))
 {
-    DEBUG_PRINT_ERR(5, "sql: %s\n",sql);
+    DEBUG_PRINT_ERR(5, "[dataproc] sql: %s\n",sql);
 	if(SQLITE_OK != sqlite3_prepare(ctx->db, sql, -1, &ctx->stat, 0)){
         return;
     }
@@ -358,7 +367,7 @@ void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx)
     float max,min,avg,cou;
 	char sql[SQL_LEN];
 	snprintf(sql,sizeof(sql)-1,"select * from %s;",tableName);
-    DEBUG_PRINT_ERR(5, "sql: %s\n",sql);
+    DEBUG_PRINT_ERR(5, "[dataproc] sql: %s\n",sql);
 	if(SQLITE_OK != sqlite3_prepare(ctx->db, sql, -1, &ctx->stat, 0)){
         return;
     }
@@ -368,7 +377,7 @@ void sqlite3_select(tinz_db_ctx_t* ctx, char *sql, void(*cb)(tinz_db_ctx_t* ctx)
         min = sqlite3_column_double(ctx->stat, 2);
         avg = sqlite3_column_double(ctx->stat, 3);
         cou = sqlite3_column_double(ctx->stat, 4);
-        DEBUG_PRINT_ERR(5, "gettime: %s,max:%f,min:%f,avg:%f,cou:%f\n",gettime,max,min,avg,cou);
+        DEBUG_PRINT_ERR(5, "[dataproc] gettime: %s,max:%f,min:%f,avg:%f,cou:%f\n",gettime,max,min,avg,cou);
     }
     sqlite3_finalize(ctx->stat);
 }*/
@@ -411,10 +420,10 @@ void history_data_query(){
 
 int main(int argc, char* argv[])
 {	
-	/*共享内存*/
-	DEBUG_PRINT_INFO(gPrintLevel, "getParaShm start\n");
+    //pthread_t   thread_id;
+    /*共享内存*/
+	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] getParaShm start\n");
 	pgPara = (pstPara)getParaShm();
-    pgPara->GeneralPara.AlarmTime = 60;
     pgData = (pstData)getDataShm();
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     initHistoryDataShm();
@@ -424,14 +433,14 @@ int main(int argc, char* argv[])
     MessageInit();
     pmsg_interface = InterfaceMessageInit(pmsg_interface);
 	/*数据库*/
-	DEBUG_PRINT_INFO(gPrintLevel, "open [%s]\n",SCY_DATA);
+	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] open [%s]\n",SCY_DATA);
 	snprintf(scy_data.name,sizeof(scy_data.name)-1,SCY_DATA);
 	if(TINZ_ERROR == tinz_db_open(&scy_data)){
 		exit(0);	
 	}
     //sqlite3_select(&scy_data, "Mins_w09008");
 	/*数据初始化*/
-	DEBUG_PRINT_INFO(gPrintLevel, "data init\n");
+	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] data init\n");
 	//meter_data_init();
    	while(1){
         

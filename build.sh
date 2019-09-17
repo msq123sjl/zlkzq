@@ -12,7 +12,7 @@ sed -i "s/#define VERSION.*/#define VERSION      \"$1\"/g" ./daemon/common/tinz_
 VERSION=${1//\./_};
 
 NAME=zlkzq
-PACKAGE=${NAME}_${VERSION}.tar.gz
+PACKAGE=${NAME}_${VERSION}.zip
 
 test -d ./${NAME}/bin/ || mkdir -p ./${NAME}/bin/
 
@@ -20,7 +20,7 @@ cd ./daemon
 ./makeallclean || exit 1
 ./makeall || exit 1
 
-rm -rf ../zlkzq/bin/interface
+rm -rf ../${NAME}/bin/interface
 cd ../../temp/build-interface-ARM-Release/
 make clean || exit 1
 make || exit 1
@@ -34,4 +34,4 @@ test -f ./${PACKAGE} && rm ./${PACKAGE}
 chmod +x ./install.sh
 chmod -R +x ./${NAME}/bin/
 
-tar -zcvf ${PACKAGE} ./${NAME}/ ./install.sh
+zip -r ${PACKAGE} ./${NAME}/ ./install.sh

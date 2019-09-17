@@ -52,7 +52,7 @@ Widget::Widget(QWidget *parent) :
     this->initForm();    
 	this->initWidget();
     this->initToolTip();
-    //system("echo 7 > /sys/class/backlight/backlight/brightness");
+    system("echo 0 > /sys/class/backlight/backlight/brightness");
     weekcn <<"一"<<"二"<<"三"<<"四"<<"五"<<"六"<<"日";
 }
 
@@ -231,11 +231,11 @@ void Widget::slotShowCurrentDataTime()
     }
     //qDebug()<<QString("blk_time:%1").arg(blk_time);
     if(20 == blk_time){
-        system("echo 1 > /sys/class/backlight/backlight/brightness");
+        system("echo 7 > /sys/class/backlight/backlight/brightness");
     }
 
     if(1 == blk_time){
-        system("echo 0 > /sys/class/backlight/backlight/brightness");
+        system("echo 8 > /sys/class/backlight/backlight/brightness");
         ui->stackedWidget->setCurrentIndex(E_HOME_WIDGET);
     }
 }
@@ -309,8 +309,6 @@ void Widget::on_tbnCalibration_clicked()
     if(Myapp::UserType >= SUPER_USER && 1 == pgPara->Mode){  //运维模式
         this->setCurrentWidget(E_CALIBRATION_WIDGET);
     }else{
-    
-        qDebug()<<QString("AlarmTime:0");
         myHelper::showMessageBoxInfo("请登陆管理账户\n并切换到运维模式");
     }
 }
@@ -397,7 +395,7 @@ void Widget::mousePressEvent(QMouseEvent *e)
     {
         //qDebug()<<QString("blk_time1:%1").arg(blk_time);
         if(blk_time <= 20){
-            system("echo 8 > /sys/class/backlight/backlight/brightness");
+            system("echo 0 > /sys/class/backlight/backlight/brightness");
         }
         blk_time = 120;
     }

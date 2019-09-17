@@ -127,12 +127,48 @@ void DoubleToString(double value, int Decimals, char *buf){
 	}
 }
 
+inline uint8_t 
+uint16_div_uint16_to_rate(uint16_t a, uint16_t b)
+{
+    return b ? a / (float) b * 100.00: 0;
+}
 
 inline double 
 double_div_uint(double a, unsigned int b)
 {
     return b ? a / b : 0;
 }
+
+inline uint32_t uint32_sub_uint32(uint32_t a, uint32_t b)
+{
+    return a>b ? a - b : 0;
+}
+
+inline uint32_t uint32_div_uint32(uint32_t a, uint32_t b)
+{
+    return b ? a / b : 0;
+}
+
+inline int32_t int32_div_uint32(int32_t a, int32_t b)
+{
+    return b ? a / b : 0;
+}
+
+inline uint32_t uint64_div_uint32(uint64_t a, uint32_t b)
+{
+    return b ? a / b : 0;
+}
+
+inline int32_t int64_div_uint32(int64_t a, int32_t b)
+{
+    return b ? a / b : 0;
+}
+
+inline float uint32_div_float(uint32_t a, float b)
+{
+    return b ? a / b : 0;
+}
+
 
 inline int cmpfunc_uint16(const void * a, const void * b)
 {
@@ -151,5 +187,40 @@ inline uint8_t month_to_qut(uint8_t month){
         return 10;
     }
     return TINZ_ERROR;
+}
+inline void maxmin_uint32(uint32_t *max,uint32_t *min,uint32_t data){
+    if(0 == *min){*min = data;}
+    if(*min > data){*min = data;}
+    if(*max < data){*max = data;}
+}
+inline void maxmin_int32(int32_t *max,int32_t *min,int32_t data){
+    if(0 == *min){*min = data;}
+    if(*min > data){*min = data;}
+    if(*max < data){*max = data;}
+}
+
+inline void maxmin_uint16(uint16_t *max,uint16_t *min,uint16_t data){
+    if(0 == *min){*min = data;}
+    if(*min > data){*min = data;}
+    if(*max < data){*max = data;}
+}
+
+inline void cou_uint32(uint32_t *start,uint32_t *end,uint32_t data){
+    if(0 == *start){*start = data;}  //系统启动 取第一次采集值
+    if(data > *end){*end = data;}
+}
+
+int get_system_output(char *cmd, char *output,int size){
+    FILE *fp=NULL;
+    fp = popen(cmd,"r");
+    if(fp){
+        if(fgets(output,size,fp)!=NULL){
+            if(output[strlen(output)-1] == '\n'){
+                output[strlen(output)-1] = '\0';
+            }
+        }
+        pclose(fp);
+    }
+    return TINZ_OK;
 }
 

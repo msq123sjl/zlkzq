@@ -25,6 +25,8 @@ pstData pgData;
 
 struct _msg *pmsg_upproc[SITE_SEND_CNT];
 pstMessage pgmsgbuff = NULL;
+struct _msg *pmsg_dataproc_to_upproc;
+
 
 int gPrintLevel = 5;
 UpMain* pserver = NULL;
@@ -33,13 +35,20 @@ static void MessageInit(){
     int iLoop;
     for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
         if(iLoop == SITE_CNT || pgPara->SitePara[iLoop].ServerOpen){
-        	DEBUG_PRINT_INFO(gPrintLevel, "pmsg_upproc_%d start\n",iLoop);
+        	DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] pmsg_upproc_%d start\n",iLoop);
         	pmsg_upproc[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
         	memset(pmsg_upproc[iLoop],0,sizeof(struct _msg));
         	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
         		exit(0);
         	}
         }
+    }
+
+    DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] pmsg_dataproc_to_upproc start\n");
+    pmsg_dataproc_to_upproc = (struct _msg*)malloc(sizeof(struct _msg));
+    memset(pmsg_dataproc_to_upproc,0,sizeof(struct _msg));
+    if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_DATAPROC_TO_UPPROC, MSG_ID_DATAPROC_TO_UPPROC, pmsg_dataproc_to_upproc)){
+    	exit(0);
     }
 }
 static void wait_for_serveropen_set(){
@@ -77,14 +86,14 @@ int main(int argc, char *argv[])
     //pgPara->SitePara[0].ServerOpen   = 1;
     //snprintf((char*)pgPara->SitePara[0].ServerIp,sizeof(pgPara->SitePara[0].ServerIp),"%s","192.168.137.1");
 
-    wait_for_serveropen_set();
+    wait_for_serveropen_set(); //无上行服务器 停留在此处             但消息队列不能够有效接收 导致消息队列溢出 需做进一步处理
     /*消息队列*/
     MessageInit();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc MessageInit end\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] MessageInit end\n");
 
 	pserver = (UpMain*)malloc(sizeof(UpMain));
 	if(NULL == pgPara || NULL == pserver){
-		DEBUG_PRINT_ERR(gPrintLevel, "[up_main:] getParaShm or malloc fail!!!\n")
+		DEBUG_PRINT_ERR(gPrintLevel, "[up_proc] getParaShm or malloc fail!!!\n")
 		free(pserver);
 		return 0;
 	}
@@ -98,13 +107,6 @@ int main(int argc, char *argv[])
     //pgPara->SitePara[0].ServerPort   = atoi(argv[1]);
     //snprintf((char*)pgPara->SitePara[0].ServerIp,sizeof(pgPara->SitePara[0].ServerIp)-1,"%s","192.168.1.131");
 
-    #if 0
-	qt_tcpclient_open(&pserver->Qtchannes);
-	
-	/*等待socket QT通道接收线程退出*/
-	pthread_join(pserver->Qtchannes.thread_id, NULL);
-	close(pserver->Qtchannes.dev_fd);
-	#endif
     for(iLoop=0; iLoop < SITE_CNT; iLoop++){
 		
 		pserver->channes[iLoop].tcplink = &pgPara->SitePara[iLoop];

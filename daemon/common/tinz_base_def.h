@@ -16,13 +16,14 @@
 
 #define TINZ_ERROR -1
 #define TINZ_OK		1
+#define TINZ_BUSY   2
 
-#define MN_LEN 15
+#define MN_LEN 25
 #define PW_LEN 7
 
 
 #define METER_NAME_LEN  20
-#define CODE_LEN        6
+#define CODE_LEN        7
 #define UNIT_LEN        6
 
 //#define USER_NAME_LEN   10
@@ -31,7 +32,7 @@
 #define UART_DEVNAME_LEN 12
 
 #define METER_CNT   32
-#define SERIAL_CNT  6
+#define SERIAL_CNT  5
 #define SITE_CNT    4
 #define SITE_SEND_CNT    (SITE_CNT + 1)
 #define USER_CNT    3
@@ -58,7 +59,7 @@
 
 #define 	MAX_FILENAME_SIZE 	256
 
-#define MESSAGECNT 16
+#define MESSAGECNT 64
 
 #define MSGBUF_IS_NULL 0
 #define MSGBUF_IS_WRITEING 1
@@ -91,7 +92,7 @@ typedef struct _GeneralPara
 {
     char    MN[MN_LEN];
 	u_char    PW[PW_LEN];
-    //uint16_t  RtdInterval;            //实时数据间隔（s）
+    uint16_t  RtdInterval;            //实时数据间隔（s）
     //uint8_t   MinInterval;            //分钟数据间隔（min）
     //uint8_t   CatchmentTime;          //集水时间（min）
     //uint8_t   COD_CollectInterval;    //COD采集数据间隔（min）
@@ -172,6 +173,15 @@ typedef struct _SitePara
     char  ServerIp[16];   //服务器IP地址
 }stSitePara,*pstSitePara;
 
+typedef struct _NetPara
+{   
+    uint8_t VPNOpen;            //VPN 客户端开启
+    char  VPNServerIp[16];     //VPN 服务器IP
+    char  VPNUserName[16];     //VPN 用户IP
+    char  VPNIPIP[16];         //隧道IP
+    
+}stNetPara,*pstNetPara;
+
 typedef struct _UserPara
 {
     uint8_t   UserType;       //用户类型       1:企业用户      2：运维员 3：管理用户 
@@ -186,6 +196,7 @@ typedef struct _Para
     stSerialPara    SerialPara[SERIAL_CNT];
     stIOPara        IOPara;
     stSitePara      SitePara[SITE_CNT]; 
+    stNetPara       NetPara;
     stUserPara      UserPara[USER_CNT];
 }stPara,*pstPara;
 

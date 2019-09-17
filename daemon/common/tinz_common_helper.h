@@ -64,6 +64,19 @@ u_char XORValid(char *buffer ,int len);
 u_char HexToAscii(u_char data_hex);
 void DoubleToString(double value, int Decimals, char *buf);
 inline double double_div_uint(double a, unsigned int b);
+inline uint32_t uint32_sub_uint32(uint32_t a, uint32_t b);
 inline int cmpfunc_uint16(const void * a, const void * b);
 inline uint8_t month_to_qut(uint8_t month);
+inline float uint32_div_float(uint32_t a, float b);
+inline uint32_t uint64_div_uint32(uint64_t a, uint32_t b);
+inline uint32_t uint32_div_uint32(uint32_t a, uint32_t b);
+inline void maxmin_uint32(uint32_t *max,uint32_t *min,uint32_t data);
+inline void maxmin_uint16(uint16_t *max,uint16_t *min,uint16_t data);
+inline void cou_uint32(uint32_t *start,uint32_t *end,uint32_t data);
+int get_system_output(char *cmd, char *output,int size);
+inline int32_t int32_div_uint32(int32_t a, int32_t b);
+inline int32_t int64_div_uint32(int64_t a, int32_t b);
+inline void maxmin_int32(int32_t *max,int32_t *min,int32_t data);
+inline uint8_t uint16_div_uint16_to_rate(uint16_t a, uint16_t b);
+
 #endif

@@ -78,6 +78,72 @@ void RtdTableCreate(tinz_db_ctx_t* ctx, char *tableName)
 	tinz_db_exec(ctx,sql);
 }
 
+//创建扬尘污染物数据表
+void DustDataTableCreate(tinz_db_ctx_t* ctx, char *tableName)
+{
+    char sql[SQL_LEN];  
+    snprintf(sql,sizeof(sql)-1,"create table %s(\
+                                GetTime DATETIME(20),\
+                                Avg NUMERIC(4,2),\
+                                primary key (GetTime));",tableName);
+    tinz_db_exec(ctx,sql);
+}
+
+//创建工况用电监测实时数据表
+void PEMSRtdTableCreate(tinz_db_ctx_t* ctx, char *tableName)
+{
+    char sql[SQL_LEN];  
+    snprintf(sql,sizeof(sql)-1,"create table %s(\
+    GetTime DATETIME(20),\
+    success integer not null,CNT integer not null,rate integer not null,\
+    E integer not null,Ep integer not null,Eq integer not null,Ept integer not null,Epnt integer not null,Eqpt integer not null,Eqnt integer not null,\
+    Pt integer not null,Pa integer not null,Pb integer not null,Pc integer not null,\
+    Qt integer not null,Qa integer not null,Qb integer not null,Qc integer not null,\
+    Pf integer not null,Pfa integer not null,Pfb integer not null,Pfc integer not null,\
+    Ua  integer not null,Ub  integer not null,Uc  integer not null,\
+    Ia  integer not null,Ib  integer not null,Ic  integer not null,\
+    Tpa integer not null,Tpb integer not null,Tpc integer not null,\
+    dem integer not null,demtime integer not null,\
+    THD_Ua integer not null,THD_Ub integer not null,THD_Uc integer not null,\
+    THD_Ia integer not null,THD_Ib integer not null,THD_Ic integer not null,\
+    THV_Ua integer not null,THV_Ub integer not null,THV_Uc integer not null,\
+    THC_Ia integer not null,THC_Ib integer not null,THC_Ic integer not null,\
+    primary key (GetTime));",tableName);
+    tinz_db_exec(ctx,sql);
+}
+
+//创建工况用电监测天/月数据表
+void PEMSDataTableCreate(tinz_db_ctx_t* ctx, char *tableName)
+{
+    char sql[SQL_LEN];  
+    snprintf(sql,sizeof(sql)-1,"create table %s(\
+    GetTime DATETIME(20),\
+    E_cou  integer not null,Ep_cou integer not null,Eq_cou integer not null,Ept_cou integer not null,Epnt_cou  integer not null,Eqpt_cou  integer not null,Eqnt_cou  integer not null,\
+    Pt_min integer not null,Pt_max integer not null,Pt_avg integer not null,\
+    Pa_min integer not null,Pa_max integer not null,Pa_avg integer not null,\
+    Pb_min integer not null,Pb_max integer not null,Pb_avg integer not null,\
+    Pc_min integer not null,Pc_max integer not null,Pc_avg integer not null,\
+    Qt_min integer not null,Qt_max integer not null,Qt_avg integer not null,\
+    Qa_min integer not null,Qa_max integer not null,Qa_avg integer not null,\
+    Qb_min integer not null,Qb_max integer not null,Qb_avg integer not null,\
+    Qc_min integer not null,Qc_max integer not null,Qc_avg integer not null,\
+    Pf_min integer not null,Pf_max integer not null,Pf_avg integer not null,\
+    Pfa_min integer not null,Pfa_max integer not null,Pfa_avg integer not null,\
+    Pfb_min integer not null,Pfb_max integer not null,Pfb_avg integer not null,\
+    Pfc_min integer not null,Pfc_max integer not null,Pfc_avg integer not null,\
+    Ua_min  integer not null,Ua_max  integer not null,Ua_avg  integer not null,\
+    Ub_min  integer not null,Ub_max  integer not null,Ub_avg  integer not null,\
+    Uc_min  integer not null,Uc_max  integer not null,Uc_avg  integer not null,\
+    Ia_min  integer not null,Ia_max  integer not null,Ia_avg  integer not null,\
+    Ib_min  integer not null,Ib_max  integer not null,Ib_avg  integer not null,\
+    Ic_min  integer not null,Ic_max  integer not null,Ic_avg  integer not null,\
+    Tpa_min integer not null,Tpa_max integer not null,Tpa_avg integer not null,\
+    Tpb_min integer not null,Tpb_max integer not null,Tpb_avg integer not null,\
+    Tpc_min integer not null,Tpc_max integer not null,Tpc_avg integer not null,\
+    primary key (GetTime));",tableName);
+    tinz_db_exec(ctx,sql);
+}
+
 //创建统计数据表
 void CountDataTableCreate(tinz_db_ctx_t* ctx, char *tableName)
 {

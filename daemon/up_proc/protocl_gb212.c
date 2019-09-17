@@ -129,7 +129,7 @@ static int SendCurrentTime(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
         	tcp->packet_send_handle(tcp,buf);
 		}
 	}else{
-		DEBUG_PRINT_WARN(gPrintLevel, "ExecuteRespond send nLen[%d] ignore!!!", nLen);
+        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] ExecuteRespond send nLen[%d] ignore!!!", nLen);
 		return TINZ_ERROR;
 	}
 	return TINZ_OK;
@@ -153,10 +153,10 @@ static int Insert_Message_Count(int cn,int flag){
         }
     }
     if(NULL == pmsgData){
-        DEBUG_PRINT_WARN(gPrintLevel, "cn[%d] pgmsgbuff is busy!!!\n", cn);
+        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] cn[%d] pgmsgbuff is busy!!!\n", cn);
         return TINZ_ERROR;
     }
-	now = time(NULL);
+    now = time(NULL);
     tblock = localtime(&now);
     ms = (ms+1)%256;
     snprintf(pmsgData->qn,sizeof(pmsgData->qn),"%4d%02d%02d%02d%02d%02d%03d",tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec,ms);
@@ -410,6 +410,7 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 	char flag,flag_arg;
 	int  data_len;
 	int  CRC16;
+    int  StType;
     char tmp_buf[64];
 	ngx_str_t	name;
 	ngx_str_t   value;
@@ -430,13 +431,13 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 	/*查找包尾，校验报文长度*/
 	end = strstr(str,"\x0d\x0a");
     if(NULL == end || end - pos != data_len + 4){  //+4 CRC字节数
-		DEBUG_PRINT_WARN(gPrintLevel, "GB212 end ERR!!!\n");
+        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] GB212 end ERR!!!\n");
 		return TINZ_ERROR;
 	}
     
 	/*CRC校验*/
 	if(NGX_ERROR == (CRC16 = ngx_hextoi((u_char*)(end - 4), 4))){
-		DEBUG_PRINT_WARN(gPrintLevel, "CRC16_Modbus CRC DATA ERR!!!\n");
+        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] CRC16_Modbus CRC DATA ERR!!!\n");
 		return TINZ_ERROR;
 	}
 	/*if(CRC16 != CRC16_Modbus(pos, data_len)){
@@ -482,16 +483,17 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
             switch (name.len) {
 				case 2:
 					if(ngx_str2cmp(name.data, 'm', 'n')){
-						if(value.len != MN_LEN - 1 || strncmp((char*)value.data,(char*)pgPara->GeneralPara.MN,value.len)){
-							DEBUG_PRINT_WARN(gPrintLevel, "GB212 MN [%-14.14s len:%d][%s] ERR!!!\n",value.data,value.len,pgPara->GeneralPara.MN);
+                        if(strncmp((char*)value.data,(char*)pgPara->GeneralPara.MN,value.len)){
+                            DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] GB212 MN [%-24.24s len:%d][%s] ERR!!!\n",value.data,value.len,pgPara->GeneralPara.MN);
 							return TINZ_ERROR;
 						}
 						break;
 					}
 					if(ngx_str2cmp(name.data, 's', 't')){
 						//[0-9]
-						if((int)pgPara->GeneralPara.StType != (ngx_atoi(value.data, value.len))){
-							DEBUG_PRINT_WARN(gPrintLevel, "GB212 ST [%-7.7s] LEN[%d] ERR!!!\n",value.data,value.len);
+                        StType = ngx_atoi(value.data, value.len);
+                        if((int)pgPara->GeneralPara.StType != StType && 91 != StType){
+                            DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] GB212 ST [%-7.7s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						break;
@@ -499,14 +501,14 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 					if(ngx_str2cmp(name.data, 'c', 'n')){
 						//[0-9]
 						if(NGX_ERROR == (url_args->cn = ngx_atoi(value.data, value.len))){
-							DEBUG_PRINT_WARN(gPrintLevel, "GB212 CN [%-7.7s] LEN[%d] ERR!!!\n",value.data,value.len);
+                            DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] GB212 CN [%-7.7s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						break;
 					}
 					if(ngx_str2cmp(name.data, 'q', 'n')){
 						if(value.len != sizeof("YYYYMMDDHHMMSSZZZ")-1 || NGX_ERROR == ngx_isnumbers(value.data, value.len)){
-							DEBUG_PRINT_WARN(gPrintLevel, "GB212 QN [%-17.17s] LEN[%d] ERR!!!\n",value.data,value.len);
+                            DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] GB212 QN [%-17.17s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						url_args->qn = value;
@@ -515,7 +517,7 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 					}
 					if(ngx_str2cmp(name.data, 'p', 'w')){
 						if(value.len != sizeof("123456")-1 || strncmp((char*)value.data,(char*)pgPara->GeneralPara.PW,value.len)){
-							DEBUG_PRINT_WARN(gPrintLevel, "GB212 PW [%-6.6s] LEN[%d] ERR!!!\n",value.data,value.len);
+                            DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] GB212 PW [%-6.6s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						url_args->pw = value;
@@ -763,7 +765,7 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 					break;
 			}
 			if(flag_arg){
-				DEBUG_PRINT_WARN(gPrintLevel, "parse [%-20.20s][%d]\n",name.data,name.len);
+                DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] parse [%-20.20s][%d]\n",name.data,name.len);
 			}
 		}
 	}

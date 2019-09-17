@@ -1,6 +1,6 @@
 #!/bin/sh
 LIST=" \
-	common dataproc up_proc ValveControl watchdog\
+	common up_proc ValveControl autodial watchdog\
 "
 build_target(){
 	cd $1

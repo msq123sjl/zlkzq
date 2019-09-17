@@ -41,6 +41,11 @@ public:
     static QString GateWay;             //设备网关
     static QString DHCP;                   //DHCP服务
 
+    static QString VPNServerIP;         //VPN 服务器IP
+    static QString VPNUserName;         //VPN 用户IP
+    static QString VPNIPIP;             //隧道IP
+    static QString VPNOpen;             //VPN 客户端开启
+    
     static void ReadConfig();           //读取配置文件,在main函数最开始加载程序载入
     static void WriteConfig();          //写入配置文件,在更改配置文件、程序关闭时调用
     static void ReadLocalNet();

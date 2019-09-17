@@ -53,6 +53,7 @@ void frmconfig::on_btn_general_clicked()
     qDebug()<<QString("MN:%1 OverTime:%2 ReCount%3").arg(pgPara->GeneralPara.MN).arg(pgPara->GeneralPara.OverTime).arg(pgPara->GeneralPara.ReCount);
     qDebug()<<QString("AlarmTime:%1 StType:%2 RespondOpen:%3").arg(pgPara->GeneralPara.AlarmTime).arg(pgPara->GeneralPara.StType).arg(pgPara->GeneralPara.RespondOpen);
     ui->txtMN->setText(QString(pgPara->GeneralPara.MN));                            //MN号
+    ui->txtRtdInterval->setText(QString::number(pgPara->GeneralPara.RtdInterval));             //实时数据间隔(s)
     ui->txtOverTime->setText(QString::number(pgPara->GeneralPara.OverTime));             //上传检测周期(s)
     ui->txtReCount->setText(QString::number(pgPara->GeneralPara.ReCount));                 //超时重发次数
     ui->txtAlarmTime->setText(QString::number(pgPara->GeneralPara.AlarmTime));         //超时报警时间
@@ -165,7 +166,20 @@ void frmconfig::on_btn_localNet_clicked()
         ui->txtMask->setEnabled(true);
         ui->txtGateWay->setEnabled(true);
     }
-
+    //VPN设置
+    ui->btn_VPN->SetCheck(pgPara->NetPara.VPNOpen==1?true:false);
+    ui->txtVPNServerIP->setText(QString(pgPara->NetPara.VPNServerIp));
+    ui->txtVPNIPIP->setText(QString(pgPara->NetPara.VPNIPIP));
+    ui->txtVPNUser->setText(QString(pgPara->NetPara.VPNUserName));
+    if(1 == pgPara->NetPara.VPNOpen){
+        ui->txtVPNServerIP->setEnabled(true);
+        ui->txtVPNIPIP->setEnabled(true);
+        ui->txtVPNUser->setEnabled(true);
+    }else{
+        ui->txtVPNServerIP->setEnabled(false);
+        ui->txtVPNIPIP->setEnabled(false);
+        ui->txtVPNUser->setEnabled(false);
+    }
     ui->stackedWidget_config->setCurrentIndex(7);
 }
 //开关量配置
@@ -358,7 +372,7 @@ void frmconfig::on_btn_SaveGeneral_clicked()
     str = ui->txtMN->text();
     ba = str.toLatin1();
     snprintf(pgPara->GeneralPara.MN,MN_LEN,"%s",ba.data());
-
+    pgPara->GeneralPara.RtdInterval = (uint8_t)ui->txtRtdInterval->text().toInt();
     pgPara->GeneralPara.OverTime = (uint8_t)ui->txtOverTime->text().toInt();
     pgPara->GeneralPara.ReCount = (uint8_t)ui->txtReCount->text().toInt();
     pgPara->GeneralPara.StType = (uint8_t)ui->comboBoxStType->currentText().toInt();
@@ -444,7 +458,19 @@ void frmconfig::on_btn_SaveLocalNet_clicked()
     Myapp::LocalIP=ui->txtLocalIP->text();
     Myapp::Mask=ui->txtMask->text();
     Myapp::GateWay=ui->txtGateWay->text();
+
+    myHelper::StringToChar(ui->txtVPNServerIP->text(), pgPara->NetPara.VPNServerIp,sizeof( pgPara->NetPara.VPNServerIp));
+    myHelper::StringToChar(ui->txtVPNIPIP->text(), pgPara->NetPara.VPNIPIP,sizeof( pgPara->NetPara.VPNIPIP));
+    myHelper::StringToChar(ui->txtVPNUser->text(), pgPara->NetPara.VPNUserName,sizeof( pgPara->NetPara.VPNUserName));
+    QString str=QString("/mnt/nandflash/bin/VPN_client.sh %1 %2 %3") //  生成时间设置命令字符串
+                            .arg(pgPara->NetPara.VPNServerIp)
+                            .arg(pgPara->NetPara.VPNIPIP)
+                            .arg(pgPara->NetPara.VPNUserName);
+    qDebug()<<str;
+    system(str.toLatin1().data()); 
+    pgPara->NetPara.VPNOpen = ui->btn_VPN->GetCheck()==true?1:0;
     //调用保存配置文件函数
+    syncParaShm();
     Myapp::WriteLocalNet();
 }
 //*************************************本机网络结束*************************************************/
@@ -463,7 +489,18 @@ void frmconfig::on_btn_Autogetip_clicked()
         ui->txtGateWay->setEnabled(true);
     }
 }
-
+void frmconfig::on_btn_VPN_clicked()
+{
+    if(ui->btn_VPN->GetCheck()==true){
+        ui->txtVPNServerIP->setEnabled(true);
+        ui->txtVPNIPIP->setEnabled(true);
+        ui->txtVPNUser->setEnabled(true);
+    }else{
+        ui->txtVPNServerIP->setEnabled(false);
+        ui->txtVPNIPIP->setEnabled(false);
+        ui->txtVPNUser->setEnabled(false);
+    }
+}
 //*************************************开关量配置结束*************************************************/
 void frmconfig::on_btn_SaveIo_clicked()
 {
@@ -527,7 +564,7 @@ void frmconfig::mouseReleaseEvent(QMouseEvent *)
 {
     qDebug()<<QString("frmconfig mouseReleaseEvent");
     if(20 >= blk_time){
-        system("echo 7 > /sys/class/backlight/backlight/brightness");
+        system("echo 0 > /sys/class/backlight/backlight/brightness");
     }
     blk_time = 120;
 }

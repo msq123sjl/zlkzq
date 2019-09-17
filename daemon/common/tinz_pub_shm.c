@@ -11,6 +11,8 @@
 #include"tinz_base_def.h"
 #include"tinz_base_data.h"
 #include"tinz_common_helper.h"
+//#include "modbus_Master.h"
+
 
 struct SHM_DESC shm_para={-1,0};
 struct SHM_DESC shm_valve_para={-1,0};
@@ -151,15 +153,15 @@ void initParaShm(){
 	/*基本设置*/
 	snprintf((char*)para->GeneralPara.MN,MN_LEN,"%s","83028583206272");
     snprintf((char*)para->GeneralPara.PW,PW_LEN,"%s","123456");
-	//para->GeneralPara.RtdInterval 			= 60;
+	para->GeneralPara.RtdInterval 			= 300;
 	//para->GeneralPara.MinInterval 			= 5;
 	//para->GeneralPara.CatchmentTime 		= 5;
 	//para->GeneralPara.COD_CollectInterval 	= 3;
 	para->GeneralPara.OverTime				= 60;
 	para->GeneralPara.ReCount				= 3;
 	para->GeneralPara.AlarmTime				= 30;
-	para->GeneralPara.StType				= 32;
-	para->GeneralPara.RespondOpen			= 0;
+	para->GeneralPara.StType				= 80;
+	para->GeneralPara.RespondOpen			= 1;
 	/*因子设置*/
 		//默认值是0或空
 	/*串口设置*/
@@ -202,6 +204,11 @@ void initParaShm(){
         para->SitePara[iLoop].ServerPort   = 8810;
 		snprintf((char*)para->SitePara[iLoop].ServerIp,sizeof(para->SitePara[iLoop].ServerIp),"%s","192.168.1.131");
     }
+    /*VPN设置*/
+    para->NetPara.VPNOpen = 0;
+    snprintf((char*)para->NetPara.VPNServerIp,sizeof(para->NetPara.VPNServerIp),"%s","112.25.172.100");
+    snprintf((char*)para->NetPara.VPNIPIP,sizeof(para->NetPara.VPNIPIP),"%s","172.16.2.254");
+    snprintf((char*)para->NetPara.VPNUserName,sizeof(para->NetPara.VPNUserName),"%s","TEST3");
 	/*用户设置*/
     para->UserPara[0].UserType = 1;
     para->UserPara[0].UserPwd = 1;

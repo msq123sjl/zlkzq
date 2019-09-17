@@ -152,7 +152,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>190</y>
+         <y>230</y>
          <width>180</width>
          <height>30</height>
         </rect>
@@ -178,7 +178,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>210</x>
-         <y>190</y>
+         <y>230</y>
          <width>210</width>
          <height>30</height>
         </rect>
@@ -272,7 +272,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>110</y>
+         <y>150</y>
          <width>180</width>
          <height>30</height>
         </rect>
@@ -288,7 +288,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>150</y>
+         <y>190</y>
          <width>180</width>
          <height>30</height>
         </rect>
@@ -304,7 +304,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>210</x>
-         <y>70</y>
+         <y>110</y>
          <width>210</width>
          <height>30</height>
         </rect>
@@ -314,7 +314,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>210</x>
-         <y>110</y>
+         <y>150</y>
          <width>210</width>
          <height>30</height>
         </rect>
@@ -324,7 +324,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>210</x>
-         <y>150</y>
+         <y>190</y>
          <width>210</width>
          <height>30</height>
         </rect>
@@ -353,7 +353,7 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>230</y>
+         <y>270</y>
          <width>180</width>
          <height>30</height>
         </rect>
@@ -369,13 +369,39 @@ QTableView{
        <property name="geometry">
         <rect>
          <x>210</x>
-         <y>230</y>
+         <y>270</y>
          <width>151</width>
          <height>30</height>
         </rect>
        </property>
        <property name="text">
         <string/>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="txtRtdInterval">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>70</y>
+         <width>210</width>
+         <height>30</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_8">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>110</y>
+         <width>180</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>实时数据间隔(s)：</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtOverTime</cstring>
        </property>
       </widget>
      </widget>
@@ -2109,19 +2135,6 @@ QTableView{
       <property name="title">
        <string>日期时间</string>
       </property>
-      <widget class="QLabel" name="label_14">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>100</y>
-         <width>90</width>
-         <height>30</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>时间</string>
-       </property>
-      </widget>
       <widget class="QComboBox" name="comboBox_year">
        <property name="geometry">
         <rect>
@@ -2435,6 +2448,116 @@ QTableView{
         <bool>true</bool>
        </property>
       </widget>
+      <widget class="QLabel" name="label_69">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>240</y>
+         <width>110</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>VPN服务器IP：</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtLocalIP</cstring>
+       </property>
+      </widget>
+      <widget class="mySwitchButton" name="btn_VPN">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>200</y>
+         <width>90</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="autoDefault">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="txtVPNIPIP">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>280</y>
+         <width>190</width>
+         <height>30</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_70">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>320</y>
+         <width>110</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>用户名：</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtGateWay</cstring>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_71">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>280</y>
+         <width>110</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>隧道IP：</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtMask</cstring>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="txtVPNUser">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>320</y>
+         <width>190</width>
+         <height>30</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_72">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>200</y>
+         <width>110</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>VPN：</string>
+       </property>
+       <property name="buddy">
+        <cstring>btn_Autogetip</cstring>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="txtVPNServerIP">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>240</y>
+         <width>190</width>
+         <height>30</height>
+        </rect>
+       </property>
+      </widget>
      </widget>
     </widget>
     <widget class="QWidget" name="page_9">
@@ -2508,6 +2631,183 @@ QTableView{
           <width>151</width>
           <height>31</height>
          </rect>
+        </property>
+        <item>
+         <property name="text">
+          <string>S_IN1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN5</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN6</string>
+         </property>
+        </item>
+       </widget>
+       <widget class="QLabel" name="label_75">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>70</y>
+          <width>101</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>开阀门检测：</string>
+        </property>
+        <property name="buddy">
+         <cstring>comboIn_power</cstring>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="comboIn_drain_open">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>70</y>
+          <width>151</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>S_IN1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN5</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN6</string>
+         </property>
+        </item>
+       </widget>
+       <widget class="QLabel" name="label_76">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>110</y>
+          <width>101</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>关阀门检测：</string>
+        </property>
+        <property name="buddy">
+         <cstring>comboIn_power</cstring>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="comboIn_drain_close">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>110</y>
+          <width>151</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>2</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>S_IN1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN4</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN5</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_IN6</string>
+         </property>
+        </item>
+       </widget>
+       <widget class="QLabel" name="label_77">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>150</y>
+          <width>101</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>泵检测：</string>
+        </property>
+        <property name="buddy">
+         <cstring>comboIn_power</cstring>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="comboIn_pump">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>150</y>
+          <width>151</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>3</number>
         </property>
         <item>
          <property name="text">
@@ -2641,7 +2941,7 @@ QTableView{
          </rect>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <item>
          <property name="text">
@@ -2674,7 +2974,7 @@ QTableView{
          </rect>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <item>
          <property name="text">
@@ -2696,6 +2996,55 @@ QTableView{
           <string>S_OUT4</string>
          </property>
         </item>
+       </widget>
+       <widget class="QComboBox" name="comboOut_pump">
+        <property name="geometry">
+         <rect>
+          <x>130</x>
+          <y>150</y>
+          <width>161</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>3</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>S_OUT1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_OUT2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_OUT3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>S_OUT4</string>
+         </property>
+        </item>
+       </widget>
+       <widget class="QLabel" name="label_73">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>150</y>
+          <width>101</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>泵开关：</string>
+        </property>
+        <property name="buddy">
+         <cstring>comboOut_drain_common</cstring>
+        </property>
        </widget>
       </widget>
      </widget>
