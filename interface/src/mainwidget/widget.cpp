@@ -295,13 +295,21 @@ void Widget::on_tbnRtd_clicked()
 
 void Widget::on_tbnPolluter_clicked()
 {
+    #ifndef VALVE_AND_PUMP
     this->setCurrentWidget(E_POLLUTER_WIDGET);
+    #else
+    myHelper::showMessageBoxInfo("无访问权限");
+    #endif
 }
 
 void Widget::on_tbnStatistic_clicked()
 {
+    #ifndef VALVE_AND_PUMP
    //this->setCurrentWidget(E_STATISTIC_WIDGET);
     ui->stackedWidget->setCurrentIndex(E_STATISTIC_WIDGET);
+   #else
+    myHelper::showMessageBoxInfo("无访问权限");
+    #endif
 }
 
 void Widget::on_tbnCalibration_clicked()

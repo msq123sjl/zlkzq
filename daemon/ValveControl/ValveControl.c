@@ -67,9 +67,9 @@ static u_int32_t speed = 10000;
 //阀门关闭输出清除
 void Valve_Control_stop(int fd)
 {
-    GPIO_OutClear(fd, VALVE_CLOSE);
-    GPIO_OutClear(fd, VALVE_OPEN);
-    GPIO_OutClear(fd, VALVE_COMMON);
+    GPIO_OutSet(fd, 1 << pgPara->IOPara.Out_drain_close);
+    GPIO_OutSet(fd, 1 << pgPara->IOPara.Out_drain_open);
+    GPIO_OutSet(fd, 1 << pgPara->IOPara.Out_drain_common);
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve Control stop\n");
 }
 
@@ -79,9 +79,9 @@ void Valve_Open_Set(int fd)
 {
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve Open start\n");
 
-    GPIO_OutClear(fd, VALVE_CLOSE);
-    GPIO_OutSet(fd, VALVE_OPEN);
-    GPIO_OutSet(fd, VALVE_COMMON);
+    GPIO_OutSet(fd, 1 << pgPara->IOPara.Out_drain_close);
+    GPIO_OutClear(fd, 1 << pgPara->IOPara.Out_drain_open);
+    GPIO_OutClear(fd, 1 << pgPara->IOPara.Out_drain_common);
 }
 
 //排水阀门关闭输出使能
@@ -89,9 +89,25 @@ void Valve_Close_Set(int fd)
 {
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve Close start\n");
 
-    GPIO_OutClear(fd, VALVE_OPEN);
-    GPIO_OutSet(fd, VALVE_CLOSE);
-    GPIO_OutSet(fd, VALVE_COMMON);
+    GPIO_OutSet(fd, 1 << pgPara->IOPara.Out_drain_open);
+    GPIO_OutClear(fd, 1 << pgPara->IOPara.Out_drain_close);
+    GPIO_OutClear(fd, 1 << pgPara->IOPara.Out_drain_common);
+}
+
+//泵开启输出使能
+void Pump_Open_Set(int fd)
+{
+    DEBUG_PRINT_INFO(gPrintLevel, "[PumpControl] Pump Open start\n");
+
+    GPIO_OutClear(fd, 1 << pgPara->IOPara.Out_reflux_control);
+}
+
+//泵关闭输出使能
+void Pump_Close_Set(int fd)
+{
+    DEBUG_PRINT_INFO(gPrintLevel, "[PumpControl] Pump Close start\n");
+
+    GPIO_OutSet(fd, 1 << pgPara->IOPara.Out_reflux_control);
 }
 
 static int SPI_Init()
@@ -261,13 +277,96 @@ void Valve_control_IO_mode(uint8_t per,uint8_t zeroes){
 
 }
 
+int Valve_and_pump_control(uint8_t open_or_close){
+    uint8_t  per_current = 0;
+    uint16_t ad_value = 0;
+    int cnt = 300;
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] IO Valve_and_pump_control [%s] start\n",open_or_close == 1 ? "open":"close");
+    /*泵控制*/
+    #if 1
+    if(0 == open_or_close){
+        Pump_Close_Set(io_fd);
+        while(cnt--){
+            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Pump close In_reflux_open[%d]\n",GetSwitchStatus(io_fd, pgPara->IOPara.In_reflux_open));         
+            if(1 == GetSwitchStatus(io_fd, pgPara->IOPara.In_reflux_open)){
+                cnt = 300;
+                break;
+            }
+            sleep(1);  
+        }  
+    }
+    #endif
+    /*阀门控制*/
+    if(cnt == 300){
+        open_or_close == 1 ? Valve_Open_Set(io_fd) : Valve_Close_Set(io_fd);
+        while(cnt--){
+            if(1 == open_or_close){      
+                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve [%s] In_drain_open[%d]\n",open_or_close == 1 ? "open":"close",GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_open));
+                if(0 == GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_open)){
+                    cnt = 300;
+                    break;
+                }
+            }else{
+                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve [%s] In_drain_close[%d]\n",open_or_close == 1 ? "open":"close",GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_close));
+                if(0 == GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_close)){
+                    cnt = 300;
+                    break;
+                }
+            }
+            sleep(1);  
+        }
+    }  
+    Valve_Control_stop(io_fd);
+    #if 1
+    /*泵控制*/
+    if(cnt == 300){
+        if(1 == open_or_close){
+            Pump_Open_Set(io_fd);
+            while(cnt--){
+                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Pump open In_reflux_open[%d]\n",GetSwitchStatus(io_fd, pgPara->IOPara.In_reflux_open));         
+                if(0 == GetSwitchStatus(io_fd, pgPara->IOPara.In_reflux_open)){
+                    cnt = 300;
+                    break;
+                }
+                sleep(1);  
+            }  
+        }
+    }
+    #endif
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_and_pump_control stop[%d]\n",cnt);
+    if(300 == cnt){
+        return TINZ_OK;
+    }else{
+        return TINZ_ERROR;
+    }
+}
+
 static void state_thread()
 {
+    static int ValveStateFilter = 0;
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] state_thread\n");
     sleep(5);
     while(1){
-        pgData->IOState.InPower = (uint8_t)(GetSwitchStatus(io_fd, pgPara->IOPara.In_power) & 0x01);
-        sleep(5);
+        pgData->IOState.InPower = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_power);
+        pgData->IOState.In_drain_open = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_open);
+        pgData->IOState.In_drain_close = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_close);
+        pgData->IOState.In_reflux_open = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_reflux_open);
+        if(0 == pgData->IOState.In_drain_open && 1 == pgData->IOState.In_drain_close){
+            pgData->state.ValveState = 1;
+            ValveStateFilter = 0;
+        }else if(1 == pgData->IOState.In_drain_open && 0 == pgData->IOState.In_drain_close){
+            pgData->state.ValveState = 0;
+            ValveStateFilter = 0;
+        }else{
+            ValveStateFilter++;
+            if(ValveStateFilter > 300){
+                pgData->state.ValveState = 2;
+                ValveStateFilter = 300;
+            }
+        } 
+        pgData->state.PumpState = (1 == pgData->IOState.In_reflux_open) ? 0 : 1;
+        //DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] In_drain_open[%d] In_drain_close[%d]\n",pgData->IOState.In_drain_open,pgData->IOState.In_drain_close);
+        sleep(1);
     }
 }
 
@@ -300,6 +399,11 @@ int main(int argc, char* argv[])
         pgValveControl->per_last = per_current; 
     }
     #endif
+    /*程序初始读取阀门状态*/
+    #ifdef VALVE_AND_PUMP
+    static uint16_t ValveControlFilter = 0;
+    pgData->state.ValveState = 3;
+    #endif
     /*创建状态监测线程*/
     if(pthread_create(&thread_id,NULL,(void *)(&state_thread),NULL) == -1)
 	{
@@ -308,23 +412,39 @@ int main(int argc, char* argv[])
     /*阀门控制线程*/
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Init per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
     for(;;){
-        /*实时采样阀门开度*/
-        spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-        pgData->current_Ia[0] = AdValueToIa(ad_value);
-    
-        per = pgValveControl->per;
-        if(pgValveControl->per_last != per){
-            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_last[%d]\n",per,pgValveControl->per_last);
-            #if 0
-            if(per > pgValveControl->per_last){
-                pgValveControl->OutMode ? Valve_control_IO_mode(per,1):Valve_control_DA_mode(per,1);
-            }else{
-                pgValveControl->OutMode ? Valve_control_IO_mode(per,0):Valve_control_DA_mode(per,0);
+        #ifdef VALVE_AND_PUMP
+            per = pgValveControl->per > 0 ? 1 : 0;
+            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] ValveState[%d]\n",per,pgData->state.ValveState);
+            if(pgData->state.ValveState > 2){
+                //continue;
+            }else if(2 == pgData->state.ValveState && (0 !=ValveControlFilter || pgPara->Mode)){
+                ValveControlFilter = (ValveControlFilter + 1)% 720;  //若阀门异常 每小时重新控制阀门
+            }else if(pgData->state.ValveState != per){
+                if(TINZ_OK == Valve_and_pump_control(per)){
+                    ValveControlFilter = 0;
+                    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl1] per[%d] per_last[%d]\n",per,pgValveControl->per_last);
+                }
+                syncValveParaShm();
             }
-            #endif
-            pgValveControl->per_last = per;
-            syncValveParaShm();
-        }
+        #else
+            /*实时采样阀门开度*/
+            spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
+            pgData->current_Ia[0] = AdValueToIa(ad_value);
+        
+            per = pgValveControl->per;
+            if(pgValveControl->per_last != per){
+                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_last[%d]\n",per,pgValveControl->per_last);
+                #if 0
+                if(per > pgValveControl->per_last){
+                    pgValveControl->OutMode ? Valve_control_IO_mode(per,1):Valve_control_DA_mode(per,1);
+                }else{
+                    pgValveControl->OutMode ? Valve_control_IO_mode(per,0):Valve_control_DA_mode(per,0);
+                }
+                #endif
+                pgValveControl->per_last = per;
+                syncValveParaShm();
+            }
+        #endif
 
         sleep(5);  
     }

@@ -53,5 +53,7 @@ typedef struct {
 int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp);
 void PowerState();
 void ValvePowerState();
+int Insert_Message_Data(int cn,int flag,void* pData);
+
 
 #endif

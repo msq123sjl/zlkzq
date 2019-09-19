@@ -361,7 +361,9 @@ public:
         StringToChar(str,Event.Info,sizeof(Event.Info));
         StrTime = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
         StringToChar(StrTime,Event.DataTime,sizeof(Event.DataTime));
+        #ifndef VALVE_AND_PUMP
         MsgSend(msg,mtype,(char*)&Event,sizeof(stEvent));
+        #endif
     }
 };
 

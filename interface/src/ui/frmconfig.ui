@@ -184,7 +184,7 @@ QTableView{
         </rect>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <item>
         <property name="text">
@@ -262,7 +262,7 @@ QTableView{
         </rect>
        </property>
        <property name="text">
-        <string>超时时间(s)：</string>
+        <string>实时数据间隔(s)：</string>
        </property>
        <property name="buddy">
         <cstring>txtOverTime</cstring>
@@ -398,7 +398,7 @@ QTableView{
         </rect>
        </property>
        <property name="text">
-        <string>实时数据间隔(s)：</string>
+        <string>超时时间(s)：</string>
        </property>
        <property name="buddy">
         <cstring>txtOverTime</cstring>
@@ -626,7 +626,7 @@ QTableView{
         </rect>
        </property>
        <property name="currentIndex">
-        <number>8</number>
+        <number>0</number>
        </property>
        <item>
         <property name="text">
@@ -691,11 +691,6 @@ QTableView{
        <item>
         <property name="text">
          <string>COM6</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>COM7</string>
         </property>
        </item>
       </widget>
@@ -851,7 +846,7 @@ QTableView{
         </rect>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <item>
         <property name="text">
@@ -1265,11 +1260,6 @@ QTableView{
        <item>
         <property name="text">
          <string>COM6</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>COM7</string>
         </property>
        </item>
       </widget>
@@ -2632,6 +2622,9 @@ QTableView{
           <height>31</height>
          </rect>
         </property>
+        <property name="currentIndex">
+         <number>3</number>
+        </property>
         <item>
          <property name="text">
           <string>S_IN1</string>
@@ -2689,7 +2682,7 @@ QTableView{
          </rect>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <item>
          <property name="text">
@@ -2748,7 +2741,7 @@ QTableView{
          </rect>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>1</number>
         </property>
         <item>
          <property name="text">
@@ -2807,7 +2800,7 @@ QTableView{
          </rect>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>2</number>
         </property>
         <item>
          <property name="text">

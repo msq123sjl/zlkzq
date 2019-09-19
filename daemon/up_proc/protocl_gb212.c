@@ -52,7 +52,7 @@ void RequestRespond(int QnRtn,ngx_ulog_url_t *url_args,pstSerialPara com,TcpClie
 	char buf[MAX_TCPDATA_LEN];
 	int nLen;
 	int CRC16;
-	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=91;CN=9011;PW=%-6.6s;MN=%-14.14s;Flag=0;CP=&&QN=%-17.17s;QnRtn=%d&&",\
+	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=91;CN=9011;PW=%-6.6s;MN=%s;Flag=0;CP=&&QN=%-17.17s;QnRtn=%d&&",\
 								pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,QnRtn);
 	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
 		nLen = nLen - 6;
@@ -78,7 +78,7 @@ void ExecuteRespond(int ExeRtn,ngx_ulog_url_t *url_args,pstSerialPara com,TcpCli
 	char buf[MAX_TCPDATA_LEN];
 	int nLen;
 	int CRC16;
-	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=91;CN=9012;PW=%-6.6s;MN=%-14.14s;CP=&&QN=%-17.17s;ExeRtn=%d&&",\
+	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=91;CN=9012;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;ExeRtn=%d&&",\
 								pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,ExeRtn);
 	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
         nLen = nLen - 6;
@@ -109,19 +109,19 @@ static int SendCurrentTime(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
     struct tm   *tblock;
 	now = time(NULL);
     tblock = localtime( &now );
-	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%-14.14s;CP=&&QN=%-17.17s;SystemTime=%4d%02d%02d%02d%02d%02d&&",\
+	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;SystemTime=%4d%02d%02d%02d%02d%02d&&",\
 								pgPara->GeneralPara.StType,url_args->cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,\
 								tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec);
 	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
-		CRC16 = CRC16_Modbus(&buf[6], nLen);
-		snprintf(&buf[nLen + 6],7,"%.4X\r\n",CRC16);
+		
 	
 		nLen = nLen - 6;
 		buf[2] = (nLen/1000)+'0';
     	buf[3] = (nLen%1000/100)+'0';
     	buf[4] = (nLen%100/10)+'0';
     	buf[5] = (nLen%10)+'0'; 
-		
+		CRC16 = CRC16_Modbus(&buf[6], nLen);
+		snprintf(&buf[nLen + 6],7,"%.4X\r\n",CRC16);
 		if(com!=NULL){
         	//com->write(str.toAscii());
         }
@@ -133,6 +133,82 @@ static int SendCurrentTime(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 		return TINZ_ERROR;
 	}
 	return TINZ_OK;
+}
+
+static int TcpData_ValveStatus_Data(int cn,int flag,pstData pData,pstMessageData pmsgData){
+
+    char per[4];
+    int nLen;
+    static uint8_t ms = 0;
+    struct tm   *tblock;
+    time_t      seconds;
+    seconds = time(NULL);
+    tblock = localtime(&seconds);
+    ms = (ms+1)%256;
+    
+    if(1 == pgData->state.ValveState){
+        snprintf(per,sizeof(per),"100");
+    }else if(0 == pgData->state.ValveState){
+        snprintf(per,sizeof(per),"0");
+    }else{
+        snprintf(per,sizeof(per),"---");
+    } 
+    snprintf(pmsgData->qn,sizeof(pmsgData->qn),"%4d%02d%02d%02d%02d%02d%03d",tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec,ms);
+    nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;Per=%s;Pump=%01d&&",\
+                                pgPara->GeneralPara.StType,cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,pmsgData->qn,\
+                                per,pgData->IOState.In_reflux_open);
+
+    return nLen;
+}
+
+int Insert_Message_Data(int cn,int flag,void* pData){
+    int nLen,iLoop;
+    int CRC16;
+    
+    pstMessageData pmsgData = NULL;
+    for(iLoop = 0;iLoop < MESSAGECNT;iLoop++){
+        if(MSGBUF_IS_NULL == pgmsgbuff->Data[iLoop].IsUse){
+            memset(&pgmsgbuff->Data[iLoop],0,sizeof(stMessageData));
+            pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_WRITEING;
+            pgmsgbuff->Data[iLoop].flag = flag;
+            pmsgData = &pgmsgbuff->Data[iLoop];
+            break;
+        }
+    }
+    if(NULL == pmsgData){
+        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] cn[%d] pgmsgbuff is busy!!!\n", cn);
+        return TINZ_BUSY;
+    }
+    
+    /****************组装报文**************************/
+    if(CN_GetValveStatus == cn){
+        //pgData->IOState.In_drain_close
+        nLen = TcpData_ValveStatus_Data(cn,flag,(pstData)pData,pmsgData);
+    }else{
+        return TINZ_ERROR;
+    }
+    
+    if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(pmsgData->content)){
+        CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen-6);
+        //printf("pmsgData->content[%s]\n",&pmsgData->content[nLen - 6]);
+        snprintf(&pmsgData->content[nLen],7,"%.4X\r\n",CRC16);
+        //snprintf(&pmsgData->content[nLen],6,"%.4X\x0d\x0a",CRC16);
+        //printf("pmsgData->content[%s]",&pmsgData->content[nLen - 6]);
+    
+        nLen = nLen - 6;
+        pmsgData->content[2] = (nLen/1000)+'0';
+        pmsgData->content[3] = (nLen%1000/100)+'0';
+        pmsgData->content[4] = (nLen%100/10)+'0';
+        pmsgData->content[5] = (nLen%10)+'0'; 
+        pmsgData->IsUse = MSGBUF_IS_SENDING;
+        
+    }else{
+        memset(pmsgData,0,sizeof(stMessageData));
+        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] Insert_Message_Count cn[%d] send nLen[%d] ignore!!!", cn,nLen);
+        return TINZ_ERROR;
+    }
+    return TINZ_OK;
+
 }
 
 static int Insert_Message_Count(int cn,int flag){
@@ -160,17 +236,18 @@ static int Insert_Message_Count(int cn,int flag){
     tblock = localtime(&now);
     ms = (ms+1)%256;
     snprintf(pmsgData->qn,sizeof(pmsgData->qn),"%4d%02d%02d%02d%02d%02d%03d",tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec,ms);
-	nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"##0000QN=%-17.17s;ST=%02d;CN=%04d;PW=%-6.6s;MN=%-14.14s;Flag=%01d;CP=&&&&",\
+	nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"##0000QN=%-17.17s;ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;Flag=%01d;CP=&&&&",\
 								pmsgData->qn,pgPara->GeneralPara.StType,cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,flag);
 	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(pmsgData->content)){
-		CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen);
-		snprintf(&pmsgData->content[nLen + 6],7,"%.4X\r\n",CRC16);
+		
 	
 		nLen = nLen - 6;
 		pmsgData->content[2] = (nLen/1000)+'0';
     	pmsgData->content[3] = (nLen%1000/100)+'0';
     	pmsgData->content[4] = (nLen%100/10)+'0';
-    	pmsgData->content[5] = (nLen%10)+'0'; 
+    	pmsgData->content[5] = (nLen%10)+'0';
+        CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen);
+		snprintf(&pmsgData->content[nLen + 6],7,"%.4X\r\n",CRC16);
         pmsgData->IsUse = MSGBUF_IS_SENDING;
 		
 	}else{
@@ -242,19 +319,27 @@ static int SendValveStatus(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	char buf[MAX_TCPDATA_LEN];
 	int nLen;
 	int CRC16;
-	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%-14.14s;CP=&&QN=%-17.17s;Per=%03d&&",\
+    char per[4];
+    if(1 == pgData->state.ValveState){
+        snprintf(per,sizeof(per),"100");
+    }else if(0 == pgData->state.ValveState){
+        snprintf(per,sizeof(per),"0");
+    }else{
+        snprintf(per,sizeof(per),"---");
+    } 
+	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;Per=%s;Pump=%01d&&",\
 								pgPara->GeneralPara.StType,url_args->cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,\
-								pgValveControl->per);
+								per,pgData->IOState.In_reflux_open);
 	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
-		CRC16 = CRC16_Modbus(&buf[6], nLen);
-		snprintf(&buf[nLen + 6],7,"%.4X\r\n",CRC16);
-	
+
 		nLen = nLen - 6;
 		buf[2] = (nLen/1000)+'0';
     	buf[3] = (nLen%1000/100)+'0';
     	buf[4] = (nLen%100/10)+'0';
     	buf[5] = (nLen%10)+'0'; 
-		
+		CRC16 = CRC16_Modbus(&buf[6], nLen);
+		snprintf(&buf[nLen + 6],7,"%.4X\r\n",CRC16);
+	
 		if(com!=NULL){
         	//com->write(str.toAscii());
         }
@@ -528,7 +613,7 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 					break;
 				case 3:
 					if(ngx_str3cmp(name.data, 'p', 'e','r')){
-						if(value.len != 3 || NGX_ERROR == (url_args->per = (uint8_t)ngx_atoi(value.data, value.len))){
+						if(NGX_ERROR == (url_args->per = (uint8_t)ngx_atoi(value.data, value.len))){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 per [%-5.5s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
@@ -847,12 +932,12 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
             }
             //if(url_args.flag & 0x01){
                 
-                if(pgValveControl->per == pgValveControl->per_last && pgValveControl->per != url_args.per){
+                //if(pgValveControl->per == pgValveControl->per_last && pgValveControl->per != url_args.per){
                     RequestRespond(REQUEST_READY,&url_args, com, tcp);
-                }else{
-                    RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
-                    return TINZ_OK;
-                }
+                //}else{
+                //    RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
+                //    return TINZ_OK;
+                //}
             //}
             pgValveControl->per = url_args.per;
             /*int ValveControlCNT = 500;

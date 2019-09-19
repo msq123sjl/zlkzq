@@ -197,7 +197,16 @@ void frmconfig::on_btn_io_clicked()
     p_index=pgPara->IOPara.Out_drain_common-6;
     ui->comboOut_drain_common->setCurrentIndex(p_index);
 
+    p_index=pgPara->IOPara.Out_reflux_control-6;
+    ui->comboOut_pump->setCurrentIndex(p_index);
+
     //输入
+    p_index=pgPara->IOPara.In_drain_open-10;
+    ui->comboIn_drain_open->setCurrentIndex(p_index);
+    p_index=pgPara->IOPara.In_drain_close-10;
+    ui->comboIn_drain_close->setCurrentIndex(p_index);
+    p_index=pgPara->IOPara.In_reflux_open-10;
+    ui->comboIn_pump->setCurrentIndex(p_index);
     p_index=pgPara->IOPara.In_power-10;
     ui->comboIn_power->setCurrentIndex(p_index);
 
@@ -372,7 +381,7 @@ void frmconfig::on_btn_SaveGeneral_clicked()
     str = ui->txtMN->text();
     ba = str.toLatin1();
     snprintf(pgPara->GeneralPara.MN,MN_LEN,"%s",ba.data());
-    pgPara->GeneralPara.RtdInterval = (uint8_t)ui->txtRtdInterval->text().toInt();
+    pgPara->GeneralPara.RtdInterval = (uint16_t)ui->txtRtdInterval->text().toInt();
     pgPara->GeneralPara.OverTime = (uint8_t)ui->txtOverTime->text().toInt();
     pgPara->GeneralPara.ReCount = (uint8_t)ui->txtReCount->text().toInt();
     pgPara->GeneralPara.StType = (uint8_t)ui->comboBoxStType->currentText().toInt();
@@ -537,6 +546,66 @@ void frmconfig::on_btn_SaveIo_clicked()
     case 2: pgPara->IOPara.Out_drain_common=8;
     break;
     case 3: pgPara->IOPara.Out_drain_common=9;
+    break;
+    default:break;
+    }
+    //回流泵控制
+    switch (ui->comboOut_pump->currentIndex()){
+    case 0: pgPara->IOPara.Out_reflux_control=6;
+    break;
+    case 1: pgPara->IOPara.Out_reflux_control=7;
+    break;
+    case 2: pgPara->IOPara.Out_reflux_control=8;
+    break;
+    case 3: pgPara->IOPara.Out_reflux_control=9;
+    break;
+    default:break;
+    }
+    //开阀门检测
+    switch (ui->comboIn_drain_open->currentIndex()){
+    case 0: pgPara->IOPara.In_drain_open=10;
+    break;
+    case 1: pgPara->IOPara.In_drain_open=11;
+    break;
+    case 2: pgPara->IOPara.In_drain_open=12;
+    break;
+    case 3: pgPara->IOPara.In_drain_open=13;
+    break;
+    case 4: pgPara->IOPara.In_drain_open=14;
+    break;
+    case 5: pgPara->IOPara.In_drain_open=15;
+    break;
+    default:break;
+    }
+    //关阀门检测
+    switch (ui->comboIn_drain_close->currentIndex()){
+    case 0: pgPara->IOPara.In_drain_close=10;
+    break;
+    case 1: pgPara->IOPara.In_drain_close=11;
+    break;
+    case 2: pgPara->IOPara.In_drain_close=12;
+    break;
+    case 3: pgPara->IOPara.In_drain_close=13;
+    break;
+    case 4: pgPara->IOPara.In_drain_close=14;
+    break;
+    case 5: pgPara->IOPara.In_drain_close=15;
+    break;
+    default:break;
+    }
+    //泵检测
+    switch (ui->comboIn_pump->currentIndex()){
+    case 0: pgPara->IOPara.In_reflux_open=10;
+    break;
+    case 1: pgPara->IOPara.In_reflux_open=11;
+    break;
+    case 2: pgPara->IOPara.In_reflux_open=12;
+    break;
+    case 3: pgPara->IOPara.In_reflux_open=13;
+    break;
+    case 4: pgPara->IOPara.In_reflux_open=14;
+    break;
+    case 5: pgPara->IOPara.In_reflux_open=15;
     break;
     default:break;
     }

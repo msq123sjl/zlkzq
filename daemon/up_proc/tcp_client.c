@@ -99,8 +99,10 @@ static void message_buf_clear_func(){
             if(0 == res){
                 //pmsg_upproc[SITE_CNT]->msgbuf.mtype = MSG_SQLITE_SEND_TYTE;
                 //memcpy(pmsg_upproc[SITE_CNT]->msgbuf.data,pmsgData,sizeof(stMessageData));
-                //MsgSend(pmsg_upproc[SITE_CNT]);
+                //MsgSend(pmsg_upproc[SITE_CNT]);      
+                #ifndef VALVE_AND_PUMP
                 MsgSend(pmsg_upproc[SITE_CNT],MSG_SQLITE_SEND_TYTE,(char*)pmsgData,(int)sizeof(stMessageData));
+                #endif
                 memset(pmsgData,0,sizeof(stMessageData));   
                 DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] clear2 pmsgData->waittime=%d IsUse=%d flag=%d\n",pmsgData->waittime,pmsgData->IsUse,pmsgData->flag);
             }
@@ -147,13 +149,14 @@ static void send_message_to_server_func(){
 }
 static void tcpclient_thread_send()
 {
-    sleep(10);
+    sleep(60);
     while(1){
         message_buf_clear_func();
         //PowerState();
         //ValvePowerState();
+        Insert_Message_Data(CN_GetValveStatus,0,pgData);
         send_message_to_server_func();
-        sleep(3);
+        sleep(pgPara->GeneralPara.RtdInterval);
     }
 }
 

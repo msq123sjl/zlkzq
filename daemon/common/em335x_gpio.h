@@ -33,12 +33,6 @@
 #define    AD7705_DRDY      GPIO17
 #define    AD7705_DRDY_CH   17
 
-#define    VALVE_OPEN       GPIO26
-#define    VALVE_CLOSE      GPIO26
-#define    VALVE_COMMON     GPIO26
-
-#define    IN_POWER     GPIO10
-
 
 
 int  GPIO_OutEnable(int fd, unsigned int dwEnBits);

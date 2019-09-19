@@ -160,7 +160,7 @@ void initParaShm(){
 	para->GeneralPara.OverTime				= 60;
 	para->GeneralPara.ReCount				= 3;
 	para->GeneralPara.AlarmTime				= 30;
-	para->GeneralPara.StType				= 80;
+	para->GeneralPara.StType				= 32;
 	para->GeneralPara.RespondOpen			= 1;
 	/*因子设置*/
 		//默认值是0或空
@@ -187,14 +187,14 @@ void initParaShm(){
     para->IOPara.Out_drain_common        = 8;
     //para->IOPara.Out_catchment_open     = 8;
     //para->IOPara.Out_catchment_close    = 9;
-    //para->IOPara.Out_reflux_control     = 16;
-    //para->IOPara.In_drain_open          = 10;
-    //para->IOPara.In_drain_close         = 11;
+    para->IOPara.Out_reflux_control     = 9;
+    para->IOPara.In_drain_open          = 10;
+    para->IOPara.In_drain_close         = 11;
     //para->IOPara.In_catchment_open      = 12;
     //para->IOPara.In_catchment_close     = 13;
-    //para->IOPara.In_reflux_open         = 14;
+    para->IOPara.In_reflux_open         = 12;
     //para->IOPara.In_reflux_close        = 15;
-    para->IOPara.In_power               = 18;
+    para->IOPara.In_power               = 13;
 	/*站点设置*/
     
     for(iLoop = 0; iLoop < SITE_CNT; iLoop++){

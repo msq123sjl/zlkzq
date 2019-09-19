@@ -107,11 +107,15 @@ void para_datfile_to_strigfile(pstPara para){
     	fflush(fd);
     }
     /*IOPara*/
-    len = snprintf(pbuf,8192,"[IOPara]\nIn_power=%d\nOut_drain_open=%d\nOut_drain_close=%d\nOut_drain_common=%d\n\n",\
+    len = snprintf(pbuf,8192,"[IOPara]\nIn_power=%d\nIn_drain_open=%d\nIn_drain_close=%d\nIn_reflux_open=%d\nOut_drain_open=%d\nOut_drain_close=%d\nOut_drain_common=%d\nOut_reflux_control=%d\n\n",\
         para->IOPara.In_power,\
+        para->IOPara.In_drain_open,\
+        para->IOPara.In_drain_close,\
+        para->IOPara.In_reflux_open,\
         para->IOPara.Out_drain_open,\
         para->IOPara.Out_drain_close,\
-        para->IOPara.Out_drain_common);
+        para->IOPara.Out_drain_common,\
+        para->IOPara.Out_reflux_control);
     if(len > 8192){
         DEBUG_PRINT_ERR(5,"[IOPara] len[%d] too long.\n",len);
     	return;
@@ -245,12 +249,21 @@ void para_get_config(pstPara para){
     /*IOPara*/
     res=getconfigint("IOPara","In_power",&val,FS_NAME_PARA_CONF);
     if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args In_power need\n"); return;}para->IOPara.In_power = val;
+    res=getconfigint("IOPara","In_drain_open",&val,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args In_drain_open need\n"); return;}para->IOPara.In_drain_open = val;
+    res=getconfigint("IOPara","In_drain_close",&val,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args In_drain_close need\n"); return;}para->IOPara.In_drain_close = val;
+    res=getconfigint("IOPara","In_reflux_open",&val,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args In_reflux_open need\n"); return;}para->IOPara.In_reflux_open = val;
+    
     res=getconfigint("IOPara","Out_drain_open",&val,FS_NAME_PARA_CONF);
     if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args Out_drain_open need\n"); return;}para->IOPara.Out_drain_open = val;
     res=getconfigint("IOPara","Out_drain_close",&val,FS_NAME_PARA_CONF);
     if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args Out_drain_close need\n"); return;}para->IOPara.Out_drain_close = val;
     res=getconfigint("IOPara","Out_drain_common",&val,FS_NAME_PARA_CONF);
     if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args Out_drain_common need\n"); return;}para->IOPara.Out_drain_common = val;
+    res=getconfigint("IOPara","Out_reflux_control",&val,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"IOPara args Out_reflux_control need\n"); return;}para->IOPara.Out_reflux_control = val;
 
      /*SitePara*/
     for(iLoop=0;iLoop<SITE_CNT;iLoop++){

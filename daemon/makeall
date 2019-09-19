@@ -1,16 +1,16 @@
 #!/bin/sh
 #source /home/msq/gcc/environment-setup-cortexa7hf-neon-emtronix-linux-gnueabi
 LIST=" \
-	common up_proc ValveControl autodial watchdog\
+    common up_proc ValveControl autodial watchdog\
 "
 build_target(){
-	cd $1
-	make clean >/dev/null
-	make
-	cd ..
+    cd $1
+    make clean >/dev/null
+    make
+    cd ..
 }
 
 for target in $LIST
-	do
-		build_target ${target}
-	done
+    do
+        build_target ${target}
+    done

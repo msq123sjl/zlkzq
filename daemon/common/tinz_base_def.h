@@ -71,6 +71,7 @@
 
 #define QN_LEN	18
 
+#define VALVE_AND_PUMP  1
 
 #define BIN4BCD(val) ((((val)/1000)<<12)+((((val)%1000)/100)<<8)+((((val)%1000)%100)/10<<4)+(val)%10)
 #define BIN2BCD(val) ((((val)/10)<<4) + (val)%10)
@@ -151,15 +152,16 @@ typedef struct _IOPara
     int    Out_drain_open;         //开排水阀
     int    Out_drain_close;        //关排水阀
     int    Out_drain_common;        //排水阀总开关
+    int    Out_reflux_control;     //回流泵控制
     //volatile int    Out_catchment_open;     //开集水阀
     //volatile int    Out_catchment_close;    //关集水阀
     //volatile int    Out_reflux_control;     //回流泵控制
 
-    //volatile int     In_drain_open;         //输入检测排水阀开
-    //volatile int     In_drain_close;        //输入检测排水阀关
+    int     In_drain_open;         //输入检测排水阀开
+    int     In_drain_close;        //输入检测排水阀关
     //volatile int     In_catchment_open;     //输入检测集水阀开
     //volatile int     In_catchment_close;    //输入检测集水阀关
-    //volatile int     In_reflux_open;        //输入检测回流泵开
+    int     In_reflux_open;        //输入检测回流泵开
     //volatile int     In_reflux_close;       //输入检测回流泵关
     int     In_power;              //输入检测市电
 }stIOPara,*pstIOPara;
