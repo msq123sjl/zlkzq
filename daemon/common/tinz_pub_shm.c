@@ -151,13 +151,13 @@ void initParaShm(){
     /*模式*/
     para->Mode  = 0;
 	/*基本设置*/
-	snprintf((char*)para->GeneralPara.MN,MN_LEN,"%s","83028583206272");
+	snprintf((char*)para->GeneralPara.MN,MN_LEN,"%s","YK00");
     snprintf((char*)para->GeneralPara.PW,PW_LEN,"%s","123456");
-	para->GeneralPara.RtdInterval 			= 300;
+	para->GeneralPara.RtdInterval 			= 600;
 	//para->GeneralPara.MinInterval 			= 5;
 	//para->GeneralPara.CatchmentTime 		= 5;
 	//para->GeneralPara.COD_CollectInterval 	= 3;
-	para->GeneralPara.OverTime				= 60;
+	para->GeneralPara.OverTime				= 6;
 	para->GeneralPara.ReCount				= 3;
 	para->GeneralPara.AlarmTime				= 30;
 	para->GeneralPara.StType				= 32;
@@ -201,13 +201,13 @@ void initParaShm(){
         para->SitePara[iLoop].ServerOpen   = 0;
         para->SitePara[iLoop].isConnected  = 0;
         para->SitePara[iLoop].SiteNum  = iLoop;
-        para->SitePara[iLoop].ServerPort   = 8810;
-		snprintf((char*)para->SitePara[iLoop].ServerIp,sizeof(para->SitePara[iLoop].ServerIp),"%s","192.168.1.131");
+        para->SitePara[iLoop].ServerPort   = 28875;
+		snprintf((char*)para->SitePara[iLoop].ServerIp,sizeof(para->SitePara[iLoop].ServerIp),"%s","221.131.155.106");
     }
     /*VPN设置*/
     para->NetPara.VPNOpen = 0;
-    snprintf((char*)para->NetPara.VPNServerIp,sizeof(para->NetPara.VPNServerIp),"%s","112.25.172.100");
-    snprintf((char*)para->NetPara.VPNIPIP,sizeof(para->NetPara.VPNIPIP),"%s","172.16.2.254");
+    snprintf((char*)para->NetPara.VPNServerIp,sizeof(para->NetPara.VPNServerIp),"%s","36.153.128.244");
+    snprintf((char*)para->NetPara.VPNIPIP,sizeof(para->NetPara.VPNIPIP),"%s","172.16.2.11");
     snprintf((char*)para->NetPara.VPNUserName,sizeof(para->NetPara.VPNUserName),"%s","TEST3");
 	/*用户设置*/
     para->UserPara[0].UserType = 1;

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#define VERSION      "1.0.0"
+#define VERSION      "1.0.1"
 
 #define 	FS_NAME_PARADIR			"/mnt/nandflash/para"
 #define 	FS_NAME_PROGDIR			"/mnt/nandflash/bin"

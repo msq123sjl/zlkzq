@@ -88,12 +88,12 @@ int main(int argc, char *argv[])
                                 if('1' == output[0] || VPNIPIPERRCNT > 10){
                                     VPNIPIPERRCNT = 0;
                                     if('1' == output[0]){
-                                        snprintf(buf,sizeof(buf),"route add -net 172.16.2.0 netmask 255.255.255.0 gw %s",pgPara->NetPara.VPNIPIP);
+                                        snprintf(buf,sizeof(buf),"route add -net 172.16.0.0 netmask 255.255.0.0 gw %s",pgPara->NetPara.VPNIPIP);
                                         system(buf);
                                     }else{
                                         snprintf(buf,sizeof(buf),"ifconfig ppp1 | grep \"inet addr\" | awk '{print $2}' | awk -F: '{print $2}'");
                                         get_system_output(buf, output, sizeof(output)); 
-                                        snprintf(buf,sizeof(buf),"route add -net 172.16.2.0 netmask 255.255.255.0 gw %s",output);
+                                        snprintf(buf,sizeof(buf),"route add -net 172.16.0.0 netmask 255.255.0.0 gw %s",output);
                                         system(buf);                                        
                                     }
                                     DEBUG_PRINT_INFO(gPrintLevel,"route[%s]\n",buf);

@@ -164,7 +164,6 @@ static int TcpData_ValveStatus_Data(int cn,int flag,pstData pData,pstMessageData
 int Insert_Message_Data(int cn,int flag,void* pData){
     int nLen,iLoop;
     int CRC16;
-    
     pstMessageData pmsgData = NULL;
     for(iLoop = 0;iLoop < MESSAGECNT;iLoop++){
         if(MSGBUF_IS_NULL == pgmsgbuff->Data[iLoop].IsUse){
@@ -179,7 +178,6 @@ int Insert_Message_Data(int cn,int flag,void* pData){
         DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] cn[%d] pgmsgbuff is busy!!!\n", cn);
         return TINZ_BUSY;
     }
-    
     /****************组装报文**************************/
     if(CN_GetValveStatus == cn){
         //pgData->IOState.In_drain_close
@@ -187,8 +185,7 @@ int Insert_Message_Data(int cn,int flag,void* pData){
     }else{
         return TINZ_ERROR;
     }
-    
-    if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(pmsgData->content)){
+    if(nLen >= MIN_TCPDATA_LEN-10 && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(pmsgData->content)){ //-10 特殊处理
         CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen-6);
         //printf("pmsgData->content[%s]\n",&pmsgData->content[nLen - 6]);
         snprintf(&pmsgData->content[nLen],7,"%.4X\r\n",CRC16);
@@ -204,7 +201,7 @@ int Insert_Message_Data(int cn,int flag,void* pData){
         
     }else{
         memset(pmsgData,0,sizeof(stMessageData));
-        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] Insert_Message_Count cn[%d] send nLen[%d] ignore!!!", cn,nLen);
+        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] Insert_Message_Count cn[%d] send nLen[%d][%s] ignore!!!\n", cn,nLen,pmsgData->content);
         return TINZ_ERROR;
     }
     return TINZ_OK;
