@@ -36,7 +36,8 @@
 #include "tinz_common_helper.h"
 #include "tinz_base_def.h"
 #include "config_file.h"
-//#include "tinz_pub_shm.h" 
+#include "tinz_base_data.h"
+#include "tinz_pub_shm.h" 
 
 #define	STH   	0
 #define	STL 	1	
@@ -52,6 +53,7 @@ static ProgInfo defaultprogs[]={{0,"dataproc",0},{0,"interface",0},{0,"up_main",
 
 int gPrintLevel = 5;
 static int watchdog_fd = 0;
+pstData pgData;
 
 /*static void pabort(const char *s)
 {
@@ -61,11 +63,13 @@ static int watchdog_fd = 0;
 
 int main(int argc, char *argv[], char *env[]){
 	pid_t parent_pid;
-	int count=0;	
+	int count=0;
+    int lte_count = 0;
+    int lte_flag = 0;
 	sleep(1);
 	parent_pid = getpid();
 
-	
+    pgData = (pstData)getDataShm();
 	wait_for_daemon_status = 1;
 	daemonize();
 
@@ -115,11 +119,22 @@ int main(int argc, char *argv[], char *env[]){
 		
 		if((count%10)==0)
 			CheckZombieProc();
-		
+        /*4G网络已连接 启动ping定时任务*/
+        lte_count = lte_count < 120 ? lte_count+1 : 121;
+        if(0 == pgData->state.LTE && lte_count > 120 && 0 == lte_flag){
+            lte_flag = 1;
+            crontab_start();
+        }
+        
 		sleep(1);
+        
 	}	
 }
 
+void crontab_start(){
+    DEBUG_PRINT_ERR(gPrintLevel,"[Watchdog] crond start\n");
+    system("crond");
+}
 //创建主机
 int daemonize()
 {

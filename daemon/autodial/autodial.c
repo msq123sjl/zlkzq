@@ -25,12 +25,36 @@
 #include "tinz_pub_message.h"
 #include "tinz_common_helper.h"
 #include "em335x_gpio.h"
+#include "config_file.h"
 
 pstPara 		pgPara;
 
 int gPrintLevel = 5;
 pstData pgData;
 
+void para_get_NetPara_onfig(pstPara para){
+    char buf[256];
+    int res,val ;
+    FILE*  fd=0;
+    fd=fopen(FS_NAME_PARA_CONF,"rb");
+	if(fd<=0){
+		DEBUG_PRINT_ERR(5,"open fs_para.conf file failure.\n");
+		return;
+	}
+    /*NetPara*/
+    res=getconfigint("NetPara","VPNOpen",&val,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNOpen need\n"); return;}para->NetPara.VPNOpen = val; 
+    res = getconfigstring("NetPara","VPNServerIp",para->NetPara.VPNServerIp,sizeof(para->NetPara.VPNServerIp) - 0,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNServerIp need\n");return;} 
+    res = getconfigstring("NetPara","VPNUserName",para->NetPara.VPNUserName,sizeof(para->NetPara.VPNUserName) - 0,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNUserName need\n");return;}
+    res = getconfigstring("NetPara","VPNIPIP",para->NetPara.VPNIPIP,sizeof(para->NetPara.VPNIPIP) - 0,FS_NAME_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNIPIP need\n");return;}
+
+    memset(buf,0,sizeof(buf));
+    snprintf(buf,sizeof(buf),"/mnt/nandflash/bin/VPN_client.sh %s %s %s",pgPara->NetPara.VPNServerIp,pgPara->NetPara.VPNIPIP,pgPara->NetPara.VPNUserName);
+    system(buf); 
+}
 
 int main(int argc, char *argv[])
 {
@@ -42,6 +66,7 @@ int main(int argc, char *argv[])
     char    buf[128];
     pgData = (pstData)getDataShm();
     pgPara = (pstPara)getParaShm();
+    para_get_NetPara_onfig(pgPara);
     system("kill `ps -w | grep pppd | grep lte-connect-script | awk '{print $1}'`");
     //EC20_Reset();
     beep_control(0);
@@ -139,7 +164,9 @@ int main(int argc, char *argv[])
 				DEBUG_PRINT_INFO(gPrintLevel,"there is no response, please check!\n");
                 pgData->state.LTE = 3;
 				//break;
-			}
+			}else{
+                 pgData->state.LTE = 4;
+            }
             disconnect_cnt++;
             if(disconnect_cnt > 6){
                 disconnect_cnt = 0;

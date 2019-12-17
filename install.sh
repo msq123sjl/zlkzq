@@ -1,6 +1,9 @@
 #!/bin/sh
 MYPATH=$(cd `dirname $0`; pwd)
 cd ${MYPATH}
+/mnt/nandflash/bin/config_para 1
+rm -rf /mnt/nandflash/shm/shm_*
+rm -rf /mnt/nandflash/para/*.dat
 
 #test -f ./nandflash.tar.gz && rm ./nandflash.tar.gz
 #tar cvzf nandflash.tar.gz /mnt/nandflash/
@@ -8,7 +11,7 @@ cd ${MYPATH}
 NAME=zlkzq
 
 LIST=" \
-	watchdog interface dataproc up_main ValveControl\
+	watchdog autodial interface dataproc up_main ValveControl\
 "
 kill_target(){
     echo "$1"
@@ -37,7 +40,7 @@ test -d ./para || mkdir -p ./para
 test -d ./msg || mkdir -p ./msg
 test -d ./shm || mkdir -p ./shm
 
-test -f ./${NAME}/*.sh && /bin/mv ./${NAME}/*.sh /mnt/nandflash/
+/bin/mv ./${NAME}/*.sh /mnt/nandflash/
 test -f ./${NAME}/userinfo.txt && /bin/mv ./${NAME}/userinfo.txt /mnt/nandflash/
 /bin/mv ./${NAME}/bin/*.so /lib/
 /bin/mv ./${NAME}/bin/* /mnt/nandflash/bin/

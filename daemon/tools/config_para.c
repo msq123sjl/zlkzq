@@ -62,7 +62,7 @@ void para_datfile_to_strigfile(pstPara para){
 	fflush(fd);
     
     /*MeterPara*/
-    for(iLoop=0;iLoop<METER_CNT;iLoop++){
+    /*for(iLoop=0;iLoop<METER_CNT;iLoop++){
         if(para->MeterPara[iLoop].isValid){
             len = snprintf(pbuf,8192,"[MeterPara%d]\nType=%d\nName=%s\nCode=%s\nUseChannelName=%s\nTypeName=%s\nProtocolName=%s\nUseChannel=%d\nUseChannelType=%d\nAddress=%d\nProtocol=%d\n\n",iLoop,\
                 para->MeterPara[iLoop].Type,\
@@ -83,7 +83,7 @@ void para_datfile_to_strigfile(pstPara para){
     	    ret=fwrite(pbuf,sizeof(char),len,fd);
     	    fflush(fd);
         }
-    }
+    }*/
 
     /*SerialPara*/
     for(iLoop=0;iLoop<SERIAL_CNT;iLoop++){
@@ -196,7 +196,7 @@ void para_get_config(pstPara para){
     res=getconfigint("GeneralPara","RespondOpen",&val,FS_NAME_PARA_CONF);
     if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"GeneralPara args RespondOpen need\n"); return;}para->GeneralPara.RespondOpen = val;
     /*MeterPara*/
-    for(iLoop=0;iLoop<METER_CNT;iLoop++){
+    /*for(iLoop=0;iLoop<METER_CNT;iLoop++){
         snprintf(buf,sizeof(buf),"MeterPara%d",iLoop);
         res=getconfigint(buf,"Type",&val,FS_NAME_PARA_CONF);
         if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(0,"%s args Type need\n",buf); para->MeterPara[iLoop].isValid = 0;continue;}para->MeterPara[iLoop].Type = val;
@@ -219,7 +219,7 @@ void para_get_config(pstPara para){
         res = getconfigstring(buf,"ProtocolName",para->MeterPara[iLoop].ProtocolName,sizeof(para->MeterPara[iLoop].ProtocolName) - 0,FS_NAME_PARA_CONF);
         if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"%s args ProtocolName need\n",buf);return;}
         para->MeterPara[iLoop].isValid = 1;
-    }
+    }*/
 
     /*SerialPara*/
     for(iLoop=0;iLoop<SERIAL_CNT;iLoop++){
