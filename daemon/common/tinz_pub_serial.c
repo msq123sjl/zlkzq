@@ -212,7 +212,7 @@ int uart_init(pstSerialPara p_para)
 
 int uart_open(pstSerialPara p_para){
 	
-	DEBUG_PRINT_INFO(5,"UART[%s|%d|%d|%d|%d|%d]",p_para->DevName,p_para->BaudRate,p_para->DataBits,p_para->Parity,p_para->StopBits,p_para->FlowCtrl);
+	DEBUG_PRINT_INFO(5,"UART[%s|%d|%d|%d|%d|%d]\n",p_para->DevName,p_para->BaudRate,p_para->DataBits,p_para->Parity,p_para->StopBits,p_para->FlowCtrl);
 	if(p_para->DevName[0] == 0){
 		DEBUG_PRINT_ERR(5,"DevName is NULL");
 		return -1;
@@ -224,6 +224,7 @@ int uart_open(pstSerialPara p_para){
 		DEBUG_PRINT_ERR(5,"Cannot open the desired port[%s]",p_para->DevName);
 		return -1;
 	}
+    uart_init(p_para);
 	return 1;
 }
 

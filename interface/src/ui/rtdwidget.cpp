@@ -11,9 +11,8 @@ Description:总量控制器--流量界面功能的实现
 #include "ui_rtdwidget.h"
 
 #include <QDebug>
-#include<QTimer>
+#include <QTimer>
 #include <QDateTime>
-//#include "control.h"
 #include "myapp.h"
 #include <QStandardItemModel>
 
@@ -24,9 +23,8 @@ extern "C"{
 }
 extern pstPara pgPara;
 extern pstData pgData;
+extern pstNetPara pgNetPara;
 extern pstValveControl pgValveControl;
-extern pstPollutantData pgPollutantData;
-extern pstPollutantPara pgPollutantPara;
 
 QStandardItemModel  *model_rtd;
 
@@ -132,30 +130,26 @@ void Rtdwidget::slotShowCurrentData()
 {
     static int lab_index =0;
     static int site_number = -1;
-    #ifndef VALVE_AND_PUMP
-    model_rtd->setData(model_rtd->index(0, 1), QString("%1 L/s").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].rtd,'f',1)));
-    model_rtd->setData(model_rtd->index(0, 2), QString("%1 L").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)));
-    
-    model_rtd->setData(model_rtd->index(1, 1), QString("%1 mg/m³").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].rtd,'f',0)));
-    model_rtd->setData(model_rtd->index(1, 2), QString("%1 mg").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].cou,'f',0)));
-    
-    model_rtd->setData(model_rtd->index(2, 1), QString("%1").arg(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',0)));
+    #ifndef VALVE_AND_PUMP    
+    if('2' == pgData->PollutantsData.RtdData.DataTime[0]){
+        if(pgPara->PollutantPara[POLLUTANT_FLOW_INDEX].isValid){
+            model_rtd->setData(model_rtd->index(0, 1), QString("%1 L/s").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].rtd,'f',1)));
+            model_rtd->setData(model_rtd->index(0, 2), QString("%1 L").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)));
+        } 
+        if(pgPara->PollutantPara[POLLUTANT_COD_INDEX].isValid){
+            model_rtd->setData(model_rtd->index(1, 1), QString("%1 mg/m³").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].rtd,'f',0)));
+            model_rtd->setData(model_rtd->index(1, 2), QString("%1 mg").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].cou,'f',0)));
+        }
+        if(pgPara->PollutantPara[POLLUTANT_PH_INDEX].isValid){        
+            model_rtd->setData(model_rtd->index(2, 1), QString("%1").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',0)));
+        }
+    }
     #endif
     //qDebug()<<QString("DataTime:%1").arg(pgPollutantData->RtdData.DataTime);
     //snprintf(pgPollutantData->RtdData.DataTime,sizeof(pgPollutantData->RtdData.DataTime),"20190701111233");
     switch(lab_index){
         case 0:
             pgData->state.InPower == 0 ? ui->lab_top->setText("市电上电"):ui->lab_top->setText("市电掉电");
-            ui->lab_bottom->setText(QString("版本：V%1").arg(VERSION));            
-            break;
-        case 1:
-            if(0 == pgData->state.ValveState){
-                pgData->state.PumpState == 0 ? ui->lab_top->setText(QString("阀门关闭 泵关闭")) : ui->lab_top->setText(QString("阀门关闭 泵开"));
-            }else if(1 == pgData->state.ValveState){
-                pgData->state.PumpState == 0 ? ui->lab_top->setText(QString("阀门开 泵关闭")) : ui->lab_top->setText(QString("阀门开 泵开"));
-            }else{
-                pgData->state.PumpState == 0 ? ui->lab_top->setText(QString("阀门异常 泵关闭")) : ui->lab_top->setText(QString("阀门异常 泵开"));
-            }
             if(QY_USER ==  Myapp::UserType){
                 pgPara->Mode == 0 ? ui->lab_bottom->setText("企业人员登陆 远程模式"):ui->lab_bottom->setText("企业人员登陆 运维模式");
             }else if(GLY_USER ==  Myapp::UserType){
@@ -166,25 +160,36 @@ void Rtdwidget::slotShowCurrentData()
                 pgPara->Mode == 0 ? ui->lab_bottom->setText("未登陆 远程模式"):ui->lab_bottom->setText("未登陆 运维模式");
             }
             break;
+        case 1:
+            if(0 == pgData->state.ValveState){
+                uint8_t per;
+                per = abs(pgValveControl->per - pgValveControl->per_measure) > 5 ? pgValveControl->per_measure : pgValveControl->per;
+                ui->lab_top->setText(QString("阀门开度:%1\%").arg(per));
+            }else{
+                ui->lab_top->setText(QString("阀门异常"));
+            }
+            break;
         case 2:
             #ifndef VALVE_AND_PUMP
-            ui->lab_top->setText("数据更新时间：\n" + QDateTime::fromString (QString(pgPollutantData->RtdData.DataTime),"yyyyMMddhhmmss").toString("yyyy-MM-dd hh:mm"));
+            ui->lab_top->setText("数据更新时间：\n" + QDateTime::fromString (QString(pgData->PollutantsData.RtdData.DataTime),"yyyyMMddhhmmss").toString("yyyy-MM-dd hh:mm"));
             #else            
             ui->lab_top->setText("数据更新时间：\n" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"));
             #endif
             ui->lab_bottom->setText("当前时间：\n" + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"));
             break;
         default:
-            if(0 == pgData->state.LTE){
-                ui->lab_top->setText("4G网络已链接");
-            }else if(1 == pgData->state.LTE){
-                ui->lab_top->setText("4G网络未链接");
-            }else if(2 == pgData->state.LTE){
-                ui->lab_top->setText("未检测到SIM卡");
-            }else{
-                ui->lab_top->setText("4G模块无响应");
+            if(pgNetPara->LTEOpen){
+                if(0 == pgData->state.LTE){
+                    ui->lab_top->setText("4G网络已链接");
+                }else if(1 == pgData->state.LTE){
+                    ui->lab_top->setText("4G网络未链接");
+                }else if(2 == pgData->state.LTE){
+                    ui->lab_top->setText("未检测到SIM卡");
+                }else{
+                    ui->lab_top->setText("4G模块无响应");
+                }
             }
-            pgPara->NetPara.VPNOpen != 0 ? (pgData->state.VPN != 0 ? ui->lab_bottom->setText("VPN未链接"):ui->lab_bottom->setText(QString("VPN已登录\n%1 %2 ").arg(pgPara->NetPara.VPNUserName).arg(pgPara->NetPara.VPNIPIP))):ui->lab_bottom->setText("VPN未开启");
+            pgNetPara->VPNOpen != 0 ? (pgData->state.VPN != 0 ? ui->lab_bottom->setText("VPN未链接"):ui->lab_bottom->setText(QString("VPN已登录\n%1 %2 ").arg(pgNetPara->VPNUserName).arg(pgNetPara->VPNIPIP))):ui->lab_bottom->setText("VPN未开启");
 	}
     
     for(int iLoop = 0;iLoop < SITE_CNT ; iLoop++){

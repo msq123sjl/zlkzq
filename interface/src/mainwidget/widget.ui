@@ -121,7 +121,7 @@
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">border-image: url(:/images/title.png);</string>
+           <string notr="true">border-image: url(:/images/title_zlkzq.png);</string>
           </property>
           <property name="text">
            <string/>
@@ -185,7 +185,7 @@
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="page">
         <layout class="QVBoxLayout" name="verticalLayout">

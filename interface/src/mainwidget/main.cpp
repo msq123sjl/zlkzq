@@ -1,26 +1,18 @@
 /*************************************************
-Copyright:kevin
-Author:Kevin LiQi
-Date:2015-12-01
-Email:kevinlq0912@163.com
-QQ:936563422
+Copyright:tinz
+Author:tinz msq
+Date:2019-04-01
+Email:718657309@qq.com
+QQ:718657309
 Version:V1.0
-Description:智能家居---主程序，加载配置信息、程序样式，设置编码方式
+Description:总量控制器--主程序，加载配置信息、程序样式，设置编码方式
 **************************************************/
 #include <QApplication>
 #include <QMetaType>
-//#include <QSharedMemory>
-//#include <QDir>
-//#include <QTextCodec>
 
 #include "widget.h"
 #include "myhelper.h"
 #include "myapp.h"
-//#include "database.h"
-//#include "control.h"
-//#include "logindialog.h"
-//#include "systemsettingdialog.h"
-//#include "analysisdata.h"
 #include "frminput.h"
 
 
@@ -46,12 +38,12 @@ extern "C"{
 }
 pstPara pgPara;
 pstValveControl pgValveControl;
-pstPollutantData pgPollutantData;
-pstPollutantPara pgPollutantPara;
 pstHistoryData pgHistoryData;
 pstData pgData;
+pstNetPara pgNetPara;
 pstCalibrationPara pgCalibrationPara;
 struct _msg *pmsg_interface;
+struct _msg *pmsg_interface_to_control;
 
 int main(int argc, char *argv[])
 {
@@ -74,18 +66,19 @@ int main(int argc, char *argv[])
     qDebug()<<QString("DeskWidth:%1 DeskHeigth:%2").arg(Myapp::DeskWidth).arg(Myapp::DeskHeigth);
     /********共享内存******************/
     pgPara = (pstPara)getParaShm();
-    qDebug()<<QString("AlarmTime:%1").arg(pgPara->GeneralPara.AlarmTime);
+    pgNetPara = (pstNetPara)getNetParaShm();
     pgValveControl = (pstValveControl)getValveParaShm();
     qDebug()<<QString("per:%1 per_last:%2").arg(pgValveControl->per).arg(pgValveControl->per_last);
-    pgPollutantData = (pstPollutantData)getPollutantDataShm();
-    pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     pgData = (pstData)getDataShm();
     pgCalibrationPara = (pstCalibrationPara)getCalibrationParaShm();
     /*消息队列*/
     pmsg_interface = InterfaceMessageInit(pmsg_interface);
+    pmsg_interface_to_control = InterfaceToControlMessageInit(pmsg_interface_to_control);
     Widget w;
     w.show();
     frmInput::Instance()->Init("control", "black", 10, 10);
     return a.exec();
+    free(pmsg_interface);
+    free(pmsg_interface_to_control);
 }

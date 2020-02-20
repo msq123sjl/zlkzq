@@ -21,8 +21,8 @@ extern "C"{
 #include "tinz_base_data.h"
 }
 extern pstPara pgPara;
-extern pstPollutantData pgPollutantData;
-extern pstPollutantPara pgPollutantPara;
+extern pstData pgData;
+
 CODRtdwidget::CODRtdwidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CODRtdwidget)
@@ -67,13 +67,13 @@ void CODRtdwidget::InitShowData()
 void CODRtdwidget::slotShowCurrentData()
 {
     //允许排放量设置
-    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].rtd,'f',0)+"mg/m³");
-    ui->label_cur_day->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].day,'f',0)+"mg");
-    ui->label_cou->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].cou,'f',0)+"mg");
-    ui->label_cur_mon->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].mon,'f',0)+"mg");
-    ui->label_cur_qut->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].qut,'f',0)+"mg");
-    ui->label_cur_yea->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_COD_INDEX].year,'f',0)+"mg");
-    ui->label_set_mon->setText(QString::number(pgPollutantPara->Row[POLLUTANT_COD_INDEX].MonAll)+"mg");
-    ui->label_set_qut->setText(QString::number(pgPollutantPara->Row[POLLUTANT_COD_INDEX].QutAll)+"mg");
-    ui->label_set_yea->setText(QString::number(pgPollutantPara->Row[POLLUTANT_COD_INDEX].YeaAll)+"mg");
+    ui->label_rtd->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].rtd,'f',1)+"mg/m³");
+    ui->label_cur_day->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].day,'f',0)+"mg");
+    ui->label_cou->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].cou,'f',0)+"mg");
+    ui->label_cur_mon->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].mon,'f',0)+"mg");
+    ui->label_cur_qut->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].qut,'f',0)+"mg");
+    ui->label_cur_yea->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].year,'f',0)+"mg");
+    ui->label_set_mon->setText(QString::number(pgPara->PollutantPara[POLLUTANT_COD_INDEX].Row.MonAll)+"mg");
+    ui->label_set_qut->setText(QString::number(pgPara->PollutantPara[POLLUTANT_COD_INDEX].Row.QutAll)+"mg");
+    ui->label_set_yea->setText(QString::number(pgPara->PollutantPara[POLLUTANT_COD_INDEX].Row.YeaAll)+"mg");
 }

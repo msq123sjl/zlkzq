@@ -6,7 +6,7 @@
 
 
 int spi_write_da(int io_fd, int spi_fd, uint16_t da_value);
-uint8_t PerValueToDA(uint16_t per);
+uint16_t PerValueToDA(uint8_t per);
 
 #endif
 

@@ -5,6 +5,7 @@
 #include "em335x_gpio.h"
 
 #include "tinz_common_helper.h"
+#include "tinz_base_def.h"
 
 int gPrintLevel = 5;
 
@@ -147,3 +148,29 @@ void CloseGPIO(int fd){
 
 }*/
 
+int InitGPIO()
+{
+    int fd,rc;
+    fd=open(DEV_GPIO,O_RDWR);
+    DEBUG_PRINT_INFO(gPrintLevel, "[em335x_gpio] open file = %d\n", fd);
+    if(fd < 0){
+        return TINZ_ERROR;
+    }
+    rc = GPIO_OutEnable(fd,SPI_AD7705_CS|SPI_TLC5615_CS|SWITCH_OUT1|SWITCH_OUT2|SWITCH_OUT3|SWITCH_OUT4|BEEP_CONTROL|PCIE_ON_OFF|GPIO27);//set GPIO as output
+    if(rc < 0)
+    {
+        DEBUG_PRINT_INFO(gPrintLevel, "[em335x_gpio] GPIO_OutEnable::failed %d\n", rc);
+        return TINZ_ERROR;
+    }
+    rc = GPIO_OutDisable(fd,AD7705_DRDY|SWITCH_IN1|SWITCH_IN2|SWITCH_IN3|SWITCH_IN4|SWITCH_IN5|SWITCH_IN6);   //set GPIO as input
+    if(rc < 0)
+    {
+        DEBUG_PRINT_INFO(gPrintLevel, "[em335x_gpio] GPIO_OutClear::failed %d\n", rc);
+        return TINZ_ERROR;
+    }
+    usleep(10000);
+    GPIO_OutSet(fd, SPI_AD7705_CS);
+    GPIO_OutSet(fd, SPI_TLC5615_CS);
+    return fd;
+
+}

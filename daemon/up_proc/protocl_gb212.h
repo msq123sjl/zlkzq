@@ -47,13 +47,13 @@ typedef struct {
     uint8_t     per;
     u_char      SystemTime[SYSTEMTIME_LEN];
     stPollutantRtdData  RtdData;
-    stPollutantPara PollutantPara;  
+    stPollutantPara PollutantPara[POLLUTANT_CNT];  
 } ngx_ulog_url_t;
 
 int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp);
 void PowerState();
 void ValvePowerState();
-int Insert_Message_Data(int cn,int flag,void* pData);
+int Insert_Message_Data(int cn,int flag);
 
 
 #endif

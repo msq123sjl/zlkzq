@@ -22,7 +22,8 @@
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
-//#include "tinz_pub_message.h"
+#include "tinz_pub_spi.h"
+#include "tinz_pub_message.h"
 //#include "tinz_common_db_helper.h"
 
 
@@ -34,7 +35,10 @@ pstValveControl pgValveControl;
 pstData pgData;
 pstPara pgPara;
 pstCalibrationPara pgCalibrationPara;
+struct _msg *pmsg_upproc_to_control[SITE_CNT];
+struct _msg *pmsg_interface_to_control;
 
+stSpiPara sp;
 
 int gPrintLevel = 5;
 int io_fd,spi_fd;
@@ -50,18 +54,9 @@ void _proj_uninit(void)
 	DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] adda stop!!!\n");
 }
 
-static void pabort(const char *s)
-{
-    perror(s);
-    abort();
-}
-
-
-static const char *device = "/dev/spidev1.0";
-static u_int8_t mode = 1;
-static u_int8_t bits = 8;
-static u_int32_t speed = 10000;
-//static u_int16_t delay;
+//static u_int8_t mode = 0;
+//static u_int8_t bits = 16;
+//static u_int32_t speed = 200000;
 
 
 //阀门关闭输出清除
@@ -110,80 +105,6 @@ void Pump_Close_Set(int fd)
     GPIO_OutSet(fd, 1 << pgPara->IOPara.Out_reflux_control);
 }
 
-static int SPI_Init()
-{
-    int ret=0;
-    int spi_fd;
-    spi_fd = open(device, O_RDWR);
-    if (spi_fd < 0)
-        pabort("can't open device");
-    /*
-     * spi mode
-     */
-    ret = ioctl(spi_fd, SPI_IOC_WR_MODE, &mode);
-    if (ret == -1)
-        pabort("can't set spi mode");
-
-    ret = ioctl(spi_fd, SPI_IOC_RD_MODE, &mode);
-    if (ret == -1)
-        pabort("can't get spi mode");
-
-    /*
-     * bits per word
-     */
-    ret = ioctl(spi_fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
-    if (ret == -1)
-        pabort("can't set bits per word");
-
-    ret = ioctl(spi_fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
-    if (ret == -1)
-        pabort("can't get bits per word");
-
-    /*
-     * max speed hz
-     */
-    ret = ioctl(spi_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-    if (ret == -1)
-        pabort("can't set max speed hz");
-
-    ret = ioctl(spi_fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
-    if (ret == -1)
-        pabort("can't get max speed hz");
-
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] spi mode: %d\n", mode);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] bits per word: %d\n", bits);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] max speed: %d Hz (%d KHz)\n", speed, speed/1000);
-    return spi_fd;
-
-}
-
-static int SpiInitGPIO()
-{
-    int fd,rc;
-    fd=open(DEV_GPIO,O_RDWR);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] open file = %d\n", fd);
-    if(fd < 0){
-        return TINZ_ERROR;
-    }
-    rc = GPIO_OutEnable(fd,SPI_AD7705_CS|SPI_TLC5615_CS|SWITCH_OUT1|SWITCH_OUT2|SWITCH_OUT3|SWITCH_OUT4);//set GPIO as output
-    if(rc < 0)
-    {
-        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] GPIO_OutEnable::failed %d\n", rc);
-        return TINZ_ERROR;
-    }
-    rc = GPIO_OutDisable(fd,AD7705_DRDY|SWITCH_IN1|SWITCH_IN2|SWITCH_IN3|SWITCH_IN4|SWITCH_IN5|SWITCH_IN6);   //set GPIO as input
-    if(rc < 0)
-    {
-        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] GPIO_OutClear::failed %d\n", rc);
-        return TINZ_ERROR;
-    }
-    usleep(10000);
-    GPIO_OutSet(fd, SPI_AD7705_CS);
-    GPIO_OutSet(fd, SPI_TLC5615_CS);
-    return fd;
-
-}
-
 /*void per_value_state(uint8_t       per_current,uint8_t per_array[],uint8_t *big_cnt,uint8_t *small_cnt){
     int iLoop;
     *big_cnt = 0;
@@ -207,23 +128,28 @@ void Valve_control_DA_mode(uint8_t per,uint8_t zeroes){
     uint8_t  per_current_last = 0;
     uint16_t ad_value = 0,da_value = 0,da_value_adjust = 0;
     int cnt = 300;
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] DA Valve Open start\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per[%d] start \n",per);
+    da_value = PerValueToDA(per);
     spi_write_da(io_fd, spi_fd,da_value);
     while(cnt--){
         spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
         per_current = AdValueToPer(ad_value);
-        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_current[%d]\n",per,per_current);
-        if(abs(per - per_current) <= 2){
-            sleep(6);
+        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per[%d] per_current[%d]\n",per,per_current);
+        if(per_current > 100){//阀门检测异常
+            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode AD Value err!!!");
+            return;
+        }
+        if(abs(per - per_current) <= 5){//阀门到位 正负偏差5%
+            sleep(1);
             break;
         }
         /*过零点比较*/
-        if(zeroes >0 && per <= per_current){break;}
-        if(zeroes == 0 && per >= per_current){break;}
+        if(zeroes >0 && per <= per_current){break;}  //关阀门发到位
+        if(zeroes == 0 && per >= per_current){break;}//开阀门到位
         /*阀门未到位，补*/
         if(abs(per_current - per_current_last) <= 1){
             per_stop++;
-            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per_stop[%d]\n",per_stop);
+            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per_stop[%d]\n",per_stop);
             if(per_stop > 5){ //连续6秒 阀门变化不超过2度
                 da_value_adjust = PerValueToDA(abs(per - per_current));
                 if(per > per_current){
@@ -231,7 +157,7 @@ void Valve_control_DA_mode(uint8_t per,uint8_t zeroes){
                 }else{ 
                     da_value = da_value > da_value_adjust ? da_value - da_value_adjust : 0;
                 }
-                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] DA Valve adjust[%d]\n",da_value_adjust);
+                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode DA Valve adjust[%d]\n",da_value_adjust);
                 spi_write_da(io_fd, spi_fd,da_value);
                 sleep(60);
                 break;
@@ -245,23 +171,28 @@ void Valve_control_DA_mode(uint8_t per,uint8_t zeroes){
     spi_write_da(io_fd, spi_fd,0);
     spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
     per_current = AdValueToPer(ad_value);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_current[%d] stop\n",per,per_current);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] DA Valve Open stop\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per[%d] per_current[%d] stop\n",per,per_current);
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode DA Valve Open stop\n");
     
 }
 //zeroes：0 关阀门     1开阀门
 void Valve_control_IO_mode(uint8_t per,uint8_t zeroes){
     uint8_t  per_current = 0;
-    uint16_t ad_value = 0;
     int cnt = 300;
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] IO Valve control start\n");
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode start\n");
     zeroes >0 ? Valve_Open_Set(io_fd) : Valve_Close_Set(io_fd);
     while(cnt--){
-        spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-        per_current = AdValueToPer(ad_value);
-        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_current[%d]\n",per,per_current);
-        if(abs(per - per_current) <= 5){
-            sleep(6);
+        per_current = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
+        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode per[%d] per_current[%d]\n",per,per_current);
+        if(2 == pgData->state.ValveState){//阀门检测异常
+            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode AD Value err!!!");
+            return;
+        }
+        if(abs(per - per_current) <= 5){//阀门到位 正负偏差5%
+            if((0 == zeroes && per < per_current) || (zeroes>0 && per > per_current)){
+                //适当延迟 减小误差
+                sleep(5);
+            }
             break;
         }
         /*过零点比较*/
@@ -270,16 +201,13 @@ void Valve_control_IO_mode(uint8_t per,uint8_t zeroes){
         sleep(1);  
     }  
     Valve_Control_stop(io_fd);
-    spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-    per_current = AdValueToPer(ad_value);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_current[%d] stop\n",per,per_current);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] IO Valve control stop\n");
+    per_current = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode per[%d] per_current[%d] stop\n",per,per_current);
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode stop\n");
 
 }
 
 int Valve_and_pump_control(uint8_t open_or_close){
-    uint8_t  per_current = 0;
-    uint16_t ad_value = 0;
     int cnt = 300;
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] IO Valve_and_pump_control [%s] start\n",open_or_close == 1 ? "open":"close");
     /*泵控制*/
@@ -341,30 +269,67 @@ int Valve_and_pump_control(uint8_t open_or_close){
     }
 }
 
+void Valve_control(){
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_measure[%d]\n",pgValveControl->per,pgValveControl->per_measure);
+    if(pgValveControl->per > pgValveControl->per_measure){
+        pgValveControl->OutMode ? Valve_control_IO_mode(pgValveControl->per,1):Valve_control_DA_mode(pgValveControl->per,1);
+    }else{
+        pgValveControl->OutMode ? Valve_control_IO_mode(pgValveControl->per,0):Valve_control_DA_mode(pgValveControl->per,0);
+    }
+    pgValveControl->per_last = pgValveControl->per;
+    syncValveParaShm();
+}
+
+static void MessageInit(){
+    int iLoop;
+    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
+        if(pgPara->SitePara[iLoop].ServerOpen){
+        	DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] pmsg_upproc_to_control_%d start\n",iLoop);
+        	pmsg_upproc_to_control[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
+        	memset(pmsg_upproc_to_control[iLoop],0,sizeof(struct _msg));
+        	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_CONTROL, iLoop+1, pmsg_upproc_to_control[iLoop])){
+        		exit(0);
+        	}
+        }
+    }
+    
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] pmsg_interface_to_control start\n");
+    pmsg_interface_to_control = InterfaceToControlMessageInit(pmsg_interface_to_control);
+}
+
+static void MessageRecvProc(struct _msg* msg){
+    if(msg->msgbuf.mtype > 0){
+        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] msg recvtype[%ld]\n",msg->msgbuf.mtype);
+        switch(msg->msgbuf.mtype){
+            case MSG_CONTROL_VALVE_TYTE:
+                Valve_control();
+                break;
+            default:
+                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] msg recvtype[%ld] not recognize [%-20.20s]\n",msg->msgbuf.mtype,msg->msgbuf.data);
+        }
+    }
+
+}
+
+static void MessageRecv(){
+    int iLoop;
+    /*接收上行消息队列*/
+    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
+        if(pgPara->SitePara[iLoop].ServerOpen){
+            MsgRcv(pmsg_upproc_to_control[iLoop], 0); 
+            MessageRecvProc(pmsg_upproc_to_control[iLoop]);
+        }
+    }
+    /*接收前端消息队列*/
+    MsgRcv(pmsg_interface_to_control, 0); 
+    MessageRecvProc(pmsg_interface_to_control);
+}
+
 static void state_thread()
 {
-    static int ValveStateFilter = 0;
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] state_thread\n");
     sleep(5);
     while(1){
-        pgData->IOState.InPower = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_power);
-        pgData->IOState.In_drain_open = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_open);
-        pgData->IOState.In_drain_close = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_drain_close);
-        pgData->IOState.In_reflux_open = (uint8_t)GetSwitchStatus(io_fd, pgPara->IOPara.In_reflux_open);
-        if(0 == pgData->IOState.In_drain_open && 1 == pgData->IOState.In_drain_close){
-            pgData->state.ValveState = 1;
-            ValveStateFilter = 0;
-        }else if(1 == pgData->IOState.In_drain_open && 0 == pgData->IOState.In_drain_close){
-            pgData->state.ValveState = 0;
-            ValveStateFilter = 0;
-        }else{
-            ValveStateFilter++;
-            if(ValveStateFilter > 300){
-                pgData->state.ValveState = 2;
-                ValveStateFilter = 300;
-            }
-        } 
-        pgData->state.PumpState = (1 == pgData->IOState.In_reflux_open) ? 0 : 1;
         //DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] In_drain_open[%d] In_drain_close[%d]\n",pgData->IOState.In_drain_open,pgData->IOState.In_drain_close);
         sleep(1);
     }
@@ -372,16 +337,13 @@ static void state_thread()
 
 int main(int argc, char* argv[])
 {    
-    uint8_t  per = 0;
-    //uint8_t  per_current = 0;
-    uint16_t ad_value = 0;
     pthread_t   thread_id;
-    
-    io_fd = SpiInitGPIO();
+    io_fd = InitGPIO();
     if(TINZ_ERROR ==  io_fd){
         return TINZ_ERROR;
     }
-    spi_fd = SPI_Init();
+    AD7705_SPI_PARA(sp);
+    spi_fd = SPI_Init(&sp);
 
     /*共享内存*/
 	DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] getValveParaShm start\n");
@@ -391,66 +353,35 @@ int main(int argc, char* argv[])
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] State InPower[%d] ValveState[%d]\n",pgData->state.InPower,pgData->state.ValveState);
     pgPara = (pstPara)getParaShm();
     pgCalibrationPara = (pstCalibrationPara)getCalibrationParaShm();
-    #if 0
-    spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-    per_current = AdValueToPer(ad_value);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_last[%d] per_current[%d]\n",pgValveControl->per,pgValveControl->per_last,per_current);
-    if(abs(pgValveControl->per_last - per_current) > 5){
-        pgValveControl->per_last = per_current; 
-    }
-    #endif
+    /*消息队列*/
+    MessageInit();
+    
     /*程序初始读取阀门状态*/
-    #ifdef VALVE_AND_PUMP
-    static uint16_t ValveControlFilter = 0;
-    pgData->state.ValveState = 3;
-    #endif
     /*创建状态监测线程*/
     if(pthread_create(&thread_id,NULL,(void *)(&state_thread),NULL) == -1)
 	{
 		DEBUG_PRINT_INFO(gPrintLevel,"[ValveControl] state_thread create error!\n");
 	}
     /*阀门控制线程*/
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Init per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Init per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);    
     for(;;){
-        #ifdef VALVE_AND_PUMP
-            per = pgValveControl->per > 0 ? 1 : 0;
-            DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] ValveState[%d]\n",per,pgData->state.ValveState);
-            if(pgData->state.ValveState > 2){
-                //continue;
-            }else if(2 == pgData->state.ValveState && (0 !=ValveControlFilter || pgPara->Mode)){
-                ValveControlFilter = (ValveControlFilter + 1)% 720;  //若阀门异常 每小时重新控制阀门
-            }else if(pgData->state.ValveState != per){
-                if(TINZ_OK == Valve_and_pump_control(per)){
-                    ValveControlFilter = 0;
-                    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl1] per[%d] per_last[%d]\n",per,pgValveControl->per_last);
-                }
-                syncValveParaShm();
-            }
-        #else
-            /*实时采样阀门开度*/
-            spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-            pgData->current_Ia[0] = AdValueToIa(ad_value);
-        
-            per = pgValveControl->per;
-            if(pgValveControl->per_last != per){
-                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_last[%d]\n",per,pgValveControl->per_last);
-                #if 0
-                if(per > pgValveControl->per_last){
-                    pgValveControl->OutMode ? Valve_control_IO_mode(per,1):Valve_control_DA_mode(per,1);
-                }else{
-                    pgValveControl->OutMode ? Valve_control_IO_mode(per,0):Valve_control_DA_mode(per,0);
-                }
-                #endif
-                pgValveControl->per_last = per;
-                syncValveParaShm();
-            }
-        #endif
-
+        /*实时采样阀门开度*/
+        pgValveControl->per_measure = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
+        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_last[%d] per_measure[%d]\n",pgValveControl->per,pgValveControl->per_last,pgValveControl->per_measure);
+        /*da_value = 512;
+        spi_write_da(io_fd, spi_fd,da_value);*/
+        MessageRecv();
         sleep(5);  
     }
     
     /*等待线程退出*/
 	pthread_join(thread_id, NULL);
+    int iLoop;
+    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
+        if(NULL != pmsg_upproc_to_control[iLoop]){
+            free(pmsg_upproc_to_control[iLoop]);
+        }
+    }
     return 0;
 }
 

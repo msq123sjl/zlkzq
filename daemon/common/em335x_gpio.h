@@ -23,6 +23,8 @@
 //#define    SWITCH_IN7      GPIO18
 #define    RS485_K5      GPIO19
 #define    RS485_K6      GPIO20
+#define    RS485_K4      GPIO21
+
 //#define    SWITCH_IN10      GPIO21
 //#define    SWITCH_IN11      GPIO22
 //#define    SWITCH_IN12      GPIO23
@@ -46,8 +48,7 @@ void beep_control(int state);
 
 //int OpenGPIO();
 //void CloseGPIO(int fd);
-
-//int  InitGPIO();
+int  InitGPIO();
 
 
 #endif // GPIO_DRIVERS_H

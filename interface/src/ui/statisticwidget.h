@@ -44,7 +44,7 @@ private:
     int m_currentIndex;                       //当前界面id
     QString ColumnNames[4];                    //列名数组声明
     int ColumnWidths[4];                       //列宽数组声明
-    QStandardItemModel  *model_calibration;
+    QStandardItemModel  *model_data;
     void ShowData();
     int query_term_check();
 };

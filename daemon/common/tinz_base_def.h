@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#define VERSION      "1.0.2"
+#define VERSION      "1.0.3"
 
 #define 	FS_NAME_PARADIR			"/mnt/nandflash/para"
 #define 	FS_NAME_PROGDIR			"/mnt/nandflash/bin"
@@ -22,9 +22,11 @@
 #define PW_LEN 7
 
 
-#define METER_NAME_LEN  20
+#define METER_NAME_LEN  40
 #define CODE_LEN        7
 #define UNIT_LEN        6
+#define SIGNAL_LEN      7
+#define CHANNEL_NAME_LEN 6
 
 //#define USER_NAME_LEN   10
 #define USER_PWD_LEN    20
@@ -59,7 +61,7 @@
 
 #define 	MAX_FILENAME_SIZE 	256
 
-#define MESSAGECNT 64
+#define MESSAGECNT 128
 
 #define MSGBUF_IS_NULL 0
 #define MSGBUF_IS_WRITEING 1
@@ -71,7 +73,15 @@
 
 #define QN_LEN	18
 
-#define VALVE_AND_PUMP  1
+typedef unsigned char		BYTE;
+typedef unsigned char		UCHAR;
+typedef unsigned char*		PBYTE;
+typedef unsigned short int	UINT16;
+typedef unsigned short int  WORD;
+typedef unsigned int		HANDLE;
+typedef unsigned int   		DWORD;
+typedef unsigned int*  		PDWORD;
+typedef unsigned int		BOOL;
 
 #define BIN4BCD(val) ((((val)/1000)<<12)+((((val)%1000)/100)<<8)+((((val)%1000)%100)/10<<4)+(val)%10)
 #define BIN2BCD(val) ((((val)/10)<<4) + (val)%10)
@@ -85,7 +95,8 @@ typedef struct _PollutantParaRow{
 }stPollutantParaRow,*pstPollutantParaRow;
 
 typedef struct _PollutantPara{
-    stPollutantParaRow Row[POLLUTANT_CNT];
+    uint8_t isValid;   //0 未占有 1 占用
+    stPollutantParaRow Row;
 }stPollutantPara,*pstPollutantPara;
 
 
@@ -106,24 +117,26 @@ typedef struct _GeneralPara
 
 typedef struct _MeterPara
 {
-    uint8_t		isValid;
-    u_char		Name[METER_NAME_LEN];       //因子名称  , 如电导率
-    u_char  	Code[CODE_LEN];             //上报代码      w01014
-    u_char  	Unit[UNIT_LEN];             //单位，如m3/h
-    uint8_t   	UseChannel:6;                 //通道号
-    uint8_t   	UseChannelType:2; //通道类型  1:串口 2:模拟
+    uint8_t		isValid;   //0 未占有 1 占用
+    char		Name[METER_NAME_LEN];       //因子名称  , 如电导率
+    char  	    Code[CODE_LEN];             //上报代码      w01014
+    char        UseChannelName[CHANNEL_NAME_LEN];
+    char  	    Unit[UNIT_LEN];             //单位，如m3/h
+    char        ProtocolName[16];
+    uint8_t   	UseChannel;                 //通道号
+    uint8_t   	UseChannelType; //通道类型  1:串口 2:模拟       3:I2C 4：网口
     uint8_t   	Address;            //设备地址
     uint8_t   	Protocol;           //协议号
-    uint8_t   	Signal;             //接入信号，AD 模拟电压转实际值所用
+    char   	    Signal[SIGNAL_LEN]; //接入信号，AD 模拟电压转实际值所用
     float   	RangeUp;            //量程上限
     float   	RangeLow;           //量程下限
     float   	AlarmUp;            //报警上限
     float   	AlarmLow;           //报警下限
-    uint8_t   	MaxFlag:1;          //最大值标志
-    uint8_t   	MinFlag:1;          //最小值标志
-    uint8_t   	AvgFlag:1;          //平均值标志
-    uint8_t   	CouFlag:1;          //累积值标志
-    uint8_t   	Decimals:4;         //小数位数 
+    uint8_t   	MaxFlag;          //最大值标志
+    uint8_t   	MinFlag;          //最小值标志
+    uint8_t   	AvgFlag;          //平均值标志
+    uint8_t   	CouFlag;          //累积值标志
+    uint8_t   	Decimals;         //小数位数 
     char		flag;
     float		Rtd;
 	double		total;
@@ -133,8 +146,9 @@ typedef struct _SerialPara
 {
     uint8_t   isServerOpen;         // 0 关闭 1 打开
     uint8_t   isRS485;              // 0 232 1 485
+    uint8_t   isModbus;             // 0 非  1 Modbus
     u_char    DevName[UART_DEVNAME_LEN];       //串口名称
-    uint16_t  BaudRate;       //串口波特率
+    uint32_t  BaudRate;       //串口波特率
     uint8_t   DataBits;       //串口数据位
     uint8_t   Parity;         //串口校验位       0 无校验 1 奇校验 2 偶校验
     uint8_t   StopBits;       //串口停止位    
@@ -176,7 +190,8 @@ typedef struct _SitePara
 }stSitePara,*pstSitePara;
 
 typedef struct _NetPara
-{   
+{  
+    uint8_t LTEOpen;            //4G开启
     uint8_t VPNOpen;            //VPN 客户端开启
     char  VPNServerIp[16];     //VPN 服务器IP
     char  VPNUserName[16];     //VPN 用户IP
@@ -195,18 +210,19 @@ typedef struct _Para
     uint8_t               Mode;             //0:远程模式   1:运维模式
     stGeneralPara   GeneralPara; 
     //stMeterPara     MeterPara[METER_CNT];
+    stPollutantPara PollutantPara[POLLUTANT_CNT];
     stSerialPara    SerialPara[SERIAL_CNT];
     stIOPara        IOPara;
     stSitePara      SitePara[SITE_CNT]; 
-    stNetPara       NetPara;
+    //stNetPara       NetPara;
     stUserPara      UserPara[USER_CNT];
 }stPara,*pstPara;
 
 typedef struct _ValveControl
 {
-    uint8_t     per;
-    uint8_t     per_measure;
-    uint8_t     per_last;
+    uint8_t     per;  //阀门值
+    uint8_t     per_measure;//阀门测量值
+    uint8_t     per_last;//阀门上一次值
     uint8_t     channel;                   //AD模拟通道
     uint8_t     OutMode;                   //0:模拟量 1:开关量
     uint16_t    OutValueAdjust[3];        //0%、50%、100%  

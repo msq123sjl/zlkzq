@@ -26,10 +26,9 @@
 extern pstPara pgPara;
 extern pstValveControl pgValveControl;
 extern int gPrintLevel;
-extern pstPollutantData pgPollutantData;
-extern pstPollutantPara pgPollutantPara;
 extern pstData pgData;
 extern struct _msg *pmsg_upproc[SITE_SEND_CNT];
+extern struct _msg *pmsg_upproc_to_control[SITE_CNT];
 extern pstMessage pgmsgbuff;
 
 char            code[POLLUTANT_CNT][4]={"BO1","011","001"};
@@ -54,7 +53,7 @@ void RequestRespond(int QnRtn,ngx_ulog_url_t *url_args,pstSerialPara com,TcpClie
 	int CRC16;
 	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=91;CN=9011;PW=%-6.6s;MN=%s;Flag=0;CP=&&QN=%-17.17s;QnRtn=%d&&",\
 								pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,QnRtn);
-	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
+	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(buf)){
 		nLen = nLen - 6;
 		buf[2] = (nLen/1000)+'0';
     	buf[3] = (nLen%1000/100)+'0';
@@ -80,7 +79,7 @@ void ExecuteRespond(int ExeRtn,ngx_ulog_url_t *url_args,pstSerialPara com,TcpCli
 	int CRC16;
 	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=91;CN=9012;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;ExeRtn=%d&&",\
 								pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,ExeRtn);
-	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
+	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(buf)){
         nLen = nLen - 6;
 		buf[2] = (nLen/1000)+'0';
     	buf[3] = (nLen%1000/100)+'0';
@@ -112,7 +111,7 @@ static int SendCurrentTime(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;SystemTime=%4d%02d%02d%02d%02d%02d&&",\
 								pgPara->GeneralPara.StType,url_args->cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,\
 								tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec);
-	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
+	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(buf)){
 		
 	
 		nLen = nLen - 6;
@@ -135,7 +134,7 @@ static int SendCurrentTime(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	return TINZ_OK;
 }
 
-static int TcpData_ValveStatus_Data(int cn,int flag,pstData pData,pstMessageData pmsgData){
+static int TcpData_ValveStatus_Data(int cn,int flag,pstMessageData pmsgData){
 
     char per[4];
     int nLen;
@@ -161,7 +160,7 @@ static int TcpData_ValveStatus_Data(int cn,int flag,pstData pData,pstMessageData
     return nLen;
 }
 
-int Insert_Message_Data(int cn,int flag,void* pData){
+int Insert_Message_Data(int cn,int flag){
     int nLen,iLoop;
     int CRC16;
     pstMessageData pmsgData = NULL;
@@ -181,16 +180,13 @@ int Insert_Message_Data(int cn,int flag,void* pData){
     /****************组装报文**************************/
     if(CN_GetValveStatus == cn){
         //pgData->IOState.In_drain_close
-        nLen = TcpData_ValveStatus_Data(cn,flag,(pstData)pData,pmsgData);
+        nLen = TcpData_ValveStatus_Data(cn,flag,pmsgData);
     }else{
         return TINZ_ERROR;
     }
-    if(nLen >= MIN_TCPDATA_LEN-10 && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(pmsgData->content)){ //-10 特殊处理
+    if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(pmsgData->content)){ //-10 特殊处理
         CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen-6);
-        //printf("pmsgData->content[%s]\n",&pmsgData->content[nLen - 6]);
         snprintf(&pmsgData->content[nLen],7,"%.4X\r\n",CRC16);
-        //snprintf(&pmsgData->content[nLen],6,"%.4X\x0d\x0a",CRC16);
-        //printf("pmsgData->content[%s]",&pmsgData->content[nLen - 6]);
     
         nLen = nLen - 6;
         pmsgData->content[2] = (nLen/1000)+'0';
@@ -235,7 +231,7 @@ static int Insert_Message_Count(int cn,int flag){
     snprintf(pmsgData->qn,sizeof(pmsgData->qn),"%4d%02d%02d%02d%02d%02d%03d",tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec,ms);
 	nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"##0000QN=%-17.17s;ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;Flag=%01d;CP=&&&&",\
 								pmsgData->qn,pgPara->GeneralPara.StType,cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,flag);
-	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(pmsgData->content)){
+	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(pmsgData->content)){
 		
 	
 		nLen = nLen - 6;
@@ -298,7 +294,7 @@ static int messageSetTime(u_char *pSystemTime)
     char tmp_buf[80];
     int res1;
     int res2;
-    if (strptime(pSystemTime, "%Y%m%d%H%M%S", &tb) != 0) {
+    if (strptime((char*)pSystemTime, "%Y%m%d%H%M%S", &tb) != 0) {
         strftime(tmp_buf, 80, "/bin/date -s \"%Y-%m-%d %H:%M:%S\"", &tb);
         res1=system(tmp_buf);  //设置系统时间
         res2=system("/sbin/hwclock --systohc");   //将系统时间写入到RTC硬件中，以保留设置。这一操作是为了将修改好的时间写入到RTC中保存。如果不进行这一步操作，则
@@ -327,7 +323,7 @@ static int SendValveStatus(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;Per=%s;Pump=%01d&&",\
 								pgPara->GeneralPara.StType,url_args->cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,\
 								per,pgData->IOState.In_reflux_open);
-	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 6 && nLen == strlen(buf)){
+	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(buf)){
 
 		nLen = nLen - 6;
 		buf[2] = (nLen/1000)+'0';
@@ -799,42 +795,42 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 						break;
 					}
                     if(ngx_str10cmp(name.data, 'b', '0','1','-','m','o','n','a','l','l')){
-						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara.Row[0].MonAll = (uint32_t)ngx_atoi(value.data, value.len))){
+						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara[0].Row.MonAll = (uint32_t)ngx_atoi(value.data, value.len))){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-MonAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						break;
 					}
                     if(ngx_str10cmp(name.data, 'b', '0','1','-','q','u','t','a','l','l')){
-						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara.Row[0].QutAll = (uint32_t)ngx_atoi(value.data, value.len))){
+						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara[0].Row.QutAll = (uint32_t)ngx_atoi(value.data, value.len))){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-QutAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						break;
 					}
                     if(ngx_str10cmp(name.data, 'b', '0','1','-','y','e','a','a','l','l')){
-						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara.Row[0].YeaAll = (uint32_t)ngx_atoi(value.data, value.len))){
+						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara[0].Row.YeaAll = (uint32_t)ngx_atoi(value.data, value.len))){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-YeaAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						break;
 					}
                     if(ngx_str10cmp(name.data, '0', '1','1','-','m','o','n','a','l','l')){
-						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara.Row[1].MonAll = (uint32_t)ngx_atoi(value.data, value.len))){
+						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara[1].Row.MonAll = (uint32_t)ngx_atoi(value.data, value.len))){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-MonAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						break;
 					}
                     if(ngx_str10cmp(name.data, '0', '1','1','-','q','u','t','a','l','l')){
-						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara.Row[1].QutAll = (uint32_t)ngx_atoi(value.data, value.len))){
+						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara[1].Row.QutAll = (uint32_t)ngx_atoi(value.data, value.len))){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-QutAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
 						break;
 					}
                     if(ngx_str10cmp(name.data, '0', '1','1','-','y','e','a','a','l','l')){
-						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara.Row[1].YeaAll = (uint32_t)ngx_atoi(value.data, value.len))){
+						if(value.len != 8 || NGX_ERROR == (url_args->PollutantPara[1].Row.YeaAll = (uint32_t)ngx_atoi(value.data, value.len))){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-YeaAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
@@ -860,11 +856,15 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 //收到平台信息并处理
 int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 {
-	ngx_ulog_url_t url_args;
+    int iLoop;
+    ngx_ulog_url_t url_args;
     
     memset(&url_args,0,sizeof(ngx_ulog_url_t));
-    memset(&url_args.RtdData,-1,sizeof(stPollutantRtdData));
+    for(iLoop=0;iLoop<POLLUTANT_CNT;iLoop++){
+        url_args.RtdData.Row[iLoop].rtd = -1;
+    }
     url_args.flag = -1;
+    url_args.per = 255;
     
 	if(TINZ_ERROR == parse_url(str, iRecvLen, &url_args)){
 		return TINZ_ERROR;
@@ -911,15 +911,8 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 				
 				RequestRespond(REQUEST_READY,&url_args, com, tcp);
             }
-            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_RTD_TYTE;
-            //memcpy(pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data,&url_args.RtdData,sizeof(stPollutantRtdData));
-            MsgSend(pmsg_upproc[tcp->tcplink->SiteNum],MSG_SQLITE_RTD_TYTE,(char*)(&url_args.RtdData),(int)sizeof(stPollutantRtdData));
-            /*rtd_data_proc(url_args.RtdData, tcp);
-            day_data_proc(url_args.RtdData, tcp);
-            month_data_proc(url_args.RtdData, tcp);
-            qut_data_proc(url_args.RtdData, tcp);
-            year_data_proc(url_args.RtdData, tcp);*/
-            pgPollutantData->RtdData = url_args.RtdData;
+            pgData->PollutantsData.RtdData = url_args.RtdData;
+            MsgSend(pmsg_upproc[tcp->tcplink->SiteNum],MSG_POLLUTANT_RTD_TYTE,(char*)(&pgData->PollutantsData.RtdData),(int)sizeof(stPollutantRtdData));
             ExecuteRespond(RESULT_SUCCESS, &url_args,com, tcp);
 			break;	
 		case CN_ValveControl:
@@ -927,29 +920,23 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
                 RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
                 break;
             }
-            //if(url_args.flag & 0x01){
-                
-                //if(pgValveControl->per == pgValveControl->per_last && pgValveControl->per != url_args.per){
-                    RequestRespond(REQUEST_READY,&url_args, com, tcp);
-                //}else{
-                //    RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
-                //    return TINZ_OK;
-                //}
-            //}
-            pgValveControl->per = url_args.per;
-            /*int ValveControlCNT = 500;
-            while(ValveControlCNT--){
-                if(pgValveControl->per == pgValveControl->per_last ){
-                    ExecuteRespond(RESULT_SUCCESS, &url_args,com, tcp);
-                    ValveControlCNT = 65535;
-                    break;
-                }
-                DEBUG_PRINT_INFO(gPrintLevel, "waiting for valve per[%d] per_last[%d] cnt[%d]\n", pgValveControl->per,pgValveControl->per_last,ValveControlCNT);
-                sleep(1);
+            if(url_args.per > 100){
+                RequestRespond(REQUEST_CODE_ERR,&url_args, com, tcp);
+                break;
             }
-            if(ValveControlCNT != 65535){
-                ExecuteRespond(RESULT_FAILED, &url_args,com, tcp);
-            }*/
+            if(pgValveControl->per == pgValveControl->per_last){
+                if(url_args.flag & 0x01){
+                    RequestRespond(REQUEST_READY,&url_args, com, tcp);
+                }
+                pgValveControl->per = url_args.per;
+                MsgSend(pmsg_upproc_to_control[tcp->tcplink->SiteNum],MSG_CONTROL_VALVE_TYTE,(char*)(&pgValveControl->per),(int)sizeof(pgValveControl->per));
+                syncValveParaShm();
+            }else{
+                if(url_args.flag & 0x01){
+                    RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
+                }
+                break;
+            }
             ExecuteRespond(RESULT_SUCCESS, &url_args,com, tcp);
 			break;
 		case CN_GetValveStatus:
@@ -971,8 +958,11 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
             if(url_args.flag & 0x01){
                RequestRespond(REQUEST_READY,&url_args, com, tcp); 
             }
-            memcpy(pgPollutantPara,&url_args.PollutantPara,sizeof(stPollutantPara));
-            syncPollutantParaShm();
+            int iLoop;
+            for(iLoop=0;iLoop<POLLUTANT_CNT;iLoop++){
+                pgPara->PollutantPara[iLoop] = url_args.PollutantPara[iLoop];
+            }
+            syncParaShm();
             ExecuteRespond(RESULT_SUCCESS, &url_args,com, tcp);
 			break;
 		default:

@@ -21,8 +21,7 @@ extern "C"{
 #include "tinz_base_data.h"
 }
 extern pstPara pgPara;
-extern pstPollutantData pgPollutantData;
-extern pstPollutantPara pgPollutantPara;
+extern pstData pgData;
 
 FlowRtdwidget::FlowRtdwidget(QWidget *parent) :
     QWidget(parent),
@@ -68,23 +67,14 @@ void FlowRtdwidget::InitShowData()
 void FlowRtdwidget::slotShowCurrentData()
 {
     //允许排放量设置
-    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].rtd,'f',0)+" L/s");
-    ui->label_cur_day->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].day,'f',0)+" L");
-    ui->label_cou->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)+" L");
-    ui->label_cur_mon->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].mon,'f',0)+" L");
-    ui->label_cur_qut->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].qut,'f',0)+" L");
-    ui->label_cur_yea->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_FLOW_INDEX].year,'f',0)+" L");
-    ui->label_set_mon->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].MonAll)+" L");
-    ui->label_set_qut->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].QutAll)+" L");
-    ui->label_set_yea->setText(QString::number(pgPollutantPara->Row[POLLUTANT_FLOW_INDEX].YeaAll)+" L");
+    ui->label_rtd->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].rtd,'f',1)+" L/s");
+    ui->label_cur_day->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].day,'f',0)+" L");
+    ui->label_cou->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)+" L");
+    ui->label_cur_mon->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].mon,'f',0)+" L");
+    ui->label_cur_qut->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].qut,'f',0)+" L");
+    ui->label_cur_yea->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].year,'f',0)+" L");
+    ui->label_set_mon->setText(QString::number(pgPara->PollutantPara[POLLUTANT_FLOW_INDEX].Row.MonAll)+" L");
+    ui->label_set_qut->setText(QString::number(pgPara->PollutantPara[POLLUTANT_FLOW_INDEX].Row.QutAll)+" L");
+    ui->label_set_yea->setText(QString::number(pgPara->PollutantPara[POLLUTANT_FLOW_INDEX].Row.YeaAll)+" L");
 }
-
-
-
-
-
-
-
-
-
 

@@ -27,17 +27,18 @@
 #include <dirent.h>   
 #include <sys/signal.h> 
 #include <sys/syscall.h> 
-#include <sys/param.h> 
+//#include <sys/param.h> 
 #include <linux/rtc.h>
 
 #include "em335x_drivers.h"
 
 #include "watchdog.h"
 #include "tinz_common_helper.h"
+#include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
-#include "config_file.h"
 #include "tinz_base_data.h"
-#include "tinz_pub_shm.h" 
+#include "config_file.h"
+//#include "tinz_pub_shm.h" 
 
 #define	STH   	0
 #define	STL 	1	
@@ -54,6 +55,7 @@ static ProgInfo defaultprogs[]={{0,"dataproc",0},{0,"interface",0},{0,"up_main",
 int gPrintLevel = 5;
 static int watchdog_fd = 0;
 pstData pgData;
+pstNetPara pgNetPara;
 
 /*static void pabort(const char *s)
 {
@@ -69,7 +71,6 @@ int main(int argc, char *argv[], char *env[]){
 	sleep(1);
 	parent_pid = getpid();
 
-    pgData = (pstData)getDataShm();
 	wait_for_daemon_status = 1;
 	daemonize();
 
@@ -92,22 +93,12 @@ int main(int argc, char *argv[], char *env[]){
 	
 	KillProgs();
 
-    /*int event_fd;
-    event_fd = open("/dev/event0", O_RDWR);
-    if (event_fd < 0)
-        pabort("can't open /dev/event0");
-	fd_set rd;
-    struct timeval tv;
-    int err;
-    FD_ZERO(&rd);
-    FD_SET(event_fd,&rd);
-    tv.tv_sec = 10;
-    tv.tv_usec = 0;*/
-
+    //pgPara = (pstPara)getParaShm();
+    pgData = (pstData)getDataShm();
+    pgNetPara = (pstNetPara)getNetParaShm();
+    //memset(&pgData->PollutantsData.RtdData.Row[0],0,sizeof(stPollutantRtdDataRow)*POLLUTANT_CNT);
+    //sleep(1);//等待数据初始化完成
 	while(1){     
-        //DEBUG_PRINT_INFO(gPrintLevel,"Watchdog proc cnt[%d]\r\n",count);
-        /*err = select(event_fd+1,&rd,NULL,NULL,&tv);
-        DEBUG_PRINT_INFO(gPrintLevel,"event0 err[%d][%d]\r\n",err,event_fd);*/
 	    count++;
 	    if(delayxx<20)
 	   	    delayxx++;
@@ -120,14 +111,20 @@ int main(int argc, char *argv[], char *env[]){
 		if((count%10)==0)
 			CheckZombieProc();
         /*4G网络已连接 启动ping定时任务*/
-        lte_count = lte_count < 120 ? lte_count+1 : 121;
-        if(0 == pgData->state.LTE && lte_count > 120 && 0 == lte_flag){
-            lte_flag = 1;
-            crontab_start();
+        if(pgNetPara->LTEOpen){
+            lte_count = lte_count < 120 ? lte_count+1 : 121;
+            if(0 == pgData->state.LTE && lte_count > 120 && 0 == lte_flag){
+                lte_flag = 1;
+                crontab_start();
+            }
+        }else{
+            if(1 == lte_flag){
+                crontab_stop();
+                lte_flag = 0;
+                lte_count = 0;
+            }
         }
-        
 		sleep(1);
-        
 	}	
 }
 
@@ -135,6 +132,12 @@ void crontab_start(){
     DEBUG_PRINT_ERR(gPrintLevel,"[Watchdog] crond start\n");
     system("crond");
 }
+
+void crontab_stop(){
+    DEBUG_PRINT_ERR(gPrintLevel,"[Watchdog] crond stop\n");
+    system("crond stop");
+}
+
 //创建主机
 int daemonize()
 {

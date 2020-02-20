@@ -1,10 +1,18 @@
 #!/bin/sh
 MYPATH=$(cd `dirname $0`; pwd)
 cd ${MYPATH}
-/mnt/nandflash/bin/config_para 1
-rm -rf /mnt/nandflash/shm/shm_*
-rm -rf /mnt/nandflash/para/*.dat
-
+cp /mnt/nandflash/para/fs_para.conf /mnt/nandflash/para/fs_para.conf.bak
+cp /mnt/nandflash/para/fs_net_para.conf /mnt/nandflash/para/fs_net_para.conf.bak
+/mnt/nandflash/bin/config_para export
+ARG=$1
+if [ ! -z $ARG ]
+then
+    if [[ $ARG = "init" ]]
+    then
+        rm -rf /mnt/nandflash/shm/shm_*
+        rm -rf /mnt/nandflash/para/*.dat
+    fi
+fi
 #test -f ./nandflash.tar.gz && rm ./nandflash.tar.gz
 #tar cvzf nandflash.tar.gz /mnt/nandflash/
 

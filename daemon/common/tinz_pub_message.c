@@ -96,3 +96,12 @@ struct _msg* InterfaceMessageInit(struct _msg *msg){
     return msg;
 }
 
+struct _msg* InterfaceToControlMessageInit(struct _msg *msg){
+    msg = (struct _msg*)malloc(sizeof(struct _msg));
+    memset(msg,0,sizeof(struct _msg));
+    if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_INTERFACE_TO_CONTROL, MSG_ID_INTERFACE_TO_CONTROL_ID, msg)){
+    	exit(0);
+    }
+    return msg;
+}
+

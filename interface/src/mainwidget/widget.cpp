@@ -31,7 +31,6 @@ Description:总量控制器--主界面功能的实现
 #include "dacalibrationwidget.h"          //DA校准
 
 QStringList weekcn;
-//char *weekcn[] = {"一","一","二","三","四","五","六","日"};
 extern "C"{
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
@@ -87,13 +86,13 @@ void Widget::initForm()
     setToolButtonStyle(ui->tbnHome,"首页",E_NORMAL,":/images/tool/home_normal.png");
     setStyleSheet(QLatin1String("QToolButton{border:0px;}"));
     //中间部分的样式
-    setToolButtonStyle(ui->tbnFlow,"流量",E_BIG,":/images/midwidget/Bedroom.png");
-    setToolButtonStyle(ui->tbnCOD,"COD",E_BIG,":/images/midwidget/Parlor.png");
-    setToolButtonStyle(ui->tbnPH,"PH",E_BIG,":/images/midwidget/kitchen.png");
-    setToolButtonStyle(ui->tbnSafety,"NULL",E_BIG,":/images/midwidget/Safety.png");
-    setToolButtonStyle(ui->tbnAD,"AD校准",E_BIG,":/images/midwidget/Bedroom.png");
-    setToolButtonStyle(ui->tbnDA,"DA校准",E_BIG,":/images/midwidget/Parlor.png");
-    setToolButtonStyle(ui->tbnValveControl,"阀门",E_BIG,":/images/midwidget/kitchen.png");
+    setToolButtonStyle(ui->tbnFlow,"流量",E_BIG,":/images/midwidget/middle_1.png");
+    setToolButtonStyle(ui->tbnCOD,"COD",E_BIG,":/images/midwidget/middle_2.png");
+    setToolButtonStyle(ui->tbnPH,"PH",E_BIG,":/images/midwidget/middle_3.png");
+    setToolButtonStyle(ui->tbnSafety,"NULL",E_BIG,":/images/midwidget/middle_4.png");
+    setToolButtonStyle(ui->tbnAD,"AD校准",E_BIG,":/images/midwidget/middle_4.png");
+    setToolButtonStyle(ui->tbnDA,"DA校准",E_BIG,":/images/midwidget/middle_3.png");
+    setToolButtonStyle(ui->tbnValveControl,"阀门",E_BIG,":/images/midwidget/middle_2.png");
     //底部菜单的样式
     setToolButtonStyle(ui->tbnRtd,"实时",E_NORMAL,
                        ":/images/bottom/control.png");
@@ -235,7 +234,7 @@ void Widget::slotShowCurrentDataTime()
     }
 
     if(1 == blk_time){
-        system("echo 8 > /sys/class/backlight/backlight/brightness");
+        system("echo 7 > /sys/class/backlight/backlight/brightness");
         ui->stackedWidget->setCurrentIndex(E_HOME_WIDGET);
     }
 }
@@ -398,10 +397,8 @@ void Widget::on_tbnValveControl_clicked()
 
 void Widget::mousePressEvent(QMouseEvent *e)
 {
-    //qDebug()<<QString("Widget mousePressEvent:%1").arg(e->button());
     if (e->button() == Qt::LeftButton)
     {
-        //qDebug()<<QString("blk_time1:%1").arg(blk_time);
         if(blk_time <= 20){
             system("echo 0 > /sys/class/backlight/backlight/brightness");
         }

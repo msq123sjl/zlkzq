@@ -138,8 +138,6 @@ static void pollutant_data_proc_rtd(pstPollutantRtdData  pRtdData){
     									&pRtdData->DataTime[8], &pRtdData->DataTime[10], &pRtdData->DataTime[12],\
     									pRtdData->Row[iLoop].rtd,
     									pRtdData->Row[iLoop].cou);
-            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
-            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
     		tinz_db_exec(&scy_data,sql);
     		DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
     	} 
@@ -150,7 +148,6 @@ static void pollutant_data_proc_day(pstPollutantRtdData  pRtdData){
     char    TableName[TABLE_NAME_LEN];
     char 	sql[SQL_LEN];
     int     iLoop;
-    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
     for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
         
         if(pRtdData->Row[iLoop].day >= 0){
@@ -163,8 +160,6 @@ static void pollutant_data_proc_day(pstPollutantRtdData  pRtdData){
                                         &pRtdData->DataTime[0], &pRtdData->DataTime[4],&pRtdData->DataTime[6],\
                                         pRtdData->Row[iLoop].day,
                                         pRtdData->Row[iLoop].cou);
-            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
-            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
             tinz_db_exec(&scy_data,sql);
             DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
         } 
@@ -175,7 +170,6 @@ static void pollutant_data_proc_month(pstPollutantRtdData  pRtdData){
     char    TableName[TABLE_NAME_LEN];
     char 	sql[SQL_LEN];
     int     iLoop;
-    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
     for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
         
         if(pRtdData->Row[iLoop].mon >= 0){
@@ -188,8 +182,6 @@ static void pollutant_data_proc_month(pstPollutantRtdData  pRtdData){
                                         &pRtdData->DataTime[0], &pRtdData->DataTime[4],\
                                         pRtdData->Row[iLoop].mon,
                                         pRtdData->Row[iLoop].cou);
-            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
-            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
             tinz_db_exec(&scy_data,sql);
             DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
         } 
@@ -202,7 +194,6 @@ static void pollutant_data_proc_qut(pstPollutantRtdData  pRtdData){
     int     iLoop;
     uint8_t res = 0;
     uint8_t month = 0;
-    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
     for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
         
         if(pRtdData->Row[iLoop].qut >= 0){
@@ -217,8 +208,6 @@ static void pollutant_data_proc_qut(pstPollutantRtdData  pRtdData){
                                             &pRtdData->DataTime[0], month,\
                                             pRtdData->Row[iLoop].qut,
                                             pRtdData->Row[iLoop].cou);
-                //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
-                //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
                 tinz_db_exec(&scy_data,sql);
                 DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
             }else{
@@ -232,7 +221,6 @@ static void pollutant_data_proc_year(pstPollutantRtdData  pRtdData){
     char    TableName[TABLE_NAME_LEN];
     char 	sql[SQL_LEN];
     int     iLoop;
-    //sql = pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.data;
     for(iLoop = 0; iLoop < POLLUTANT_CNT; iLoop++){
         
         if(pRtdData->Row[iLoop].year >= 0){
@@ -245,8 +233,6 @@ static void pollutant_data_proc_year(pstPollutantRtdData  pRtdData){
                                         &pRtdData->DataTime[0],\
                                         pRtdData->Row[iLoop].year,
                                         pRtdData->Row[iLoop].cou);
-            //pmsg_upproc[tcp->tcplink->SiteNum]->msgbuf.mtype = MSG_SQLITE_TYTE;
-            //MsgSend(pmsg_upproc[tcp->tcplink->SiteNum]);
             tinz_db_exec(&scy_data,sql);
             DEBUG_PRINT_INFO(gPrintLevel, "sql:%s\n",sql);
         } 
@@ -304,9 +290,9 @@ static void MessageRecvProc(struct _msg* msg){
     pstMessageData pmsgData;
     pstEvent pEvent;
     if(msg->msgbuf.mtype > 0){
-        DEBUG_PRINT_INFO(gPrintLevel, "msg recvtype[%ld]\n",msg->msgbuf.mtype);
+        DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] msg recvtype[%ld]\n",msg->msgbuf.mtype);
         switch(msg->msgbuf.mtype){
-            case MSG_SQLITE_RTD_TYTE:
+            case MSG_POLLUTANT_RTD_TYTE:
                 pRtdData = (pstPollutantRtdData)msg->msgbuf.data;
                 pollutant_data_proc(pRtdData);
                 break;
@@ -329,7 +315,7 @@ static void MessageRecv(){
     int iLoop;
     /*接收上行消息队列*/
     for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
-        if(pgPara->SitePara[iLoop].ServerOpen){
+        if(SITE_CNT == iLoop || pgPara->SitePara[iLoop].ServerOpen){
             MsgRcv(pmsg_upproc[iLoop], 0); 
             MessageRecvProc(pmsg_upproc[iLoop]);
         }
@@ -427,21 +413,17 @@ int main(int argc, char* argv[])
     pgData = (pstData)getDataShm();
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     initHistoryDataShm();
-    //DEBUG_PRINT_INFO(gPrintLevel, "getPollutantDataShm start\n");
-    //pgPollutantData = (pstPollutantData)getPollutantDataShm();
+
 	/*消息队列*/
     MessageInit();
     pmsg_interface = InterfaceMessageInit(pmsg_interface);
 	/*数据库*/
-	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] open [%s]\n",SCY_DATA);
-	snprintf(scy_data.name,sizeof(scy_data.name)-1,SCY_DATA);
+	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] open [%s]\n",ZLKZQ_DATA);
+	snprintf(scy_data.name,sizeof(scy_data.name)-1,ZLKZQ_DATA);
 	if(TINZ_ERROR == tinz_db_open(&scy_data)){
 		exit(0);	
 	}
-    //sqlite3_select(&scy_data, "Mins_w09008");
-	/*数据初始化*/
-	DEBUG_PRINT_INFO(gPrintLevel, "[dataproc] data init\n");
-	//meter_data_init();
+
    	while(1){
         
 		/**/
@@ -450,6 +432,14 @@ int main(int argc, char* argv[])
 		sleep(1);
 	}
 	tinz_db_close(&scy_data);
+    int iLoop;
+    for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
+        if(NULL != pmsg_upproc[iLoop]){
+            free(pmsg_upproc[iLoop]);
+        }
+    }
+    free(pmsg_dataproc_to_upproc);
+    free(pmsg_interface);
 	return 0;
 }
 

@@ -91,6 +91,32 @@ int CRC16_GB212(char *databuff, int len)
     return( wkg );
 }
 
+//RTU CRC校验
+uint16_t CRC16_RTU(uint8_t *databuff, uint16_t len)
+{
+    uint16_t  c,crc = 0xFFFF;
+	uint16_t iLoop,jLoop;
+
+    for(iLoop=0;iLoop<len;iLoop++)
+    {
+        c = *(databuff+iLoop) & 0x00ff;
+        crc ^= c;
+
+       for (jLoop = 0 ; jLoop < 8; jLoop++ )
+       {
+          if ( crc & 0x0001 )
+          {
+            crc = ( crc >> 1 ) ^ 0xa001;
+          }
+          else
+          {
+            crc = crc >> 1;
+          }
+       }
+    }
+    return( crc );
+}
+
 //异或校验
 //从第index位开始进行校验
 u_char XORValid(char *buffer ,int len)
@@ -224,3 +250,15 @@ int get_system_output(char *cmd, char *output,int size){
     return TINZ_OK;
 }
 
+int tinz_float_to_string(char *pBuf,int len,uint8_t Decimals,float data){
+    switch(Decimals){
+        case 0:
+            return snprintf(pBuf,len,"%d",(int)data);
+            break;
+        case 1:     
+            return snprintf(pBuf,len,"%.1f",data);
+            break;
+        default:
+            return snprintf(pBuf,len,"%.2f",data);
+    }    
+}

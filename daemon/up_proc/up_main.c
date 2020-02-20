@@ -19,11 +19,10 @@
 
 pstPara pgPara;
 pstValveControl pgValveControl;
-pstPollutantData pgPollutantData;
-pstPollutantPara pgPollutantPara;
 pstData pgData;
 
 struct _msg *pmsg_upproc[SITE_SEND_CNT];
+struct _msg *pmsg_upproc_to_control[SITE_CNT];
 pstMessage pgmsgbuff = NULL;
 struct _msg *pmsg_dataproc_to_upproc;
 
@@ -39,6 +38,17 @@ static void MessageInit(){
         	pmsg_upproc[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
         	memset(pmsg_upproc[iLoop],0,sizeof(struct _msg));
         	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_SQLITE, iLoop+1, pmsg_upproc[iLoop])){
+        		exit(0);
+        	}
+        }
+    }
+
+    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
+        if(pgPara->SitePara[iLoop].ServerOpen){
+        	DEBUG_PRINT_INFO(gPrintLevel, "[up_proc] pmsg_upproc_to_control_%d start\n",iLoop);
+        	pmsg_upproc_to_control[iLoop] = (struct _msg*)malloc(sizeof(struct _msg));
+        	memset(pmsg_upproc_to_control[iLoop],0,sizeof(struct _msg));
+        	if(TINZ_ERROR == prepareMsg(MSG_PATH_MSG,MSG_NAME_UPPROC_TO_CONTROL, iLoop+1, pmsg_upproc_to_control[iLoop])){
         		exit(0);
         	}
         }
@@ -67,24 +77,10 @@ int main(int argc, char *argv[])
 {
 	int iLoop;
     pthread_t thread_id_send = 0;
-	//DEBUG_PRINT_INFO(gPrintLevel,"== port = %d\n", atoi(argv[1]));
-    pgPara = (pstPara)getParaShm();
-	DEBUG_PRINT_INFO(gPrintLevel,"== AlarmTime = %d\n", pgPara->GeneralPara.AlarmTime);
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getValveParaShm start\n");
-    pgValveControl = (pstValveControl)getValveParaShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantDataShm start\n");
-    pgPollutantData = (pstPollutantData)getPollutantDataShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantDataShm end\n");
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantParaShm start\n");
-    pgPollutantPara = (pstPollutantPara)getPollutantParaShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getPollutantParaShm end\n");
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getDataShm start\n");
-    pgData = (pstData)getDataShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "up_proc getDataShm end\n");
 
-    /*测试临时用*/
-    //pgPara->SitePara[0].ServerOpen   = 1;
-    //snprintf((char*)pgPara->SitePara[0].ServerIp,sizeof(pgPara->SitePara[0].ServerIp),"%s","192.168.137.1");
+    pgPara = (pstPara)getParaShm();
+    pgValveControl = (pstValveControl)getValveParaShm();
+    pgData = (pstData)getDataShm();
 
     wait_for_serveropen_set(); //无上行服务器 停留在此处             但消息队列不能够有效接收 导致消息队列溢出 需做进一步处理
     /*消息队列*/
@@ -102,11 +98,7 @@ int main(int argc, char *argv[])
     pgmsgbuff = (pstMessage)malloc(sizeof(stMessage));
     memset(pgmsgbuff,0,sizeof(stMessage));    
 	signal(SIGPIPE, SIG_IGN);
-    //pgPara->SitePara[0].ServerOpen   = 1;
-    //pgPara->SitePara[0].isConnected  = 0;
-    //pgPara->SitePara[0].ServerPort   = atoi(argv[1]);
-    //snprintf((char*)pgPara->SitePara[0].ServerIp,sizeof(pgPara->SitePara[0].ServerIp)-1,"%s","192.168.1.131");
-
+    
     for(iLoop=0; iLoop < SITE_CNT; iLoop++){
 		
 		pserver->channes[iLoop].tcplink = &pgPara->SitePara[iLoop];
@@ -122,7 +114,18 @@ int main(int argc, char *argv[])
 		pserver->channes[iLoop].tcplink->isConnected = 0;
 		close(pserver->channes[iLoop].dev_fd);
 	}
-	free(pserver);
-	
+	free(pserver);   
+	free(pgmsgbuff);
+    for(iLoop=0;iLoop<SITE_SEND_CNT;iLoop++){
+        if(NULL != pmsg_upproc[iLoop]){
+            free(pmsg_upproc[iLoop]);
+        }
+    }
+    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
+        if(NULL != pmsg_upproc_to_control[iLoop]){
+            free(pmsg_upproc_to_control[iLoop]);
+        }
+    }
+    free(pmsg_dataproc_to_upproc);
 	return 0;
 }

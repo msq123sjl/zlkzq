@@ -24,6 +24,7 @@ extern pstMessage pgmsgbuff;
 extern pstData pgData;
 extern pstPara pgPara;
 extern struct _msg *pmsg_upproc[SITE_SEND_CNT];
+extern struct _msg *pmsg_dataproc_to_upproc;
 
 
 static int tcplink_connect(TcpClientDev *pdev);
@@ -52,7 +53,7 @@ static int send_message_to_server(void *arg, char* pSendBuf){
     }
     if(1 == pdev->tcplink->isConnected){
 	    iSendLen = send(pdev->dev_fd, pSendBuf, strlen(pSendBuf), 0);
-        usleep(100000);
+        usleep(500000);
     }
 	if(iSendLen <= 0){
 		DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] retry\n");
@@ -72,8 +73,8 @@ static void message_buf_clear_func(){
         if(MSGBUF_IS_WAITING == pgmsgbuff->Data[iLoop].IsUse){
             res = 0;
             pmsgData = &pgmsgbuff->Data[iLoop];
-            pmsgData->waittime += 3;
-            //DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] clear1 pmsgData->waittime=%d OverTime=%d flag=%d\n",pmsgData->waittime,pgPara->GeneralPara.OverTime,pmsgData->flag);
+            pmsgData->waittime += 1;
+            DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] clear1 pmsgData->waittime=%d OverTime=%d flag=%d\n",pmsgData->waittime,pgPara->GeneralPara.OverTime,pmsgData->flag);
 
             if(1 == (pmsgData->flag & 0x01)){//无需应答，直接清空  
 
@@ -85,7 +86,7 @@ static void message_buf_clear_func(){
                         if(0 == pmsgData->IsRespond[jLoop]){ 
                             /*判断报文是否发送次数超限*/
                             if(pmsgData->SendTimes[jLoop] < pgPara->GeneralPara.ReCount){
-                                if(pmsgData->waittime > pgPara->GeneralPara.OverTime){//超时未响应，重新发送报文
+                                if(pmsgData->waittime >= pgPara->GeneralPara.OverTime){//超时未响应，重新发送报文
                                     pgmsgbuff->Data[iLoop].IsUse = MSGBUF_IS_SENDING;
                                     pmsgData->waittime = 0;
                                 }
@@ -118,7 +119,7 @@ static void send_message_to_server_func(){
     for(iLoop = 0;iLoop < MESSAGECNT;iLoop++){
         /*查找需发送的报文*/
         if(MSGBUF_IS_SENDING == pgmsgbuff->Data[iLoop].IsUse){
-            //DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] send pgmsgbuff->Data[%d].IsUse=%d\n",iLoop,pgmsgbuff->Data[iLoop].IsUse);
+            DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] send pgmsgbuff->Data[%d].IsUse=%d\n",iLoop,pgmsgbuff->Data[iLoop].IsUse);
             pmsgData = &pgmsgbuff->Data[iLoop];
             /*往服务端发送报文*/
             for(jLoop =0;jLoop<SITE_CNT;jLoop++){
@@ -154,7 +155,7 @@ static void tcpclient_thread_send()
         message_buf_clear_func();
         //PowerState();
         //ValvePowerState();
-        Insert_Message_Data(CN_GetValveStatus,0,pgData);
+        Insert_Message_Data(CN_GetValveStatus,0);
         send_message_to_server_func();
         sleep(pgPara->GeneralPara.RtdInterval);
     }
@@ -264,18 +265,8 @@ int tcpclient_open(TcpClientDev *pdev){
 }
 
 int tcpclient_thread_send_create(pthread_t *thread_id){
-    //int iLoop;
     DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] tcpclient_thread_send create\n");
-    /*for(iLoop=0; iLoop < SITE_CNT; iLoop++){
-		
-		if(pserver->channes[iLoop].tcplink->isConnected && pserver->channes[iLoop].packet_send_handle != NULL){
-            break;
-        }
-        if(SITE_CNT == iLoop+1){
-            DEBUG_PRINT_ERR(gPrintLevel,"tcp link not found\n"); 
-            return TINZ_ERROR;
-        }
-	}*/
+
 	if(pthread_create(thread_id,NULL,(void *)(&tcpclient_thread_send),NULL) == -1)
 	{
 		DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] tcpclient_thread_send create error!\n");

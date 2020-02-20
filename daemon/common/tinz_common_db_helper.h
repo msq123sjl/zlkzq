@@ -1,8 +1,8 @@
 #ifndef __TINZ_COMMON_DB_HELPER__
 #define __TINZ_COMMON_DB_HELPER__
 #include "sqlite3.h"
-#define SCY_DATA		"/mnt/sdcard/zlkzq.db"
-#define SCY_DATA_bak	"/mnt/nandflash/zlkzq.db.bak"
+#define ZLKZQ_DATA		"/mnt/sdcard/zlkzq.db"
+#define ZLKZQ_DATA_bak	"/mnt/nandflash/zlkzq.db.bak"
 
 #define TABLE_NAME_LEN	32
 #define SQL_LEN			2048

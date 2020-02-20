@@ -8,6 +8,13 @@
 #define SHM_PATH_PARA		"/mnt/nandflash/shm/"
 #define SHM_PARA_ID	0x01
 
+#define FS_NAME_NET_PARA_CONF	"/mnt/nandflash/para/fs_net_para.conf"
+#define FS_NAME_NET_PARA		"/mnt/nandflash/para/fs_net_para.dat"
+#define FS_PATH_NET_PARA		"/mnt/nandflash/para/"
+#define SHM_NAME_NET_PARA		"/mnt/nandflash/shm/shm_net_para"
+#define SHM_PATH_NET_PARA		"/mnt/nandflash/shm/"
+#define SHM_PARA_NET_ID	0x01
+
 #define FS_NAME_VALVE_PARA		"/mnt/nandflash/para/fs_valve_para.dat"
 #define FS_PATH_VALVE_PARA		"/mnt/nandflash/para/"
 #define SHM_NAME_VALVE_PARA		"/mnt/nandflash/shm/shm_valve_para"
@@ -30,6 +37,8 @@
 #define SHM_PATH_POLLUTANT_PARA		"/mnt/nandflash/shm/"
 #define SHM_PARA_POLLUTANT_ID	0x01
 
+#define FS_NAME_DATA		"/mnt/nandflash/para/fs_data.dat"
+#define FS_PATH_DATA		"/mnt/nandflash/para/"
 #define SHM_NAME_DATA		"/mnt/nandflash/shm/shm_data"
 #define SHM_PATH_DATA		"/mnt/nandflash/shm/"
 #define SHM_DATA_ID	0x01
@@ -48,6 +57,11 @@ void rmParaShm();
 void syncParaShm();
 void initParaShm();
 
+char * getNetParaShm();
+void rmNetParaShm();
+void syncNetParaShm();
+void initNetParaShm();
+
 char * getValveParaShm();
 void rmValveParaShm();
 void syncValveParaShm();
@@ -63,6 +77,8 @@ void rmPollutantParaShm();
 void syncPollutantParaShm();
 void initPollutantParaShm();
 char * getDataShm();
+void syncDataShm();
+void initDataShm();
 void rmDataShm();
 char * getHistoryDataShm();
 void rmHistoryDataShm();

@@ -102,7 +102,7 @@ QTableView{
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="currentIndex">
-     <number>8</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="gbox_general">

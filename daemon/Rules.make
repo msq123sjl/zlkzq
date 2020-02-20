@@ -44,3 +44,4 @@ OBJDUMP =$(CROSS_COMPILE)objdump
 
 	CFLAGS += -g -Wall -I$(TOPDIR)/common
         CFLAGS+=-fPIC -fgnu89-inline 
+        CFLAGS+=-D_GNU_SOURCE -D__USE_XOPEN

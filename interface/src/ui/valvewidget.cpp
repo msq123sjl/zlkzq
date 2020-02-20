@@ -25,7 +25,7 @@ extern "C"{
 }
 extern pstPara pgPara;
 extern pstValveControl pgValveControl;
-
+extern struct _msg *pmsg_interface_to_control;
 
 ValveWidget::ValveWidget(QWidget *parent) :
     QWidget(parent),
@@ -97,7 +97,7 @@ void ValveWidget::InitValveControl()
 void ValveWidget::refreshValveValue(int SetValue)
 {
     ui->label_set_value->setText(QString::number(SetValue,10) + '%');
-    ui->label_cur_value->setText(QString::number(pgValveControl->per_measure,10) + '%');
+    ui->label_cur_value->setText(pgValveControl->per_measure > 100 ? QString("Error") : QString::number(pgValveControl->per_measure,10) + '%');
 }
 
 void ValveWidget::setToolButtonStyle(QToolButton *tbn,
@@ -183,6 +183,7 @@ void ValveWidget::on_tbn_valve_ok_clicked()
 {
     if(1 == pgPara->Mode){  //运维模式
         pgValveControl->per = valve_set_value;
+        MsgSend(pmsg_interface_to_control,MSG_CONTROL_VALVE_TYTE,(char*)(&pgValveControl->per),(int)sizeof(pgValveControl->per));
         syncValveParaShm();
         qDebug()<<"ok";
     }else{

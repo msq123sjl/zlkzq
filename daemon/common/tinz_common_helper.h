@@ -58,8 +58,13 @@
 #define toupper(c)      (u_char) ((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)
 #define HEXCHECK(c)      (u_char) (((c >= 'A' && c <= 'F') || (c >= '0' && c <= '9')) ? 1 : 0)
 
+#define TINZ_MAX(a, b)       (((a) > (b) ) ? (a) : (b))
+#define TINZ_MIN(a, b)       (((a) < (b) ) ? (a) : (b))
+#define TINZ_MID(a,b,c)      (TINZ_MAX(a,b)>c?TINZ_MAX(TINZ_MIN(a,b),c):TINZ_MIN(TINZ_MAX(a,b),c))
+
 int CRC16_GB212(char *databuff, int len);
 uint16_t CRC16_Modbus(char *databuff, int len);
+uint16_t CRC16_RTU(uint8_t *databuff, uint16_t len);
 u_char XORValid(char *buffer ,int len);
 u_char HexToAscii(u_char data_hex);
 void DoubleToString(double value, int Decimals, char *buf);

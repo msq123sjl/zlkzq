@@ -27,9 +27,40 @@
 
 
 pstPara 		pgPara;
+pstNetPara      pgNetPara;
 
 int gPrintLevel = 5;
 
+void net_para_datfile_to_strigfile(pstNetPara para){
+    
+    int ret,len;
+	FILE*  fd=0;
+    char *pbuf = malloc(256);
+	memset(pbuf,0,256);
+
+    fd=fopen(FS_NAME_NET_PARA_CONF,"wb");
+	if(fd<=0){
+		DEBUG_PRINT_ERR(5,"open fs_net_para.conf file failure.\n");
+		return;
+	}
+    /*NetPara*/
+    len = snprintf(pbuf,256,"[NetPara]\nLTEOpen=%d\nVPNOpen=%d\nVPNServerIp=%s\nVPNUserName=%s\nVPNIPIP=%s\n\n",\
+        para->LTEOpen,\
+        para->VPNOpen,\
+        para->VPNServerIp,\
+        para->VPNUserName,\
+        para->VPNIPIP);
+    if(len > 256){
+        DEBUG_PRINT_ERR(5,"[NetPara] len[%d] too long.\n",len);
+    	return;
+    }    
+    fseek(fd,0,SEEK_SET);
+	ret=fwrite(pbuf,sizeof(char),len,fd);
+	fflush(fd);
+    
+    fclose(fd);
+    free(pbuf);
+}
 
 void para_datfile_to_strigfile(pstPara para){
     
@@ -84,6 +115,22 @@ void para_datfile_to_strigfile(pstPara para){
     	    fflush(fd);
         }
     }*/
+    /*PollutantPara*/
+    for(iLoop=0;iLoop<POLLUTANT_CNT;iLoop++){
+        if(para->PollutantPara[iLoop].isValid){
+            len = snprintf(pbuf,8192,"[PollutantPara%d]\nMonAll=%d\nQutAll=%d\nYeaAll=%d\n\n",iLoop,\
+                para->PollutantPara[iLoop].Row.MonAll,\
+                para->PollutantPara[iLoop].Row.QutAll,\
+                para->PollutantPara[iLoop].Row.YeaAll);
+            if(len > 8192){
+                DEBUG_PRINT_ERR(5,"[PollutantPara%d] len[%d] too long.\n",iLoop,len);
+                return;
+            }
+            fseek(fd,0,SEEK_END);
+            ret=fwrite(pbuf,sizeof(char),len,fd);
+            fflush(fd);
+        }
+    }
 
     /*SerialPara*/
     for(iLoop=0;iLoop<SERIAL_CNT;iLoop++){
@@ -138,19 +185,7 @@ void para_datfile_to_strigfile(pstPara para){
         ret=fwrite(pbuf,sizeof(char),len,fd);
         fflush(fd);
     }
-    /*NetPara*/
-    len = snprintf(pbuf,8192,"[NetPara]\nVPNOpen=%d\nVPNServerIp=%s\nVPNUserName=%s\nVPNIPIP=%s\n\n",\
-        para->NetPara.VPNOpen,\
-        para->NetPara.VPNServerIp,\
-        para->NetPara.VPNUserName,\
-        para->NetPara.VPNIPIP);
-    if(len > 8192){
-        DEBUG_PRINT_ERR(5,"[NetPara] len[%d] too long.\n",len);
-    	return;
-    }
-    fseek(fd,0,SEEK_END);
-    ret=fwrite(pbuf,sizeof(char),len,fd);
-    fflush(fd);
+
     /*UserPara*/
     for(iLoop=0;iLoop<USER_CNT;iLoop++){
         len = snprintf(pbuf,8192,"[UserPara%d]\nUserType=%d\nUserPwd=%d\n\n",iLoop,\
@@ -167,6 +202,29 @@ void para_datfile_to_strigfile(pstPara para){
     
 	fclose(fd);
     free(pbuf);
+}
+
+void net_para_get_config(pstNetPara para){
+    int res,val;
+    FILE*  fd=0;
+    fd=fopen(FS_NAME_NET_PARA_CONF,"rb");
+	if(fd<=0){
+		DEBUG_PRINT_ERR(5,"open fs_net_para.conf file failure.\n");
+		return;
+	}
+    /*NetPara*/
+    res=getconfigint("NetPara","LTEOpen",&val,FS_NAME_NET_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args LTEOpen need\n"); return;}para->LTEOpen = val; 
+    res=getconfigint("NetPara","VPNOpen",&val,FS_NAME_NET_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNOpen need\n"); return;}para->VPNOpen = val; 
+    res = getconfigstring("NetPara","VPNServerIp",para->VPNServerIp,sizeof(para->VPNServerIp) - 0,FS_NAME_NET_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNServerIp need\n");return;} 
+    res = getconfigstring("NetPara","VPNUserName",para->VPNUserName,sizeof(para->VPNUserName) - 0,FS_NAME_NET_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNUserName need\n");return;}
+    res = getconfigstring("NetPara","VPNIPIP",para->VPNIPIP,sizeof(para->VPNIPIP) - 0,FS_NAME_NET_PARA_CONF);
+    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNIPIP need\n");return;}
+    
+    syncNetParaShm();
 }
 
 void para_get_config(pstPara para){
@@ -220,6 +278,17 @@ void para_get_config(pstPara para){
         if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"%s args ProtocolName need\n",buf);return;}
         para->MeterPara[iLoop].isValid = 1;
     }*/
+    /*PollutantPara*/
+    for(iLoop=0;iLoop<POLLUTANT_CNT;iLoop++){
+        snprintf(buf,sizeof(buf),"PollutantPara%d",iLoop);
+        res=getconfigint(buf,"MonAll",&val,FS_NAME_PARA_CONF);
+        if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(0,"%s args MonAll need\n",buf); para->PollutantPara[iLoop].isValid = 0;continue;}para->PollutantPara[iLoop].Row.MonAll = val;
+        res=getconfigint(buf,"QutAll",&val,FS_NAME_PARA_CONF);
+        if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"%s args QutAll need\n",buf); return;}para->PollutantPara[iLoop].Row.QutAll = val;
+        res=getconfigint(buf,"YeaAll",&val,FS_NAME_PARA_CONF);
+        if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"%s args YeaAll need\n",buf); return;}para->PollutantPara[iLoop].Row.YeaAll = val;
+        para->PollutantPara[iLoop].isValid = 1;
+    }
 
     /*SerialPara*/
     for(iLoop=0;iLoop<SERIAL_CNT;iLoop++){
@@ -277,16 +346,6 @@ void para_get_config(pstPara para){
         para->SitePara[iLoop].SiteNum=iLoop;
     }
 
-    /*NetPara*/
-    res=getconfigint("NetPara","VPNOpen",&val,FS_NAME_PARA_CONF);
-    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNOpen need\n"); return;}para->NetPara.VPNOpen = val; 
-    res = getconfigstring("NetPara","VPNServerIp",para->NetPara.VPNServerIp,sizeof(para->NetPara.VPNServerIp) - 0,FS_NAME_PARA_CONF);
-    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNServerIp need\n");return;} 
-    res = getconfigstring("NetPara","VPNUserName",para->NetPara.VPNUserName,sizeof(para->NetPara.VPNUserName) - 0,FS_NAME_PARA_CONF);
-    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNUserName need\n");return;}
-    res = getconfigstring("NetPara","VPNIPIP",para->NetPara.VPNIPIP,sizeof(para->NetPara.VPNIPIP) - 0,FS_NAME_PARA_CONF);
-    if(res != CFG_FILE_NOERROR) {DEBUG_PRINT_ERR(5,"NetPara args VPNIPIP need\n");return;}
-
     /*UserPara*/
     for(iLoop=0;iLoop<USER_CNT;iLoop++){
         snprintf(buf,sizeof(buf),"UserPara%d",iLoop);
@@ -302,10 +361,14 @@ int main(int argc, char *argv[])
 {
 	
     pgPara = (pstPara)getParaShm();
-    if('1' == *argv[1]){
+    pgNetPara = (pstNetPara)getNetParaShm();
+    if('e' == *argv[1]){//export
         para_datfile_to_strigfile(pgPara);
-    }else if('2' == *argv[1]){
+        net_para_datfile_to_strigfile(pgNetPara);
+    }else if('i' == *argv[1]){ //Import
         para_get_config(pgPara);
+        net_para_get_config(pgNetPara);
+        system("/mnt/nandflash/bin/config_para export");
     }
 	return 0;
 }

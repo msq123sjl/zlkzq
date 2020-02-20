@@ -70,18 +70,18 @@ typedef struct _Meter
 	stMeterData 	DayData;
 }stMeter,*pstMeter;
 
-typedef struct _PollutantData{
+typedef struct _PollutantsData{
     
     stPollutantRtdData  RtdData;
     
-}stPollutantData,*pstPollutantData;
+}stPollutantsData,*pstPollutantsData;
 
 typedef struct _State
 {
     volatile uint8_t InPower;     //0 市电 1 无市电
     volatile uint8_t LTE;     //0 链接 1 链接断开 2 SIM卡无 3 模块无响应
 	volatile uint8_t VPN;     //0 链接 1 链接断开
-    volatile uint8_t ValveState;  //0 阀门正常 1阀门异常           泵阀联动：阀门状态 0 关闭   1 开 2异常 
+    volatile uint8_t ValveState;  //0 阀门正常 2阀门异常           泵阀联动：阀门状态 0 关闭   1 开 2异常 
     volatile uint8_t PumpState;   //泵阀联动：泵 0 关闭   1 开 
 }stState,*pstState;
 typedef struct _IOState
@@ -97,6 +97,7 @@ typedef struct _Data
     stState state;
     stIOState IOState;
     float current_Ia[AD_CNT]; //模拟通道采样电流值 单位mA
+    stPollutantsData PollutantsData;
 }stData,*pstData;
 
 typedef struct _MessageData

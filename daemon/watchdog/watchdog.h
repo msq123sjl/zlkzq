@@ -23,4 +23,6 @@ void STHL(void);
 void sigalrm_fn(int sig);
 void ReadWatchProgs();
 void crontab_start();
+void crontab_stop();
+
 #endif

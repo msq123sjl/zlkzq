@@ -21,7 +21,7 @@ struct SHM_DESC shm_pollutant_para={-1,0};
 struct SHM_DESC shm_data={-1,0};
 struct SHM_DESC shm_history_data={-1,0};
 struct SHM_DESC shm_calibration_para={-1,0};
-
+struct SHM_DESC shm_net_para={-1,0};
 //创建参数共享内存段
 //return value =-1 共享内存不成功；＝0共享内存成功，文件读写不成功，＝1内存和文件都成功
 int prepareShm(char* ftokpath,char* ftokname,int ftokid,char* fsname,int shm_len,struct SHM_DESC* shm){	
@@ -97,6 +97,58 @@ int prepareShm(char* ftokpath,char* ftokname,int ftokid,char* fsname,int shm_len
 	return 1;
 }
 
+char * getNetParaShm(){
+	if(prepareShm(SHM_PATH_NET_PARA,SHM_NAME_NET_PARA,SHM_PARA_NET_ID,FS_NAME_NET_PARA,sizeof(stNetPara),&shm_net_para)==0){
+		DEBUG_PRINT_INFO(5, "initNetParaShm[%s]\n",SHM_NAME_NET_PARA);
+		initNetParaShm();
+		syncNetParaShm();
+	}
+	return shm_net_para.shm_mem;
+}
+
+void rmNetParaShm(){
+	shmctl(shm_net_para.shm_id,IPC_RMID,NULL);
+}
+
+void syncNetParaShm(){
+	int ret;
+	FILE*  fd=0;
+	pstNetPara para=(pstNetPara)shm_net_para.shm_mem;
+    if(para==0)return;	
+    pstNetPara para_tmp = (pstNetPara)malloc(sizeof(stNetPara));
+    memcpy(para_tmp,para,sizeof(stNetPara));
+
+	fd=fopen(FS_NAME_NET_PARA,"rb+");
+	if(fd<=0){
+		if(access(FS_PATH_NET_PARA,0)){
+			mkdir(FS_PATH_NET_PARA,S_IRWXU);
+		}
+		fd=fopen(FS_NAME_NET_PARA,"wb+");
+		if(fd<=0){
+			DEBUG_PRINT_ERR(5,"open fs_net_para.dat file failure.\n");
+			return;
+		}
+	}
+	fseek(fd,0,SEEK_SET);
+	ret=fwrite(para_tmp,sizeof(stNetPara),1,fd);
+	fflush(fd);
+	fclose(fd);
+    free(para_tmp);
+	DEBUG_PRINT_INFO(5,"save net para %s.\n",ret==1?"succeed":"failure");
+}
+
+void initNetParaShm(){
+	pstNetPara para=(pstNetPara)shm_net_para.shm_mem;
+	memset(para,0,sizeof(stNetPara));
+    para->LTEOpen = 0;
+    /*VPN设置*/
+    para->VPNOpen = 0;
+    snprintf((char*)para->VPNServerIp,sizeof(para->VPNServerIp),"%s","36.153.128.244");
+    snprintf((char*)para->VPNIPIP,sizeof(para->VPNIPIP),"%s","172.16.5.1");
+    snprintf((char*)para->VPNUserName,sizeof(para->VPNUserName),"%s","sc");
+    
+}
+
 char * getParaShm(){
 	if(prepareShm(SHM_PATH_PARA,SHM_NAME_PARA,SHM_PARA_ID,FS_NAME_PARA,sizeof(stPara),&shm_para)==0){
 		DEBUG_PRINT_INFO(5, "initParaShm[%s]\n",SHM_NAME_PARA);
@@ -163,12 +215,18 @@ void initParaShm(){
 	para->GeneralPara.StType				= 32;
 	para->GeneralPara.RespondOpen			= 1;
 	/*因子设置*/
+    for(iLoop = 0;iLoop < POLLUTANT_CNT; iLoop++){
+        para->PollutantPara[iLoop].isValid = 1;
+        para->PollutantPara[iLoop].Row.MonAll = 1000;
+        para->PollutantPara[iLoop].Row.QutAll = 3000;
+        para->PollutantPara[iLoop].Row.YeaAll = 12000;
+    }
 		//默认值是0或空
 	/*串口设置*/
 	for(iLoop=0; iLoop < SERIAL_CNT; iLoop++){
 		snprintf((char*)para->SerialPara[iLoop].DevName, UART_DEVNAME_LEN, "/dev/ttyS%d",iLoop+1);
 		para->SerialPara[iLoop].isServerOpen    = 0;
-		para->SerialPara[iLoop].isRS485			= 0;
+		para->SerialPara[iLoop].isRS485			= iLoop > 1 ? 1:0;
 		para->SerialPara[iLoop].BaudRate		= 9600;
 		para->SerialPara[iLoop].DataBits		= 8;
 		para->SerialPara[iLoop].Parity			= 0;
@@ -204,11 +262,6 @@ void initParaShm(){
         para->SitePara[iLoop].ServerPort   = 28875;
 		snprintf((char*)para->SitePara[iLoop].ServerIp,sizeof(para->SitePara[iLoop].ServerIp),"%s","221.131.155.106");
     }
-    /*VPN设置*/
-    para->NetPara.VPNOpen = 0;
-    snprintf((char*)para->NetPara.VPNServerIp,sizeof(para->NetPara.VPNServerIp),"%s","36.153.128.244");
-    snprintf((char*)para->NetPara.VPNIPIP,sizeof(para->NetPara.VPNIPIP),"%s","172.16.2.11");
-    snprintf((char*)para->NetPara.VPNUserName,sizeof(para->NetPara.VPNUserName),"%s","TEST3");
 	/*用户设置*/
     para->UserPara[0].UserType = 1;
     para->UserPara[0].UserPwd = 1;
@@ -265,7 +318,7 @@ void initValveParaShm(){
     para->per_measure = 0;
     para->per_last = 0;
     para->channel = 0;
-    para->OutMode = 1;  //默认DA
+    para->OutMode = 1;  //默认开关量
     para->OutValueAdjust[0] = 0;
     para->OutValueAdjust[1] = 50;
     para->OutValueAdjust[2] = 100;
@@ -274,70 +327,46 @@ void initValveParaShm(){
     para->InValueAdjust[2] = 100;
 }
 
-char * getPollutantDataShm(){
-	prepareShm(SHM_PATH_POLLUTANT_DATA,SHM_NAME_POLLUTANT_DATA,SHM_DATA_POLLUTANT_ID,0,sizeof(stPollutantData),&shm_pollutant_data);
+char * getDataShm(){
+	if(prepareShm(SHM_PATH_DATA,SHM_NAME_DATA,SHM_DATA_ID,FS_NAME_DATA,sizeof(stData),&shm_data)==0){
+        initDataShm();
+        syncDataShm();
+    }
 
-	return shm_pollutant_data.shm_mem;
+	return shm_data.shm_mem;
 }
 
-void rmPollutantDataShm(){
-	shmctl(shm_pollutant_data.shm_id,IPC_RMID,NULL);
-}
-
-char * getPollutantParaShm(){
-	if(prepareShm(SHM_PATH_POLLUTANT_PARA,SHM_NAME_POLLUTANT_PARA,SHM_PARA_POLLUTANT_ID,FS_NAME_POLLUTANT_PARA,sizeof(stPollutantPara),&shm_pollutant_para)==0){
-		DEBUG_PRINT_INFO(5, "initPollutantParaShm[%s]\n",SHM_NAME_POLLUTANT_PARA);
-		initPollutantParaShm();
-		syncPollutantParaShm();
-	}
-	return shm_pollutant_para.shm_mem;
-}
-
-void rmPollutantParaShm(){
-	shmctl(shm_pollutant_para.shm_id,IPC_RMID,NULL);
-}
-
-void syncPollutantParaShm(){
+void syncDataShm(){
 	int ret;
 	FILE*  fd=0;
-	pstPollutantPara para=(pstPollutantPara)shm_pollutant_para.shm_mem;
-    pstPollutantPara para_tmp = (pstPollutantPara)malloc(sizeof(stPollutantPara));
-    memcpy(para_tmp,para,sizeof(stPollutantPara));
+	pstData pdata=(pstData)shm_data.shm_mem;
+    pstData pdata_tmp = (pstData)malloc(sizeof(stData));
+    memcpy(pdata_tmp,pdata,sizeof(stData));
     
-	if(para==0)return;	
-	fd=fopen(FS_NAME_POLLUTANT_PARA,"rb+");
+	if(pdata==0)return;	
+	fd=fopen(FS_NAME_DATA,"rb+");
 	if(fd<=0){
-		if(access(FS_PATH_POLLUTANT_PARA,0)){
-			mkdir(FS_PATH_POLLUTANT_PARA,S_IRWXU);
+		if(access(FS_PATH_DATA,0)){
+			mkdir(FS_PATH_DATA,S_IRWXU);
 		}
-		fd=fopen(FS_NAME_POLLUTANT_PARA,"wb+");
+		fd=fopen(FS_NAME_DATA,"wb+");
 		if(fd<=0){
-			DEBUG_PRINT_ERR(5,"open fs_pollutant_para.dat file failure.\n");
+			DEBUG_PRINT_ERR(5,"open fs_data.dat file failure.\n");
 			return;
 		}
 	}
 	fseek(fd,0,SEEK_SET);
-	ret=fwrite(para_tmp,sizeof(stPollutantPara),1,fd);
+	ret=fwrite(pdata_tmp,sizeof(stData),1,fd);
 	fflush(fd);
 	fclose(fd);
-    free(para_tmp);
-	DEBUG_PRINT_INFO(5,"save pollutant para %s.\n",ret==1?"succeed":"failure");
+    free(pdata_tmp);
+	DEBUG_PRINT_INFO(5,"save data %s.\n",ret==1?"succeed":"failure");
 }
 
-void initPollutantParaShm(){
-    int iLoop;
-	pstPollutantPara para=(pstPollutantPara)shm_pollutant_para.shm_mem;
-    for(iLoop = 0;iLoop < POLLUTANT_CNT; iLoop++){
-        para->Row[iLoop].MonAll = 1000;
-        para->Row[iLoop].QutAll = 3000;
-        para->Row[iLoop].YeaAll = 12000;
-    }
-}
-
-char * getDataShm(){
-	prepareShm(SHM_PATH_DATA,SHM_NAME_DATA,SHM_DATA_ID,0,sizeof(stData),&shm_data);
-
-	return shm_data.shm_mem;
+void initDataShm(){
+    pstData pdata = (pstData)shm_data.shm_mem;
+    DEBUG_PRINT_INFO(5,"initDataShm\n");
+    memset(pdata,0,sizeof(stData));    
 }
 
 void rmDataShm(){
@@ -345,8 +374,9 @@ void rmDataShm(){
 }
 
 char * getHistoryDataShm(){
-	prepareShm(SHM_PATH_HISTORY_DATA,SHM_NAME_HISTORY_DATA,SHM_DATA_HISTORY_ID,0,sizeof(stHistoryData),&shm_history_data);
-
+    if(prepareShm(SHM_PATH_HISTORY_DATA,SHM_NAME_HISTORY_DATA,SHM_DATA_HISTORY_ID,0,sizeof(stHistoryData),&shm_history_data)==0){
+        initHistoryDataShm();
+    }
 	return shm_history_data.shm_mem;
 }
 

@@ -11,6 +11,7 @@ extern "C"{
 #include "tinz_base_data.h"
 }
 extern pstPara pgPara;
+extern pstNetPara pgNetPara;
 extern int blk_time;
 
 frmconfig::frmconfig(QWidget *parent) :
@@ -42,7 +43,7 @@ void frmconfig::InitForm()
     ui->label_43->hide();
     ui->btn_com3ToServerOpen->hide();
 
-    ui->btn_parameter->setEnabled(false);
+    //ui->btn_parameter->setEnabled(false);
     ui->btn_user->setEnabled(false);
     on_btn_general_clicked();
 }
@@ -167,11 +168,11 @@ void frmconfig::on_btn_localNet_clicked()
         ui->txtGateWay->setEnabled(true);
     }
     //VPN设置
-    ui->btn_VPN->SetCheck(pgPara->NetPara.VPNOpen==1?true:false);
-    ui->txtVPNServerIP->setText(QString(pgPara->NetPara.VPNServerIp));
-    ui->txtVPNIPIP->setText(QString(pgPara->NetPara.VPNIPIP));
-    ui->txtVPNUser->setText(QString(pgPara->NetPara.VPNUserName));
-    if(1 == pgPara->NetPara.VPNOpen){
+    ui->btn_VPN->SetCheck(pgNetPara->VPNOpen==1?true:false);
+    ui->txtVPNServerIP->setText(QString(pgNetPara->VPNServerIp));
+    ui->txtVPNIPIP->setText(QString(pgNetPara->VPNIPIP));
+    ui->txtVPNUser->setText(QString(pgNetPara->VPNUserName));
+    if(1 == pgNetPara->VPNOpen){
         ui->txtVPNServerIP->setEnabled(true);
         ui->txtVPNIPIP->setEnabled(true);
         ui->txtVPNUser->setEnabled(true);
@@ -395,7 +396,7 @@ void frmconfig::on_btn_SaveGeneral_clicked()
 void frmconfig::on_btn_SaveSerial_clicked()
 {
     int index = ui->comboBox_serial->currentIndex();
-    pgPara->SerialPara[index].BaudRate = (uint16_t)ui->comboBox_baudrate->currentText().toInt();
+    pgPara->SerialPara[index].BaudRate = (uint32_t)ui->comboBox_baudrate->currentText().toInt();
     pgPara->SerialPara[index].DataBits = (uint8_t)ui->comboBox_databits->currentText().toInt();
     pgPara->SerialPara[index].Parity = (uint8_t)ui->comboBox_parity->currentIndex();
     pgPara->SerialPara[index].StopBits = (uint8_t)ui->comboBox_stopbits->currentText().toInt();
@@ -468,18 +469,19 @@ void frmconfig::on_btn_SaveLocalNet_clicked()
     Myapp::Mask=ui->txtMask->text();
     Myapp::GateWay=ui->txtGateWay->text();
 
-    myHelper::StringToChar(ui->txtVPNServerIP->text(), pgPara->NetPara.VPNServerIp,sizeof( pgPara->NetPara.VPNServerIp));
-    myHelper::StringToChar(ui->txtVPNIPIP->text(), pgPara->NetPara.VPNIPIP,sizeof( pgPara->NetPara.VPNIPIP));
-    myHelper::StringToChar(ui->txtVPNUser->text(), pgPara->NetPara.VPNUserName,sizeof( pgPara->NetPara.VPNUserName));
+    myHelper::StringToChar(ui->txtVPNServerIP->text(), pgNetPara->VPNServerIp,sizeof(pgNetPara->VPNServerIp));
+    myHelper::StringToChar(ui->txtVPNIPIP->text(), pgNetPara->VPNIPIP,sizeof(pgNetPara->VPNIPIP));
+    myHelper::StringToChar(ui->txtVPNUser->text(), pgNetPara->VPNUserName,sizeof( pgNetPara->VPNUserName));
     QString str=QString("/mnt/nandflash/bin/VPN_client.sh %1 %2 %3") //  生成时间设置命令字符串
-                            .arg(pgPara->NetPara.VPNServerIp)
-                            .arg(pgPara->NetPara.VPNIPIP)
-                            .arg(pgPara->NetPara.VPNUserName);
+                            .arg(pgNetPara->VPNServerIp)
+                            .arg(pgNetPara->VPNIPIP)
+                            .arg(pgNetPara->VPNUserName);
     qDebug()<<str;
     system(str.toLatin1().data()); 
-    pgPara->NetPara.VPNOpen = ui->btn_VPN->GetCheck()==true?1:0;
+    pgNetPara->VPNOpen = ui->btn_VPN->GetCheck()==true?1:0;
     //调用保存配置文件函数
-    syncParaShm();
+    system("/mnt/nandflash/bin/config_para export");
+    syncNetParaShm();
     Myapp::WriteLocalNet();
 }
 //*************************************本机网络结束*************************************************/

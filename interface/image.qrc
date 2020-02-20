@@ -1,13 +1,8 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/title.png</file>
         <file>images/css/style.css</file>
         <file>images/tool/setting_normal.png</file>
         <file>images/tool/home_normal.png</file>
-        <file>images/midwidget/Bedroom.png</file>
-        <file>images/midwidget/kitchen.png</file>
-        <file>images/midwidget/Parlor.png</file>
-        <file>images/midwidget/Safety.png</file>
         <file>images/close.png</file>
         <file>images/add-line_horizontal.png</file>
         <file>images/add-line_vertical.png</file>
@@ -54,5 +49,10 @@
         <file>images/登录.png</file>
         <file>images/登录背景.bmp</file>
         <file>images/login.png</file>
+        <file>images/title_zlkzq.png</file>
+        <file>images/midwidget/middle_1.png</file>
+        <file>images/midwidget/middle_2.png</file>
+        <file>images/midwidget/middle_3.png</file>
+        <file>images/midwidget/middle_4.png</file>
     </qresource>
 </RCC>

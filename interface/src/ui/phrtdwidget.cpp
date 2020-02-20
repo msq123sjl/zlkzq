@@ -21,8 +21,7 @@ extern "C"{
 #include "tinz_base_data.h"
 }
 extern pstPara pgPara;
-extern pstPollutantData pgPollutantData;
-extern pstPollutantPara pgPollutantPara;
+extern pstData pgData;
 
 PHRtdwidget::PHRtdwidget(QWidget *parent) :
     QWidget(parent),
@@ -73,7 +72,9 @@ void PHRtdwidget::InitShowData()
 
 void PHRtdwidget::slotShowCurrentData()
 {
-    ui->label_rtd->setText(QString::number(pgPollutantData->RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',2));
+    if(pgPara->PollutantPara[POLLUTANT_PH_INDEX].isValid){
+        ui->label_rtd->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',2));
+    }
 }
 
 
