@@ -1,6 +1,6 @@
 ﻿
-#ifndef __TINZ_PUB_I2C_H__
-#define __TINZ_PUB_I2C_H__
+#ifndef __TINZ_PUB_SPI_H__
+#define __TINZ_PUB_SPI_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +23,7 @@ typedef struct _SpiPara
 }stSpiPara,*pstSpiPara;
 
 int SPI_Init(pstSpiPara psp);
+void SPI_Config(int spi_fd,pstSpiPara psp);
 
 #ifdef __cplusplus
 }

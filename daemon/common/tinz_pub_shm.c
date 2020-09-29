@@ -205,7 +205,7 @@ void initParaShm(){
 	/*基本设置*/
 	snprintf((char*)para->GeneralPara.MN,MN_LEN,"%s","YK00");
     snprintf((char*)para->GeneralPara.PW,PW_LEN,"%s","123456");
-	para->GeneralPara.RtdInterval 			= 600;
+	para->GeneralPara.RtdInterval 			= 60;
 	//para->GeneralPara.MinInterval 			= 5;
 	//para->GeneralPara.CatchmentTime 		= 5;
 	//para->GeneralPara.COD_CollectInterval 	= 3;
@@ -216,7 +216,7 @@ void initParaShm(){
 	para->GeneralPara.RespondOpen			= 1;
 	/*因子设置*/
     for(iLoop = 0;iLoop < POLLUTANT_CNT; iLoop++){
-        para->PollutantPara[iLoop].isValid = 1;
+        para->PollutantPara[iLoop].isValid = 0;
         para->PollutantPara[iLoop].Row.MonAll = 1000;
         para->PollutantPara[iLoop].Row.QutAll = 3000;
         para->PollutantPara[iLoop].Row.YeaAll = 12000;
@@ -314,9 +314,10 @@ void syncValveParaShm(){
 
 void initValveParaShm(){
 	pstValveControl para=(pstValveControl)shm_valve_para.shm_mem;
-    para->per = 0;
+    para->per = 255;
     para->per_measure = 0;
-    para->per_last = 0;
+    para->per_last = 255;
+    para->per_alarm = 255;
     para->channel = 0;
     para->OutMode = 1;  //默认开关量
     para->OutValueAdjust[0] = 0;
@@ -364,9 +365,13 @@ void syncDataShm(){
 }
 
 void initDataShm(){
+    int iLoop;
     pstData pdata = (pstData)shm_data.shm_mem;
     DEBUG_PRINT_INFO(5,"initDataShm\n");
-    memset(pdata,0,sizeof(stData));    
+    memset(pdata,0,sizeof(stData));  
+    for(iLoop=0;iLoop<POLLUTANT_CNT;iLoop++){
+        pdata->PollutantsData.RtdData.Row[iLoop].rtd = -1;
+    }
 }
 
 void rmDataShm(){

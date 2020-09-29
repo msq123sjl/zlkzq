@@ -98,7 +98,7 @@ font: 75 12pt &quot;楷体&quot;;</string>
                 <string notr="true">color: rgb(255, 158, 0);</string>
                </property>
                <property name="text">
-                <string>456.2</string>
+                <string>7.1</string>
                </property>
                <property name="textFormat">
                 <enum>Qt::AutoText</enum>

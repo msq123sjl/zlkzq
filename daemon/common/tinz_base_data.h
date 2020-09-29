@@ -104,6 +104,7 @@ typedef struct _MessageData
 {
     uint8_t IsUse;   // 0 空闲 1 正在写入 2 待发送
     uint8_t flag;   // 0 不应答 1 应答
+    uint8_t issql;   // 0 入库 1 不入库
     uint8_t waittime; //单位s
     char qn[QN_LEN];
     char content[MAX_TCPDATA_LEN];

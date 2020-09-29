@@ -17,15 +17,17 @@
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
 #include "tinz_pub_message.h"
+#include "tinz_pub_shm.h"
 
 extern int gPrintLevel;
 extern UpMain* pserver;
 extern pstMessage pgmsgbuff;
 extern pstData pgData;
 extern pstPara pgPara;
+extern pstValveControl pgValveControl;
 extern struct _msg *pmsg_upproc[SITE_SEND_CNT];
 extern struct _msg *pmsg_dataproc_to_upproc;
-
+extern uint8_t state_per;
 
 static int tcplink_connect(TcpClientDev *pdev);
 
@@ -102,10 +104,12 @@ static void message_buf_clear_func(){
                 //memcpy(pmsg_upproc[SITE_CNT]->msgbuf.data,pmsgData,sizeof(stMessageData));
                 //MsgSend(pmsg_upproc[SITE_CNT]);      
                 #ifndef VALVE_AND_PUMP
-                MsgSend(pmsg_upproc[SITE_CNT],MSG_SQLITE_SEND_TYTE,(char*)pmsgData,(int)sizeof(stMessageData));
+                if(0 == pmsgData->issql){
+                    MsgSend(pmsg_upproc[SITE_CNT],MSG_SQLITE_SEND_TYTE,(char*)pmsgData,(int)sizeof(stMessageData));
+                }
                 #endif
                 memset(pmsgData,0,sizeof(stMessageData));   
-                DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] clear2 pmsgData->waittime=%d IsUse=%d flag=%d\n",pmsgData->waittime,pmsgData->IsUse,pmsgData->flag);
+                DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] clear2 pmsgData->waittime=%d IsUse=%d flag=%d issql=%d\n",pmsgData->waittime,pmsgData->IsUse,pmsgData->flag,pmsgData->issql);
             }
         }
     }    
@@ -150,12 +154,21 @@ static void send_message_to_server_func(){
 }
 static void tcpclient_thread_send()
 {
+    
     sleep(60);
     while(1){
         message_buf_clear_func();
         //PowerState();
         //ValvePowerState();
-        Insert_Message_Data(CN_GetValveStatus,0);
+        if(pgValveControl->per == pgValveControl->per_last){//非控阀过程 控阀过程中不上报阀门状态
+            state_per = abs(pgValveControl->per - pgValveControl->per_measure)>5 ? pgValveControl->per_measure : pgValveControl->per;
+            if( abs(pgValveControl->per_alarm - state_per)>5){
+                Insert_Message_Data(CN_GetValveStatus,0);
+                pgValveControl->per_alarm = state_per;
+                syncValveParaShm();
+            }
+        }
+        Insert_Message_Data(CN_SendHeartbeat,0);
         send_message_to_server_func();
         sleep(pgPara->GeneralPara.RtdInterval);
     }

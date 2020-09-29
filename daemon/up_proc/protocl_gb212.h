@@ -33,6 +33,7 @@
 #define CN_RequestRespond   9011
 #define CN_ExeRespond    	9012
 
+#define CN_SendHeartbeat    9999
 
 
 typedef struct {

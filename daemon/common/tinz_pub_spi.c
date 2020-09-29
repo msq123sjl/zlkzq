@@ -24,13 +24,9 @@ static void pabort(const char *s)
     abort();
 }
 
-int SPI_Init(pstSpiPara psp)
-{
+void SPI_Config(int spi_fd,pstSpiPara psp){
+    
     int ret=0;
-    int spi_fd;
-    spi_fd = open(device, O_RDWR);
-    if (spi_fd < 0)
-        pabort("can't open device");
     /*
      * spi mode
      */
@@ -67,6 +63,17 @@ int SPI_Init(pstSpiPara psp)
     DEBUG_PRINT_INFO(5, "[ValveControl] spi mode: %d\n", psp->mode);
     DEBUG_PRINT_INFO(5, "[ValveControl] bits per word: %d\n", psp->bits);
     DEBUG_PRINT_INFO(5, "[ValveControl] max speed: %d Hz (%d KHz)\n", psp->speed, psp->speed/1000);
+
+}
+
+int SPI_Init(pstSpiPara psp)
+{
+    int spi_fd;
+    spi_fd = open(device, O_RDWR);
+    if (spi_fd < 0)
+        pabort("can't open device");
+    
+    SPI_Config(spi_fd,psp);
     return spi_fd;
 
 }

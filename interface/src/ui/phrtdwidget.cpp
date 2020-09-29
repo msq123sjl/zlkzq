@@ -45,6 +45,7 @@ void PHRtdwidget::initForm()
 
 void PHRtdwidget::init()
 {
+    ui->label_rtd->setText(tr("--"));
     ui->label_cou->setText(tr("--"));
     ui->label_cur_day->setText(tr("--"));
     ui->label_cur_mon->setText(tr("--"));
@@ -72,8 +73,10 @@ void PHRtdwidget::InitShowData()
 
 void PHRtdwidget::slotShowCurrentData()
 {
-    if(pgPara->PollutantPara[POLLUTANT_PH_INDEX].isValid){
+    if(-1 != pgData->PollutantsData.RtdData.Row[POLLUTANT_PH_INDEX].rtd){
         ui->label_rtd->setText(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',2));
+    }else{
+        ui->label_rtd->setText(tr("--"));
     }
 }
 

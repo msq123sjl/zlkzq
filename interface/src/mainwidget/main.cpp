@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     pgPara = (pstPara)getParaShm();
     pgNetPara = (pstNetPara)getNetParaShm();
     pgValveControl = (pstValveControl)getValveParaShm();
-    qDebug()<<QString("per:%1 per_last:%2").arg(pgValveControl->per).arg(pgValveControl->per_last);
+    qDebug()<<QString("per:%1 per_alarm:%2").arg(pgValveControl->per).arg(pgValveControl->per_alarm);
     pgHistoryData = (pstHistoryData)getHistoryDataShm();
     pgData = (pstData)getDataShm();
     pgCalibrationPara = (pstCalibrationPara)getCalibrationParaShm();

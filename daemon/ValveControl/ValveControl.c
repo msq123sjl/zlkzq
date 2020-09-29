@@ -121,57 +121,50 @@ void Pump_Close_Set(int fd)
     }
     per_array[0] = per_current;
 }*/
-
+//zeroes：0 关阀门     1开阀门
 void Valve_control_DA_mode(uint8_t per,uint8_t zeroes){
     uint8_t  per_stop = 0;
     uint8_t  per_current = 0;
     uint8_t  per_current_last = 0;
-    uint16_t ad_value = 0,da_value = 0,da_value_adjust = 0;
+    uint16_t da_value = 0;
     int cnt = 300;
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per[%d] start \n",per);
     da_value = PerValueToDA(per);
     spi_write_da(io_fd, spi_fd,da_value);
     while(cnt--){
-        spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-        per_current = AdValueToPer(ad_value);
+        per_current = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
         DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per[%d] per_current[%d]\n",per,per_current);
         if(per_current > 100){//阀门检测异常
             DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode AD Value err!!!");
             return;
         }
-        if(abs(per - per_current) <= 5){//阀门到位 正负偏差5%
-            sleep(1);
+        if(abs(per - per_current) <= 3){//阀门到位 正负偏差5%
+            //sleep(1);
             break;
         }
         /*过零点比较*/
-        if(zeroes >0 && per <= per_current){break;}  //关阀门发到位
-        if(zeroes == 0 && per >= per_current){break;}//开阀门到位
+        if(zeroes >0 && per <= per_current){break;}  //开阀门到位
+        if(zeroes == 0 && per >= per_current){break;}//关阀门到位
         /*阀门未到位，补*/
-        if(abs(per_current - per_current_last) <= 1){
+        if(abs(per_current - per_current_last) <= 2){
             per_stop++;
             DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per_stop[%d]\n",per_stop);
             if(per_stop > 5){ //连续6秒 阀门变化不超过2度
-                da_value_adjust = PerValueToDA(abs(per - per_current));
-                if(per > per_current){
-                    da_value = (65535 - da_value) > da_value_adjust ?  da_value + da_value_adjust : 65535;
-                }else{ 
-                    da_value = da_value > da_value_adjust ? da_value - da_value_adjust : 0;
-                }
-                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode DA Valve adjust[%d]\n",da_value_adjust);
+                /*da_value = PerValueToDA(per + per - per_current);
+                DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode DA Valve adjust[%d]\n",da_value);
                 spi_write_da(io_fd, spi_fd,da_value);
-                sleep(60);
+                sleep(60);*/
                 break;
             }
         }else{
             per_stop = 0;
             per_current_last = per_current;
         }
-        sleep(1);  
+        usleep(100000);  
     }
     spi_write_da(io_fd, spi_fd,0);
-    spi_read_ad(io_fd, spi_fd, pgValveControl->channel, &ad_value);
-    per_current = AdValueToPer(ad_value);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per[%d] per_current[%d] stop\n",per,per_current);
+    pgValveControl->per_measure = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode per[%d] per_current[%d] stop\n",per,pgValveControl->per_measure);
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_DA_mode DA Valve Open stop\n");
     
 }
@@ -188,21 +181,21 @@ void Valve_control_IO_mode(uint8_t per,uint8_t zeroes){
             DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode AD Value err!!!");
             return;
         }
-        if(abs(per - per_current) <= 5){//阀门到位 正负偏差5%
+        if(abs(per - per_current) <= 3){//阀门到位 正负偏差5%
             if((0 == zeroes && per < per_current) || (zeroes>0 && per > per_current)){
                 //适当延迟 减小误差
-                sleep(5);
+                //sleep(5);
             }
             break;
         }
         /*过零点比较*/
         if(zeroes >0 && per <= per_current){break;}
         if(zeroes == 0 && per >= per_current){break;}
-        sleep(1);  
+        usleep(100000);  
     }  
     Valve_Control_stop(io_fd);
-    per_current = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode per[%d] per_current[%d] stop\n",per,per_current);
+    pgValveControl->per_measure = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode per[%d] per_current[%d] stop\n",per,pgValveControl->per_measure);
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Valve_control_IO_mode stop\n");
 
 }
@@ -348,7 +341,7 @@ int main(int argc, char* argv[])
     /*共享内存*/
 	DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] getValveParaShm start\n");
 	pgValveControl = (pstValveControl)getValveParaShm();
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] config file per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] config file per[%d] per_alarm[%d]\n",pgValveControl->per,pgValveControl->per_alarm);
     pgData = (pstData)getDataShm();
     DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] State InPower[%d] ValveState[%d]\n",pgData->state.InPower,pgData->state.ValveState);
     pgPara = (pstPara)getParaShm();
@@ -356,6 +349,14 @@ int main(int argc, char* argv[])
     /*消息队列*/
     MessageInit();
     
+    if(pgValveControl->per>100){
+        pgValveControl->per_measure = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
+        pgValveControl->per = pgValveControl->per_measure;
+    }
+    if(pgValveControl->per_alarm>100){
+        pgValveControl->per_measure = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
+        pgValveControl->per_alarm = pgValveControl->per_measure;
+    }
     /*程序初始读取阀门状态*/
     /*创建状态监测线程*/
     if(pthread_create(&thread_id,NULL,(void *)(&state_thread),NULL) == -1)
@@ -363,24 +364,28 @@ int main(int argc, char* argv[])
 		DEBUG_PRINT_INFO(gPrintLevel,"[ValveControl] state_thread create error!\n");
 	}
     /*阀门控制线程*/
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Init per[%d] per_last[%d]\n",pgValveControl->per,pgValveControl->per_last);    
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] Init per[%d] per_alarm[%d]\n",pgValveControl->per,pgValveControl->per_alarm);    
     for(;;){
         /*实时采样阀门开度*/
         pgValveControl->per_measure = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
-        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_last[%d] per_measure[%d]\n",pgValveControl->per,pgValveControl->per_last,pgValveControl->per_measure);
-        /*da_value = 512;
-        spi_write_da(io_fd, spi_fd,da_value);*/
+        DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] per[%d] per_alarm[%d] per_measure[%d] channel[%d]\n",pgValveControl->per,pgValveControl->per_alarm,pgValveControl->per_measure,pgValveControl->channel);
+        //spi_write_da(io_fd, spi_fd,512);
         MessageRecv();
         sleep(5);  
     }
     
     /*等待线程退出*/
 	pthread_join(thread_id, NULL);
+    close(spi_fd);
+    close(io_fd);
     int iLoop;
     for(iLoop=0;iLoop<SITE_CNT;iLoop++){
         if(NULL != pmsg_upproc_to_control[iLoop]){
             free(pmsg_upproc_to_control[iLoop]);
         }
+    }
+    if(NULL != pmsg_interface_to_control){
+        free(pmsg_interface_to_control);
     }
     return 0;
 }

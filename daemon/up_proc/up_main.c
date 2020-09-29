@@ -26,7 +26,7 @@ struct _msg *pmsg_upproc_to_control[SITE_CNT];
 pstMessage pgmsgbuff = NULL;
 struct _msg *pmsg_dataproc_to_upproc;
 
-
+uint8_t state_per;
 int gPrintLevel = 5;
 UpMain* pserver = NULL;
 

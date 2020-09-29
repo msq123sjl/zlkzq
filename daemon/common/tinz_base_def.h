@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#define VERSION      "1.0.3"
+#define VERSION      "1.1.0"
 
 #define 	FS_NAME_PARADIR			"/mnt/nandflash/para"
 #define 	FS_NAME_PROGDIR			"/mnt/nandflash/bin"
@@ -69,7 +69,7 @@
 #define MSGBUF_IS_WAITING 3
 
 #define MAX_TCPDATA_LEN 1037
-#define MIN_TCPDATA_LEN 80
+#define MIN_TCPDATA_LEN 60
 
 #define QN_LEN	18
 
@@ -223,6 +223,7 @@ typedef struct _ValveControl
     uint8_t     per;  //阀门值
     uint8_t     per_measure;//阀门测量值
     uint8_t     per_last;//阀门上一次值
+    uint8_t     per_alarm;//阀门上次上传平台值
     uint8_t     channel;                   //AD模拟通道
     uint8_t     OutMode;                   //0:模拟量 1:开关量
     uint16_t    OutValueAdjust[3];        //0%、50%、100%  

@@ -96,7 +96,7 @@ void StatisticWidget::InitTable()
 
     //ui->tableView->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);//垂直滚动条按项移动
     //因子名称添加
-    ui->comboBox_pollutant_type->clear();
+    /*ui->comboBox_pollutant_type->clear();
     if(pgPara->PollutantPara[POLLUTANT_FLOW_INDEX].isValid){
         ui->comboBox_pollutant_type->addItem(QString("流量"));
     }
@@ -105,7 +105,7 @@ void StatisticWidget::InitTable()
     }
     if(pgPara->PollutantPara[POLLUTANT_PH_INDEX].isValid){
         ui->comboBox_pollutant_type->addItem(QString("PH"));
-    }
+    }*/
 }
 void StatisticWidget::ShowData()
 {

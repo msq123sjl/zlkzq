@@ -30,6 +30,7 @@ extern pstData pgData;
 extern struct _msg *pmsg_upproc[SITE_SEND_CNT];
 extern struct _msg *pmsg_upproc_to_control[SITE_CNT];
 extern pstMessage pgmsgbuff;
+extern uint8_t state_per;
 
 char            code[POLLUTANT_CNT][4]={"BO1","011","001"};
 
@@ -144,7 +145,7 @@ static int TcpData_ValveStatus_Data(int cn,int flag,pstMessageData pmsgData){
     seconds = time(NULL);
     tblock = localtime(&seconds);
     ms = (ms+1)%256;
-    
+#if 0     
     if(1 == pgData->state.ValveState){
         snprintf(per,sizeof(per),"100");
     }else if(0 == pgData->state.ValveState){
@@ -156,7 +157,22 @@ static int TcpData_ValveStatus_Data(int cn,int flag,pstMessageData pmsgData){
     nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;Per=%s;Pump=%01d&&",\
                                 pgPara->GeneralPara.StType,cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,pmsgData->qn,\
                                 per,pgData->IOState.In_reflux_open);
-
+#endif
+    if(state_per <= 100){
+        snprintf(per,sizeof(per),"%d",state_per);
+    }else{
+        snprintf(per,sizeof(per),"E01");
+    }
+    snprintf(pmsgData->qn,sizeof(pmsgData->qn),"%4d%02d%02d%02d%02d%02d%03d",tblock->tm_year + 1900,tblock->tm_mon + 1,tblock->tm_mday,tblock->tm_hour,tblock->tm_min,tblock->tm_sec,ms);
+    nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;Per=%s&&",\
+                                pgPara->GeneralPara.StType,cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,pmsgData->qn,per);
+    return nLen;
+}
+//发送心跳包
+static int TcpData_Heartbeat(pstMessageData pmsgData){
+    int nLen;
+    nLen = snprintf(pmsgData->content,sizeof(pmsgData->content) - 6,"MN=%s",pgPara->GeneralPara.MN);
+    pmsgData->issql = 1;
     return nLen;
 }
 
@@ -179,26 +195,31 @@ int Insert_Message_Data(int cn,int flag){
     }
     /****************组装报文**************************/
     if(CN_GetValveStatus == cn){
-        //pgData->IOState.In_drain_close
         nLen = TcpData_ValveStatus_Data(cn,flag,pmsgData);
+    }else if(CN_SendHeartbeat == cn){
+        nLen = TcpData_Heartbeat(pmsgData);
     }else{
         return TINZ_ERROR;
     }
-    if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(pmsgData->content)){ //-10 特殊处理
-        CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen-6);
-        snprintf(&pmsgData->content[nLen],7,"%.4X\r\n",CRC16);
-    
-        nLen = nLen - 6;
-        pmsgData->content[2] = (nLen/1000)+'0';
-        pmsgData->content[3] = (nLen%1000/100)+'0';
-        pmsgData->content[4] = (nLen%100/10)+'0';
-        pmsgData->content[5] = (nLen%10)+'0'; 
-        pmsgData->IsUse = MSGBUF_IS_SENDING;
+    if(CN_SendHeartbeat != cn){
+        if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(pmsgData->content)){ //-10 特殊处理
+            CRC16 = CRC16_Modbus(&pmsgData->content[6], nLen-6);
+            snprintf(&pmsgData->content[nLen],7,"%.4X\r\n",CRC16);
         
+            nLen = nLen - 6;
+            pmsgData->content[2] = (nLen/1000)+'0';
+            pmsgData->content[3] = (nLen%1000/100)+'0';
+            pmsgData->content[4] = (nLen%100/10)+'0';
+            pmsgData->content[5] = (nLen%10)+'0'; 
+            pmsgData->IsUse = MSGBUF_IS_SENDING;
+            
+        }else{
+            memset(pmsgData,0,sizeof(stMessageData));
+            DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] Insert_Message_Count cn[%d] send nLen[%d][%s] ignore!!!\n", cn,nLen,pmsgData->content);
+            return TINZ_ERROR;
+        }
     }else{
-        memset(pmsgData,0,sizeof(stMessageData));
-        DEBUG_PRINT_WARN(gPrintLevel, "[up_proc] Insert_Message_Count cn[%d] send nLen[%d][%s] ignore!!!\n", cn,nLen,pmsgData->content);
-        return TINZ_ERROR;
+        pmsgData->IsUse = MSGBUF_IS_SENDING;
     }
     return TINZ_OK;
 
@@ -313,6 +334,8 @@ static int SendValveStatus(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	int nLen;
 	int CRC16;
     char per[4];
+    uint8_t per_value;
+#if 0
     if(1 == pgData->state.ValveState){
         snprintf(per,sizeof(per),"100");
     }else if(0 == pgData->state.ValveState){
@@ -323,7 +346,17 @@ static int SendValveStatus(ngx_ulog_url_t *url_args,pstSerialPara com,TcpClientD
 	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;Per=%s;Pump=%01d&&",\
 								pgPara->GeneralPara.StType,url_args->cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,\
 								per,pgData->IOState.In_reflux_open);
-	if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(buf)){
+#endif
+    per_value = abs(pgValveControl->per - pgValveControl->per_measure)>5 ? pgValveControl->per_measure : pgValveControl->per;
+    if(per_value <= 100){
+        snprintf(per,sizeof(per),"%d",per_value);
+    }else{
+        snprintf(per,sizeof(per),"E01");
+    } 
+	nLen = snprintf(buf,sizeof(buf) - 6,"##0000ST=%02d;CN=%04d;PW=%-6.6s;MN=%s;CP=&&QN=%-17.17s;Per=%s&&",\
+								pgPara->GeneralPara.StType,url_args->cn,pgPara->GeneralPara.PW,pgPara->GeneralPara.MN,url_args->qn.data,per);
+
+    if(nLen >= MIN_TCPDATA_LEN && nLen < MAX_TCPDATA_LEN - 7 && nLen == strlen(buf)){
 
 		nLen = nLen - 6;
 		buf[2] = (nLen/1000)+'0';
@@ -799,6 +832,7 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-MonAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
+                        url_args->PollutantPara[0].isValid = 1;
 						break;
 					}
                     if(ngx_str10cmp(name.data, 'b', '0','1','-','q','u','t','a','l','l')){
@@ -820,6 +854,7 @@ static inline int parse_url(char *str, int iRecvLen, ngx_ulog_url_t *url_args){
 							DEBUG_PRINT_WARN(gPrintLevel, "GB212 B01-MonAll [%-8.8s] LEN[%d] ERR!!!\n",value.data,value.len);
 							return TINZ_ERROR;
 						}
+                        url_args->PollutantPara[1].isValid = 1;
 						break;
 					}
                     if(ngx_str10cmp(name.data, '0', '1','1','-','q','u','t','a','l','l')){
@@ -918,13 +953,14 @@ int messageProc(char *str, int iRecvLen, pstSerialPara com,TcpClientDev *tcp)
 		case CN_ValveControl:
             if(pgPara->Mode){
                 RequestRespond(REQUEST_REFUSED,&url_args, com, tcp);
+                DEBUG_PRINT_WARN(gPrintLevel, "GB212 pare CN_ValveControl Mode[%d] REQUEST_REFUSED!!!\n",pgPara->Mode);
                 break;
             }
             if(url_args.per > 100){
                 RequestRespond(REQUEST_CODE_ERR,&url_args, com, tcp);
                 break;
             }
-            if(pgValveControl->per == pgValveControl->per_last){
+            if(pgValveControl->per != url_args.per){
                 if(url_args.flag & 0x01){
                     RequestRespond(REQUEST_READY,&url_args, com, tcp);
                 }

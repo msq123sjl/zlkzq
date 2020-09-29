@@ -132,16 +132,24 @@ void Rtdwidget::slotShowCurrentData()
     static int site_number = -1;
     #ifndef VALVE_AND_PUMP    
     if('2' == pgData->PollutantsData.RtdData.DataTime[0]){
-        if(pgPara->PollutantPara[POLLUTANT_FLOW_INDEX].isValid){
+        if(-1 != pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].rtd){
             model_rtd->setData(model_rtd->index(0, 1), QString("%1 L/s").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].rtd,'f',1)));
-            model_rtd->setData(model_rtd->index(0, 2), QString("%1 L").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)));
+            model_rtd->setData(model_rtd->index(0, 2), QString("%1 m³").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_FLOW_INDEX].cou,'f',0)));
+        }else{
+            model_rtd->setData(model_rtd->index(0, 1), QString("--"));
+            model_rtd->setData(model_rtd->index(0, 2), QString("--"));
         } 
-        if(pgPara->PollutantPara[POLLUTANT_COD_INDEX].isValid){
+        if(-1 != pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].rtd){
             model_rtd->setData(model_rtd->index(1, 1), QString("%1 mg/m³").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].rtd,'f',0)));
-            model_rtd->setData(model_rtd->index(1, 2), QString("%1 mg").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].cou,'f',0)));
+            model_rtd->setData(model_rtd->index(1, 2), QString("%1 kg").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_COD_INDEX].cou,'f',0)));
+        }else{
+            model_rtd->setData(model_rtd->index(1, 1), QString("--"));
+            model_rtd->setData(model_rtd->index(1, 2), QString("--"));
         }
-        if(pgPara->PollutantPara[POLLUTANT_PH_INDEX].isValid){        
+        if(-1 != pgData->PollutantsData.RtdData.Row[POLLUTANT_PH_INDEX].rtd){        
             model_rtd->setData(model_rtd->index(2, 1), QString("%1").arg(QString::number(pgData->PollutantsData.RtdData.Row[POLLUTANT_PH_INDEX].rtd,'f',0)));
+        }else{
+            model_rtd->setData(model_rtd->index(2, 1), QString("--"));
         }
     }
     #endif

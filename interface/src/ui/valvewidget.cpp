@@ -185,6 +185,7 @@ void ValveWidget::on_tbn_valve_ok_clicked()
         pgValveControl->per = valve_set_value;
         MsgSend(pmsg_interface_to_control,MSG_CONTROL_VALVE_TYTE,(char*)(&pgValveControl->per),(int)sizeof(pgValveControl->per));
         syncValveParaShm();
+        sleep(3);
         qDebug()<<"ok";
     }else{
         myHelper::showMessageBoxInfo("请切换到运维模式");

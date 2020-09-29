@@ -49,17 +49,29 @@ int spi_write_da(int io_fd, int spi_fd, uint16_t da_value)
 {
     int result;
     TLC5615_SPI_PARA(sp);
-    SPI_Init(&sp);
+    SPI_Config(spi_fd,&sp);
     result = write_da(io_fd,spi_fd,da_value);
     AD7705_SPI_PARA(sp);
-    SPI_Init(&sp);
+    SPI_Config(spi_fd,&sp);
     return result;
 }
 
+float PerValueToIa(uint8_t per){
+    return 0.16*per + 4;
+}
+
 uint16_t PerValueToDA(uint8_t per){
+    float current = 0;
     uint16_t da_value;
-    da_value = (uint16_t)(6.5536*per + 163.84);
+    current = PerValueToIa(per);
+    da_value = (uint16_t)(40.96*current);
     return da_value;
+}
+
+uint8_t SetPer(int io_fd, int spi_fd,uint8_t per){
+    uint16_t da_value;
+    da_value = PerValueToDA(per);
+    return spi_write_da(io_fd, spi_fd,da_value);
 }
 
 

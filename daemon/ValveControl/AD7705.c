@@ -43,10 +43,10 @@ static void AD7705_read(int io_fd, int spi_fd,uint16_t *pad_value){
     GPIO_OutClear(io_fd, SPI_AD7705_CS);
     usleep(100);
     read(spi_fd, &data, 1);
-    *pad_value = (data << 8) & 0xff00 ;
+    *pad_value = (data << 8) & 0xff00 ;    
     read(spi_fd, &data, 1);
     *pad_value = (*pad_value) | (data  & 0x00ff);
-    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] AD read[%d]\n",*pad_value);
+    //DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] AD read[%d]\n",*pad_value);
     usleep(100);
     GPIO_OutSet(io_fd, SPI_AD7705_CS);
     usleep(100);
@@ -93,7 +93,8 @@ uint8_t AdValueToPer(uint16_t ad_value){
 float AdValueToIa(uint16_t ad_value){
     float Voltage,Current;
     Voltage = 2.5*ad_value/65536.0;
-    Current = Voltage/100.0;
+    Current = Voltage*10;
+    DEBUG_PRINT_INFO(gPrintLevel, "[ValveControl] AdValueToIa ad[%d] Voltage[%.3f] Current[%.3f]\n",ad_value,Voltage,Current);
     return Current;
 }
 

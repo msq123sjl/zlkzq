@@ -244,6 +244,7 @@ static void pollutant_data_proc(pstPollutantRtdData  pRtdData){
     pollutant_data_proc_month(pRtdData);
     pollutant_data_proc_qut(pRtdData);
     pollutant_data_proc_year(pRtdData);
+    syncDataShm();
 }
 
 static void UpmainMessageSend(pstMessageData pmsgData){

@@ -14,7 +14,7 @@
    <string>系统设置</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../image.qrc">
+   <iconset resource="../../../../scy_arm/interface/image.qrc">
     <normaloff>:/images/main.png</normaloff>:/images/main.png</iconset>
   </property>
   <property name="styleSheet">
@@ -102,7 +102,7 @@ QTableView{
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="gbox_general">
@@ -3072,7 +3072,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/本机网络.png</normaloff>:/images/本机网络.png</iconset>
     </property>
     <property name="iconSize">
@@ -3092,7 +3092,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/串口设置.png</normaloff>:/images/串口设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3112,7 +3112,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/用户设置.png</normaloff>:/images/用户设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3135,7 +3135,7 @@ QTableView{
      <bool>false</bool>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/站点设置.png</normaloff>:/images/站点设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3158,7 +3158,7 @@ QTableView{
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/基本设置.png</normaloff>:/images/基本设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3178,7 +3178,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/日期时间.png</normaloff>:/images/日期时间.png</iconset>
     </property>
     <property name="iconSize">
@@ -3198,7 +3198,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/系统升级.png</normaloff>:/images/系统升级.png</iconset>
     </property>
     <property name="iconSize">
@@ -3221,7 +3221,7 @@ QTableView{
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/因子设置.png</normaloff>:/images/因子设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3287,7 +3287,7 @@ QTableView{
      <string/>
     </property>
     <property name="icon">
-     <iconset resource="../../image.qrc">
+     <iconset resource="../../../../scy_arm/interface/image.qrc">
       <normaloff>:/images/开关量设置.png</normaloff>:/images/开关量设置.png</iconset>
     </property>
     <property name="iconSize">
