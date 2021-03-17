@@ -357,6 +357,7 @@ int main(int argc, char* argv[])
         pgValveControl->per_measure = GetPerValue(io_fd, spi_fd, pgValveControl->channel);
         pgValveControl->per_alarm = pgValveControl->per_measure;
     }
+    pgValveControl->per_last = pgValveControl->per;
     /*程序初始读取阀门状态*/
     /*创建状态监测线程*/
     if(pthread_create(&thread_id,NULL,(void *)(&state_thread),NULL) == -1)

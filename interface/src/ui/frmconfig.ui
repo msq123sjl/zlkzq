@@ -14,7 +14,7 @@
    <string>系统设置</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../../../scy_arm/interface/image.qrc">
+   <iconset resource="../../image.qrc">
     <normaloff>:/images/main.png</normaloff>:/images/main.png</iconset>
   </property>
   <property name="styleSheet">
@@ -2012,98 +2012,185 @@ QTableView{
       <property name="title">
        <string>系统升级</string>
       </property>
-      <widget class="QLabel" name="label_31">
+      <widget class="QWidget" name="verticalLayoutWidget_5">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>30</x>
          <y>30</y>
-         <width>90</width>
-         <height>30</height>
+         <width>551</width>
+         <height>351</height>
         </rect>
        </property>
-       <property name="text">
-        <string>自动升级：</string>
-       </property>
-       <property name="buddy">
-        <cstring>btn_autoUpdateOpen</cstring>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="txt_updateIP">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>70</y>
-         <width>241</width>
-         <height>30</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_44">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>70</y>
-         <width>161</width>
-         <height>30</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>在线升级IP地址：</string>
-       </property>
-       <property name="buddy">
-        <cstring>txt_updateIP</cstring>
-       </property>
-      </widget>
-      <widget class="mySwitchButton" name="btn_autoUpdateOpen">
-       <property name="geometry">
-        <rect>
-         <x>170</x>
-         <y>30</y>
-         <width>91</width>
-         <height>30</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="btn_updateNow">
-       <property name="geometry">
-        <rect>
-         <x>480</x>
-         <y>70</y>
-         <width>124</width>
-         <height>30</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>立即更新</string>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>120</width>
-         <height>40</height>
-        </size>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="btn_SaveUpdate">
-       <property name="geometry">
-        <rect>
-         <x>510</x>
-         <y>410</y>
-         <width>124</width>
-         <height>30</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>保存</string>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>120</width>
-         <height>40</height>
-        </size>
-       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,2">
+          <item>
+           <widget class="QLabel" name="label_version">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>版本：V1.0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_usbinfo">
+            <property name="styleSheet">
+             <string notr="true">color:red</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QPushButton" name="btn_UsbUpgrade">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>USB升级</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_UsbUpgradeData">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>USB升级并初始化数据</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_UsbUpgradeFactory">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>USB升级并恢复出厂设置</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <item>
+             <widget class="QPushButton" name="btn_ParaInit">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>基本参数初始化</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_DataInit">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>数据初始化</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QPushButton" name="btn_NetParaInit">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>网络参数初始化</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QPushButton" name="btn_DBInit">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>数据库删除</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="btn_reboot">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>重启</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
@@ -3072,7 +3159,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/本机网络.png</normaloff>:/images/本机网络.png</iconset>
     </property>
     <property name="iconSize">
@@ -3092,7 +3179,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/串口设置.png</normaloff>:/images/串口设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3112,7 +3199,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/用户设置.png</normaloff>:/images/用户设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3135,7 +3222,7 @@ QTableView{
      <bool>false</bool>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/站点设置.png</normaloff>:/images/站点设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3158,7 +3245,7 @@ QTableView{
      <string notr="true"/>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/基本设置.png</normaloff>:/images/基本设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3178,7 +3265,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/日期时间.png</normaloff>:/images/日期时间.png</iconset>
     </property>
     <property name="iconSize">
@@ -3198,7 +3285,7 @@ QTableView{
      </rect>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/系统升级.png</normaloff>:/images/系统升级.png</iconset>
     </property>
     <property name="iconSize">
@@ -3221,7 +3308,7 @@ QTableView{
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/因子设置.png</normaloff>:/images/因子设置.png</iconset>
     </property>
     <property name="iconSize">
@@ -3287,7 +3374,7 @@ QTableView{
      <string/>
     </property>
     <property name="icon">
-     <iconset resource="../../../../scy_arm/interface/image.qrc">
+     <iconset resource="../../image.qrc">
       <normaloff>:/images/开关量设置.png</normaloff>:/images/开关量设置.png</iconset>
     </property>
     <property name="iconSize">

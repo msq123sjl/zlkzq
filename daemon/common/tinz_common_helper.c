@@ -262,3 +262,5 @@ int tinz_float_to_string(char *pBuf,int len,uint8_t Decimals,float data){
             return snprintf(pBuf,len,"%.2f",data);
     }    
 }
+
+

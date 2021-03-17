@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     Myapp::AppPath=QApplication::applicationDirPath()+"/";
     Myapp::DeskWidth=qApp->desktop()->availableGeometry().width();
     Myapp::DeskHeigth=qApp->desktop()->availableGeometry().height();
-    qDebug()<<QString("DeskWidth:%1 DeskHeigth:%2").arg(Myapp::DeskWidth).arg(Myapp::DeskHeigth);
+    qDebug()<<QString("DeskWidth:%1 DeskHeigth:%2 AppPath:%3").arg(Myapp::DeskWidth).arg(Myapp::DeskHeigth).arg(Myapp::AppPath);
     /********共享内存******************/
     pgPara = (pstPara)getParaShm();
     pgNetPara = (pstNetPara)getNetParaShm();

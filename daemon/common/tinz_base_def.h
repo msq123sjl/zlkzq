@@ -6,13 +6,18 @@
 #include <string.h>
 #include <stdint.h>
 
-#define VERSION      "1.1.0"
+#define VERSION      "1.1.1"
 
 #define 	FS_NAME_PARADIR			"/mnt/nandflash/para"
 #define 	FS_NAME_PROGDIR			"/mnt/nandflash/bin"
 #define 	FS_NAME_SHMDIR			"/mnt/nandflash/shm"
 
 #define 	WATCHDOG_CONFIG_FILE	"/mnt/nandflash/para/watchdog.conf"
+
+#define DBDATA_EXPORT_USB1_PATH "/mnt/usb1/export/"
+#define DBDATA_EXPORT_USB2_PATH "/mnt/usb2/export/"
+#define DBDATA_UPGRADE_USB1_PATH "/mnt/usb1/upgrade/"
+#define DBDATA_UPGRADE_USB2_PATH "/mnt/usb2/upgrade/"
 
 #define TINZ_ERROR -1
 #define TINZ_OK		1

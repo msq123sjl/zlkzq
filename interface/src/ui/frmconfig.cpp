@@ -9,6 +9,7 @@ extern "C"{
 #include "tinz_pub_shm.h"
 #include "tinz_base_def.h"
 #include "tinz_base_data.h"
+#include "tinz_common_helper.h"
 }
 extern pstPara pgPara;
 extern pstNetPara pgNetPara;
@@ -483,6 +484,9 @@ void frmconfig::on_btn_SaveLocalNet_clicked()
     system("/mnt/nandflash/bin/config_para export");
     syncNetParaShm();
     Myapp::WriteLocalNet();
+    if (myHelper::showMessageBoxQusetion("需重启生效!!!")!=0){
+        system("reboot");
+    }
 }
 //*************************************本机网络结束*************************************************/
 
@@ -638,4 +642,114 @@ void frmconfig::mouseReleaseEvent(QMouseEvent *)
         system("echo 0 > /sys/class/backlight/backlight/brightness");
     }
     blk_time = 120;
+}
+
+void frmconfig::UsbUpgrade(int flag){
+    char output[64];
+    char upgrade_command[128];
+    if(0 == access(DBDATA_UPGRADE_USB1_PATH,R_OK|W_OK)){
+        snprintf(upgrade_command,sizeof(upgrade_command),"ls %szlkzq_[0-9]_[0-9]_[0-9].zip | sed -n '$p'",DBDATA_UPGRADE_USB1_PATH);
+    }else if(0 == access(DBDATA_UPGRADE_USB2_PATH,R_OK|W_OK)){
+        snprintf(upgrade_command,sizeof(upgrade_command),"ls %szlkzq_[0-9]_[0-9]_[0-9].zip | sed -n '$p'",DBDATA_UPGRADE_USB2_PATH);
+    }else{
+        myHelper::showMessageBoxInfo(QString("U盘未识别!!!"));
+        return;
+    }
+    get_system_output(upgrade_command, output, sizeof(output));
+    qDebug()<<QString("upgrade_command1:%1").arg(upgrade_command);
+    if('/' == output[0] && 'm' == output[1]){
+        if(QMessageBox::warning(this,NULL,QString("是否立即升级程序:%1").arg(output),QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes) == QMessageBox::Yes){
+            snprintf(upgrade_command,sizeof(upgrade_command),"unzip -o %s -d /mnt/nandflash/",output);
+            qDebug()<<QString("upgrade_command2:%1").arg(upgrade_command);
+            system(upgrade_command);
+            system("chmod +x /mnt/nandflash/install.sh");
+            if(0 == flag){
+                qDebug()<<QString("/mnt/nandflash/install.sh init");
+                system("/mnt/nandflash/install.sh init");
+            }else if(1 == flag){
+                qDebug()<<QString("/mnt/nandflash/install.sh initshm");
+                system("/mnt/nandflash/install.sh initshm");
+            }else{
+                qDebug()<<QString("/mnt/nandflash/install.sh");
+                system("/mnt/nandflash/install.sh");
+            }
+        }
+    }
+}
+
+void frmconfig::on_btn_UsbUpgrade_clicked()
+{
+    ui->label_usbinfo->setText("正在升级，升级完自动重启");
+    this->UsbUpgrade(2);
+    ui->label_usbinfo->setText("");
+}
+
+void frmconfig::on_btn_UsbUpgradeData_clicked()
+{
+    ui->label_usbinfo->setText("正在升级，升级完自动重启");
+    this->UsbUpgrade(1);
+    ui->label_usbinfo->setText("");
+}
+
+void frmconfig::on_btn_UsbUpgradeFactory_clicked()
+{
+    ui->label_usbinfo->setText("正在升级，升级完自动重启");
+    this->UsbUpgrade(0);
+    ui->label_usbinfo->setText("");
+}
+
+void frmconfig::on_btn_ParaInit_clicked()
+{
+    if(QMessageBox::warning(this,NULL,QString("是否初始化参数"),QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes) == QMessageBox::Yes){
+        system("rm -rf /mnt/nandflash/para/fs_para.dat");
+        system("rm -rf /mnt/nandflash/shm/shm_para");
+        if (myHelper::showMessageBoxQusetion("需重启生效!!!")!=0){
+            system("reboot");
+        }
+    }
+}
+
+void frmconfig::on_btn_DataInit_clicked()
+{
+    if(QMessageBox::warning(this,NULL,QString("是否初始化数据"),QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes) == QMessageBox::Yes){
+        system("rm -rf /mnt/nandflash/para/fs_data.dat");
+        system("rm -rf /mnt/nandflash/shm/shm_data");
+        system("rm -rf /mnt/nandflash/para/fs_valve_para.dat");
+        system("rm -rf /mnt/nandflash/shm/shm_valve_para");
+        if (myHelper::showMessageBoxQusetion("需重启生效!!!")!=0){
+            system("reboot");
+        }
+    }
+}
+
+void frmconfig::on_btn_NetParaInit_clicked()
+{
+    if(QMessageBox::warning(this,NULL,QString("是否初始化网络参数"),QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes) == QMessageBox::Yes){
+        system("rm -rf /mnt/nandflash/para/fs_net_para.dat");
+        system("rm -rf /mnt/nandflash/shm/shm_net_para");
+        if (myHelper::showMessageBoxQusetion("需重启生效!!!")!=0){
+            system("reboot");
+        }
+    }
+}
+
+void frmconfig::on_btn_DBInit_clicked()
+{
+    char command[128];
+    if(QMessageBox::warning(this,NULL,QString("是否删除数据库"),QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes) == QMessageBox::Yes){
+        QByteArray ba = QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toLatin1();
+        snprintf(command,sizeof(command),"cp -f /mnt/sdcard/zlkzq.db /mnt/sdcard/%s.db",ba.data());
+        system(command);
+        sleep(1);
+        system("rm -rf /mnt/sdcard/zlkzq.db ");
+        sleep(1);
+        system("reboot");
+    }
+}
+
+void frmconfig::on_btn_reboot_clicked()
+{
+    if (myHelper::showMessageBoxQusetion("确定立即重启系统?")!=0){
+        system("reboot");
+    }
 }

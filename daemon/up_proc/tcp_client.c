@@ -58,10 +58,10 @@ static int send_message_to_server(void *arg, char* pSendBuf){
         usleep(500000);
     }
 	if(iSendLen <= 0){
-		DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] retry\n");
+		DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] retry [port:%d dstip:%s]\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
         return TINZ_ERROR;
 	}
-    DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] write Date Len to server (%d) : %s\n",iSendLen, pSendBuf);
+    DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] write Date Len to server[port:%d dstip:%s] len(%d) : %s\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp,iSendLen, pSendBuf);
     return iSendLen;
 
 }
@@ -76,13 +76,14 @@ static void message_buf_clear_func(){
             res = 0;
             pmsgData = &pgmsgbuff->Data[iLoop];
             pmsgData->waittime += 1;
-            DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] clear1 pmsgData->waittime=%d OverTime=%d flag=%d\n",pmsgData->waittime,pgPara->GeneralPara.OverTime,pmsgData->flag);
+            //DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] clear1 pmsgData->waittime=%d OverTime=%d flag=%d\n",pmsgData->waittime,pgPara->GeneralPara.OverTime,pmsgData->flag);
 
             if(1 == (pmsgData->flag & 0x01)){//无需应答，直接清空  
 
                 for(jLoop =0;jLoop<SITE_CNT;jLoop++){
                     /*判断服务端是否打开，并且保持连接*/
-                    if(1 == pserver->channes[jLoop].tcplink->ServerOpen && 1 == pserver->channes[jLoop].tcplink->isConnected){
+                    //if(1 == pserver->channes[jLoop].tcplink->ServerOpen && 1 == pserver->channes[jLoop].tcplink->isConnected){
+                    if(1 == pserver->channes[jLoop].tcplink->ServerOpen){
                         /*判断报文是否已有应答*/
                         //DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] SITE_CNT[%d] IsRespond[%d]\n",jLoop,pmsgData->IsRespond[jLoop]);
                         if(0 == pmsgData->IsRespond[jLoop]){ 
@@ -160,7 +161,8 @@ static void tcpclient_thread_send()
         message_buf_clear_func();
         //PowerState();
         //ValvePowerState();
-        if(pgValveControl->per == pgValveControl->per_last){//非控阀过程 控阀过程中不上报阀门状态
+        if(pgValveControl->per == pgValveControl->per_last \
+            && pgValveControl->per <= 100){//非控阀过程 控阀过程中不上报阀门状态
             state_per = abs(pgValveControl->per - pgValveControl->per_measure)>5 ? pgValveControl->per_measure : pgValveControl->per;
             if( abs(pgValveControl->per_alarm - state_per)>5){
                 Insert_Message_Data(CN_GetValveStatus,0);
@@ -177,8 +179,10 @@ static void tcpclient_thread_send()
 static void tcpclient_thread_recv(void * arg)
 {
     int tcplink_rtycnt = 0;
-    int iRecvLen;
+    int iRecvLen,MessageLen,iLoop;
     TcpClientDev *pdev = (TcpClientDev *)arg;
+    char* end = NULL;
+    char* pos = NULL;
 	char* pRecvBuf = (char*)malloc(RECVBUF_LEN);
     
     pdev->packet_send_handle = (packet_send_cb)send_message_to_server;
@@ -192,40 +196,66 @@ static void tcpclient_thread_recv(void * arg)
     	} 
      
      	if(TINZ_ERROR == tcplink_connect(pdev)){
-            close(pdev->dev_fd);
-            sleep(3);
+            sleep(30); 
             continue;
         }
     	/* 连接成功了 */ 
     	//pdev->tcplink->isConnected = 1;
-    	DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] tcp link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
+    	DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] dev_fd[%d] tcp link[port:%d dstip:%s] connect success\n",pdev->dev_fd,pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
 
     	while(1){
     		
     		memset(pRecvBuf,0,RECVBUF_LEN);
     		iRecvLen = recv_message_from_server(pdev, pRecvBuf);
-    		if(iRecvLen > 0 && iRecvLen < RECVBUF_LEN){
-    			messageProc(pRecvBuf, iRecvLen, NULL, pdev);
-    			DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] receive message from server (%d) :%c:%s:\n", iRecvLen, pRecvBuf[0],pRecvBuf);
-    		}else{
-    			DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] receive message from server error[%d] pdev->dev_fd[%d]\n",iRecvLen,pdev->dev_fd);
+    		if(iRecvLen > 0 && iRecvLen < RECVBUF_LEN){  
+                DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] receive message from server[port:%d dstip:%s] (%d) :%c:%s:\n", pdev->tcplink->ServerPort,pdev->tcplink->ServerIp, iRecvLen, pRecvBuf[0],pRecvBuf);
+                pos = pRecvBuf;
+                for(iLoop=0;iLoop<10;iLoop++){//最多解析10个包
+                    end = strstr(pos,"\x0d\x0a");
+                    if(NULL != end && end > pos) {
+                        MessageLen = end - pos + 3;
+                        messageProc(pos, MessageLen, NULL, pdev);
+                        pos = end + 2;
+                        if(pos>=pRecvBuf+iRecvLen){break;}
+                	}else{
+                        break;
+                    }
+                }
+            }else{
+    			DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] receive message from server[port:%d dstip:%s] error[%d] pdev->dev_fd[%d]\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp,iRecvLen,pdev->dev_fd);
                 /* 客户程序重新发起连接请求 */ 
                 pdev->tcplink->isConnected = 0;
                 if(-1 == iRecvLen || -1 == pdev->dev_fd){
-                    /* 客户程序开始建立 sockfd描述符 */
-                    DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] Socket[%d] close start:\n",pdev->dev_fd);
-                    close(pdev->dev_fd);
-                    DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] Socket[%d] close end:\n",pdev->dev_fd);
-                	if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
+                    /*fd_flag = 0;
+                    for(iLoop=0;iLoop<SITE_CNT;iLoop++){
+                        if(pserver->channes[iLoop].tcplink->ServerOpen){
+                            if(pserver->channes[iLoop].tcplink->SiteNum != pdev->tcplink->SiteNum){
+                                if(pserver->channes[iLoop].dev_fd == pdev->dev_fd){
+                                    fd_flag = 1; 
+                                    break;
+                                }
+                            }
+                        }
+                    }*/
+                    if(-1 != pdev->dev_fd){
+                        /* 客户程序开始建立 sockfd描述符 */
+                        DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] [port:%d dstip:%s] Socket[%d] close start:\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp,pdev->dev_fd);
+                        close(pdev->dev_fd);
+                        DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] [port:%d dstip:%s] Socket[%d] close end:\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp,pdev->dev_fd);
+
+                     }
+                    if((pdev->dev_fd=socket(AF_INET,SOCK_STREAM,0))==-1) // AF_INET:Internet;SOCK_STREAM:TCP
                 	{ 
-                		DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] Socket Error:\n"); 
+                		DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] [port:%d dstip:%s] Socket Error:\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp); 
                 	}else{
-                        DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] Socket[%d] success:\n",pdev->dev_fd);
+                        DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] [port:%d dstip:%s] Socket[%d] success:\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp,pdev->dev_fd);
                     }
+                    //}
                 }
                 if(-1 != pdev->dev_fd){ 
                 	if(TINZ_ERROR == tcplink_connect(pdev)){               
                         DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] tcp retry[%d] link[port:%d dstip:%s] connect fail\n",tcplink_rtycnt,pdev->tcplink->ServerPort,pdev->tcplink->ServerIp); 
+                        sleep(60);
                     }else{
                         tcplink_rtycnt = 0;
                         DEBUG_PRINT_INFO(gPrintLevel,"[up_proc] tcp retry link[port:%d dstip:%s] connect success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
@@ -257,10 +287,12 @@ static int tcplink_connect(TcpClientDev *pdev){
 	{ 
         DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] tcp link[port:%d dstip:%s] connect Error\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
 		close(pdev->dev_fd);
+        pdev->dev_fd = -1;
+        pdev->tcplink->isConnected = 0;
 		return TINZ_ERROR;
-	}
-    DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] tcplink_connect success\n");
+	} 
     pdev->tcplink->isConnected = 1;
+    DEBUG_PRINT_ERR(gPrintLevel,"[up_proc] tcplink_connect[port:%d dstip:%s] success\n",pdev->tcplink->ServerPort,pdev->tcplink->ServerIp);
     return TINZ_OK;
 }
 

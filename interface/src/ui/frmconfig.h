@@ -71,6 +71,22 @@ private slots:
 
     void on_btn_VPN_clicked();
 
+    void on_btn_UsbUpgrade_clicked();
+
+    void on_btn_UsbUpgradeData_clicked();
+
+    void on_btn_UsbUpgradeFactory_clicked();
+
+    void on_btn_ParaInit_clicked();
+
+    void on_btn_DataInit_clicked();
+
+    void on_btn_NetParaInit_clicked();
+
+    void on_btn_DBInit_clicked();
+
+    void on_btn_reboot_clicked();
+
 private:
     Ui::frmconfig *ui;
 
@@ -86,6 +102,7 @@ private:
     bool AddParaIsLegal();
     void InitParaInfoModel();
     void ReadParaInfo();
+    void UsbUpgrade(int flag);
 protected:
     void mouseReleaseEvent(QMouseEvent*);
 };

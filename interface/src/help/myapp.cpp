@@ -140,7 +140,7 @@ void Myapp::WriteLocalNet()
     }
  readfile.close();
   QStringList strList;
- QFile writeFile(Myapp::AppPath+"userinfo.txt");
+ QFile writeFile(Myapp::AppPath+"../userinfo.txt");
  if(writeFile.open(QIODevice::WriteOnly|QIODevice::Text))
  {
          QTextStream stream(&writeFile);

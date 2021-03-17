@@ -83,5 +83,4 @@ inline int32_t int32_div_uint32(int32_t a, int32_t b);
 inline int32_t int64_div_uint32(int64_t a, int32_t b);
 inline void maxmin_int32(int32_t *max,int32_t *min,int32_t data);
 inline uint8_t uint16_div_uint16_to_rate(uint16_t a, uint16_t b);
-
 #endif

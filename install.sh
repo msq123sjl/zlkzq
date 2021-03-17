@@ -4,15 +4,9 @@ cd ${MYPATH}
 cp /mnt/nandflash/para/fs_para.conf /mnt/nandflash/para/fs_para.conf.bak
 cp /mnt/nandflash/para/fs_net_para.conf /mnt/nandflash/para/fs_net_para.conf.bak
 /mnt/nandflash/bin/config_para export
-ARG=$1
-if [ ! -z $ARG ]
-then
-    if [[ $ARG = "init" ]]
-    then
-        rm -rf /mnt/nandflash/shm/shm_*
-        rm -rf /mnt/nandflash/para/*.dat
-    fi
-fi
+
+
+test -e /mnt/nandflash/para/watchdog.conf || /bin/mv /mnt/nandflash/scy/para/watchdog.conf /mnt/nandflash/para/watchdog.conf
 #test -f ./nandflash.tar.gz && rm ./nandflash.tar.gz
 #tar cvzf nandflash.tar.gz /mnt/nandflash/
 
@@ -49,13 +43,43 @@ test -d ./msg || mkdir -p ./msg
 test -d ./shm || mkdir -p ./shm
 
 /bin/mv ./${NAME}/*.sh /mnt/nandflash/
-test -f ./${NAME}/userinfo.txt && /bin/mv ./${NAME}/userinfo.txt /mnt/nandflash/
+test -e ./userinfo.txt || /bin/mv ./${NAME}/userinfo.txt /mnt/nandflash/
 /bin/mv ./${NAME}/bin/*.so /lib/
 /bin/mv ./${NAME}/bin/* /mnt/nandflash/bin/
-/bin/mv ./${NAME}/para/* /mnt/nandflash/para/
-/bin/mv ./${NAME}/4G/* /mnt/nandflash/4G/
-
 chmod -R +x /mnt/nandflash/
-/mnt/nandflash/4G/4G_install.sh
+ARG=$1
+rm -rf /mnt/nandflash/para/fs_para.dat
+rm -rf /mnt/nandflash/shm/shm_para
+#rm -rf /mnt/sdcard/scy.db
+#rm -rf /mnt/sdcard/info.db
+if [ ! -z $ARG ]
+then
+    if [[ $ARG = "init" ]]
+    then    
+        rm -rf /mnt/nandflash/para/fs_data.dat
+        rm -rf /mnt/nandflash/shm/shm_data     
+	rm -rf /mnt/nandflash/para/fs_valve_para.dat
+        rm -rf /mnt/nandflash/shm/shm_valve_para
+        /bin/mv ./${NAME}/para/* /mnt/nandflash/para/
+        /bin/mv ./${NAME}/4G/* /mnt/nandflash/4G/
+        /mnt/nandflash/4G/4G_install.sh
+        echo "init"
+    elif [[ $ARG = "initshm" ]]
+    then
+        rm -rf /mnt/nandflash/para/fs_data.dat
+        rm -rf /mnt/nandflash/shm/shm_data
+	rm -rf /mnt/nandflash/para/fs_valve_para.dat
+        rm -rf /mnt/nandflash/shm/shm_valve_para
+        /mnt/nandflash/bin/config_para import
+        echo "initshm"
+    else
+        /mnt/nandflash/bin/config_para import
+        echo "install $ARG"
+    fi
+else
+    /mnt/nandflash/bin/config_para import
+    echo "install"
+fi
+
 rm -rf ./${NAME}
 reboot
